@@ -15,8 +15,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "drbqs"
   gem.homepage = "http://github.com/ytaka/drbqs"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = "dRuby Queueing System"
+  gem.description = "Queuing system over network that is implemented by dRuby."
   gem.email = "d@ytak.info"
   gem.authors = ["Takayuki YAMAGUCHI"]
   # Include your dependencies below. Runtime dependencies are required when using your gem,
