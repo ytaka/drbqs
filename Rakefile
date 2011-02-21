@@ -14,7 +14,7 @@ Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
   gem.name = "drbqs"
   gem.homepage = "http://github.com/ytaka/drbqs"
-  gem.license = "MIT"
+  gem.license = "GPL3"
   gem.summary = "dRuby Queueing System"
   gem.description = "Queuing system over network that is implemented by dRuby."
   gem.email = "d@ytak.info"
