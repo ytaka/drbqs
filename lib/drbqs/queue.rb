@@ -8,7 +8,10 @@ module DRbQS
       rescue
         raise "Can not dump an instance of #{obj.class}."
       end
-      @method_sym = method_sym
+      unless Array === args
+        raise "Arguments of task must be an array."
+      end
+      @method_sym = method_sym.intern
       @args = args
       @hook = hook
     end
