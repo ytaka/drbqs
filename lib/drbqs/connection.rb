@@ -1,3 +1,5 @@
+require 'socket'
+
 module DRbQS
   # The class of connection to s.erver.
   class ConnectionClient
@@ -9,7 +11,7 @@ module DRbQS
 
     def create_id_string
       t = Time.now
-      sprintf("%d%d%d", t.to_i, t.usec, rand(1000))
+      sprintf("#{Socket.gethostname} %d%d%d", t.to_i, t.usec, rand(1000))
     end
     private :create_id_string
 
