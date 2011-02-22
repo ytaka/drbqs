@@ -12,11 +12,20 @@ module DRbQS
       @task_client = nil
     end
 
+    def execute_task(marshal_obj, method_sym, args)
+      obj = Marshal.load(marshal_obj)
+      obj.__send__(method_sym, *args)
+    end
+    private :execute_task
+
     def connect
       obj = DRbObject.new_with_uri(@access_uri)
       @connection = ConnectionClient.new(obj[:message], @logger)
       node_id = @connection.get_id
       @task_client = TaskClient.new(node_id, obj[:queue], obj[:result], @logger)
+      if ary = @connection.get_initialization
+        execute_task(*ary)
+      end
     end
 
     def calculate
@@ -31,9 +40,7 @@ module DRbQS
       exec = Thread.new do
         loop do
           marshal_obj, method_sym, args = @task_client.get
-          obj = Marshal.load(marshal_obj)
-          result = obj.__send__(method_sym, *args)
-          @task_client.transmit(result)
+          @task_client.transmit(execute_task(marshal_obj, method_sym, args))
         end
       end
       exec.join
