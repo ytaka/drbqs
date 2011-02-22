@@ -87,6 +87,17 @@ module DRbQS
     def node_not_exist?
       @node_list.empty?
     end
+
+    # If the task has already set,
+    # the method overwrite old task of initialization by new task.
+    def set_initialization(task)
+      begin
+        @message.take([:initialize, nil, Symbol, nil], 0)
+      rescue
+      end
+      @message.write(task.drb_args(:initialize))
+    end
+
   end
 
 end

@@ -54,6 +54,10 @@ module DRbQS
     end
     private :check_connection
 
+    def set_initialization_task(task)
+      @message.set_initialization(task)
+    end
+
     def set_empty_queue_hook(&block)
       if block_given?
         @empty_queue_hook = block

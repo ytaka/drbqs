@@ -19,6 +19,15 @@ module DRbQS
       @id = @message.take([s, Fixnum])[1]
     end
 
+    def get_initialization
+      begin
+        ary = @message.read([:initialize, nil, Symbol, nil], 0)
+        ary[1..-1]
+      rescue
+        nil
+      end
+    end
+
     def respond_alive_signal
       begin
         node_id, sym = @message.take([@id, Symbol], 0)
