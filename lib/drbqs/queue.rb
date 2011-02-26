@@ -67,8 +67,9 @@ module DRbQS
       begin
         loop do
           sym, task_id, result = @result.take([:result, Fixnum, nil], 0)
-          @logger.info("Get: result of #{task_id}.") if @logger
-          @calculating.delete(task_id)
+          node_id = @calculating.key(task_id)
+          @logger.info("Get: result of #{task_id} from node #{node_id}.") if @logger
+          @calculating.delete(node_id)
           task = @cache.delete(task_id)
           if hook = task.hook
             hook.call(self, result)
