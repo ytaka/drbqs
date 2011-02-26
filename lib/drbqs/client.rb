@@ -43,7 +43,6 @@ module DRbQS
           @task_client.transmit(execute_task(marshal_obj, method_sym, args))
         end
       end
-      exec.join
       cn.join
     end
   end
