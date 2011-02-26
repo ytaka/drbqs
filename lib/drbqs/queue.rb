@@ -47,9 +47,11 @@ module DRbQS
 
     def get_accept_signal
       begin
-        sym, task_id, node_id = @result.take([:accept, Fixnum, Fixnum], 0)
-        @calculating[node_id] = task_id
-        @logger.info("Accept: task #{task_id} by node #{node_id}.") if @logger
+        loop do
+          sym, task_id, node_id = @result.take([:accept, Fixnum, Fixnum], 0)
+          @calculating[node_id] = task_id
+          @logger.info("Accept: task #{task_id} by node #{node_id}.") if @logger
+        end
       rescue
       end
     end
@@ -66,6 +68,7 @@ module DRbQS
     def get_result
       begin
         loop do
+          get_accept_signal
           sym, task_id, result = @result.take([:result, Fixnum, nil], 0)
           node_id = @calculating.key(task_id)
           @logger.info("Get: result of #{task_id} from node #{node_id}.") if @logger
