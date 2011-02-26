@@ -101,6 +101,7 @@ module DRbQS
       loop do
         @message.get_message
         check_connection
+        @queue.get_accept_signal
         @queue.get_result
         exec_hook
         sleep(1)

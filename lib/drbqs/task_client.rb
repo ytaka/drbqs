@@ -16,7 +16,8 @@ module DRbQS
           task_id, obj, method_sym, args = @queue.take([Fixnum, nil, Symbol, nil], 0)
           @calculating_task = task_id
           @task_queue.enq([obj, method_sym, args])
-          @result.write([:accept, task_id, @node_id])
+          @logger.info("Send accept signal: node #{@node_id} caluclating #{@calculating_task}") if @logger
+          @result.write([:accept, @calculating_task, @node_id])
         rescue
         end
       end
