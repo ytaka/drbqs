@@ -87,6 +87,7 @@ module DRbQS
     private :exec_hook
 
     WAIT_NODE_EXIT = 3
+    WAIT_NEW_RESULT = 1
 
     def exit
       @message.send_exit
@@ -101,9 +102,11 @@ module DRbQS
       loop do
         @message.get_message
         check_connection
-        @queue.get_result
+        count_results = @queue.get_result
         exec_hook
-        sleep(1)
+        if count_results <= 1
+          sleep(WAIT_NEW_RESULT)
+        end
       end
     end
   end

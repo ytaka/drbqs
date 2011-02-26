@@ -66,10 +66,12 @@ module DRbQS
     end
 
     def get_result
+      count = 0
       begin
         loop do
           get_accept_signal
           sym, task_id, result = @result.take([:result, Fixnum, nil], 0)
+          count += 1
           node_id = @calculating.key(task_id)
           @logger.info("Get: result of #{task_id} from node #{node_id}.") if @logger
           @calculating.delete(node_id)
@@ -80,6 +82,7 @@ module DRbQS
         end
       rescue
       end
+      count
     end
 
     # If queue is empty, return true. Otherwise, false.

@@ -28,13 +28,15 @@ module DRbQS
       end
     end
 
+    WAIT_NEW_TASK = 1
+
     def calculate
       cn = Thread.new do
         loop do
           @task_client.add_new_task
           @connection.respond_alive_signal
           @task_client.send_result
-          sleep(1)
+          sleep(WAIT_NEW_TASK)
         end
       end
       exec = Thread.new do
