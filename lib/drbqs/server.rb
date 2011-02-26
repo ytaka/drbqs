@@ -104,6 +104,7 @@ module DRbQS
         check_connection
         count_results = @queue.get_result
         exec_hook
+        @logger.info("Calculating tasks: #{@queue.calculating_task_number}") if @logger
         if count_results <= 1
           sleep(WAIT_NEW_RESULT)
         end

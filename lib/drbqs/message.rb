@@ -93,7 +93,7 @@ module DRbQS
     def set_initialization(task)
       begin
         @message.take([:initialize, nil, Symbol, nil], 0)
-      rescue
+      rescue Rinda::RequestExpiredError
       end
       @message.write(task.drb_args(:initialize))
     end

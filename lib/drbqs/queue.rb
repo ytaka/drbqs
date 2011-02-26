@@ -54,7 +54,7 @@ module DRbQS
           @calculating[node_id] << task_id
           @logger.info("Accept: task #{task_id} by node #{node_id}.") if @logger
         end
-      rescue
+      rescue Rinda::RequestExpiredError
         @logger.debug("Accept: #{count} signals.") if @logger
       end
       count
@@ -88,7 +88,7 @@ module DRbQS
             hook.call(self, result)
           end
         end
-      rescue
+      rescue Rinda::RequestExpiredError
         @logger.debug("Get: #{count} results.") if @logger
       end
       count

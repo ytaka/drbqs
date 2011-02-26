@@ -25,7 +25,7 @@ module DRbQS
       begin
         ary = @message.read([:initialize, nil, Symbol, nil], 0)
         ary[1..-1]
-      rescue
+      rescue Rinda::RequestExpiredError
         nil
       end
     end
@@ -39,7 +39,7 @@ module DRbQS
         when :exit
           Kernel.exit
         end
-      rescue
+      rescue Rinda::RequestExpiredError
       end
     end
   end

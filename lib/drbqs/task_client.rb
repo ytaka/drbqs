@@ -18,7 +18,7 @@ module DRbQS
           @task_queue.enq([obj, method_sym, args])
           @logger.info("Send accept signal: node #{@node_id} caluclating #{@calculating_task}") if @logger
           @result.write([:accept, @calculating_task, @node_id])
-        rescue
+        rescue Rinda::RequestExpiredError
         end
       end
     end
