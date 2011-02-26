@@ -46,14 +46,18 @@ module DRbQS
     end
 
     def get_accept_signal
+      count = 0
       begin
         loop do
           sym, task_id, node_id = @result.take([:accept, Fixnum, Fixnum], 0)
+          count += 1
           @calculating[node_id] << task_id
           @logger.info("Accept: task #{task_id} by node #{node_id}.") if @logger
         end
       rescue
+        @logger.debug("Accept: #{count} signals.") if @logger
       end
+      count
     end
 
     def requeue_for_deleted_node_id(deleted)
@@ -85,6 +89,7 @@ module DRbQS
           end
         end
       rescue
+        @logger.debug("Get: #{count} results.") if @logger
       end
       count
     end
