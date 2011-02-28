@@ -18,8 +18,6 @@ module DRbQS
     end
   end
 
-  ROOT_DEFAULT_PORT = 13500
-
   class Server
     attr_reader :queue
 
