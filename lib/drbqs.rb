@@ -9,5 +9,4 @@ require 'rinda/rinda'
 module DRbQS
   autoload :Server, 'drbqs/server'
   autoload :Client, 'drbqs/client'
-  autoload :ACLFile, 'drbqs/acl_file'
 end

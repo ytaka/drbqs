@@ -1,4 +1,5 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+require 'drbqs/acl_file'
 
 describe DRbQS::ACLFile do
   it "should return an ACL object" do
