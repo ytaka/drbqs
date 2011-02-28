@@ -1,6 +1,62 @@
 = drbqs
 
-Description goes here.
+Task queuing system over network that is implemented by dRuby.
+
+== Usage
+
+=== Preparation
+
+We prepare a class to send tasks over network,
+which has data and a method to deal with tasks.
+
+We make sum.rb as the following.
+
+ class Sum
+   def initialize(start_num, end_num)
+     @num = [start_num, end_num]
+   end
+ 
+   def exec
+     (@num[0]..@num[1]).inject(0) { |sum, i| sum += i }
+   end
+ end
+
+The Sum class calculates sum of numbers from start_num to end_num.
+The task we want to calculate is summation of numbers.
+
+=== Start server
+
+We make server.rb as the following.
+
+ require_relative 'sum.rb'
+ 
+ DRbQS.define_server do |server|
+   10.step(100, 10) do |i|
+     task = DRbQS::Task.new(Sum.new(i - 10, i), :exec)
+     server.queue.add(task)
+   end
+ 
+   server.set_finish_hook do |serv|
+     serv.exit
+   end
+ end
+
+In terminal, we load server.rb and execute server of drbqs.
+
+ drbqs-server server.rb -p 13500
+
+=== Start node and connect server
+
+We type in terminal.
+
+ drbqs-node druby://localhost:13500/
+
+To use two cpu cores we execute two processes by the following.
+
+ drbqs-node 2 druby://localhost:13500/
+
+Then, if it succeeds, the calculation starts.
+If it finishes, the server and node ends.
 
 == Contributing to drbqs
  

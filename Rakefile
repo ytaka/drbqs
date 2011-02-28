@@ -16,7 +16,7 @@ Jeweler::Tasks.new do |gem|
   gem.homepage = "http://github.com/ytaka/drbqs"
   gem.license = "GPL3"
   gem.summary = "dRuby Queueing System"
-  gem.description = "Queuing system over network that is implemented by dRuby."
+  gem.description = "Task queuing system over network that is implemented by dRuby."
   gem.email = "d@ytak.info"
   gem.authors = ["Takayuki YAMAGUCHI"]
   # Include your dependencies below. Runtime dependencies are required when using your gem,
