@@ -1,0 +1,57 @@
+#!/usr/bin/env ruby
+
+require 'drbqs'
+require 'optparse'
+
+Version = '0.0.1'
+
+help_message =<<HELP
+#{File.basename(__FILE__)} server_definition.rb [other files ...]
+HELP
+
+options = {
+  :log_file => STDOUT
+}
+
+begin
+  OptionParser.new(help_message) do |opt|
+    opt.on('--acl FILE', String, 'Set a file to define ACL.') do |v|
+      options[:acl] = v
+    end
+    opt.on('--log-file STR', String, "Set the path of log file. If this options is not set, use STDOUT.") do |v|
+      options[:log_file] = v
+    end
+    opt.on('--log-level LEVEL', String,
+           "Set the log level. The value accepts 'fatal', 'error', 'warn', 'info', and 'debug'. The default is 'error'.") do |v|
+      if /^(fatal)|(error)|(warn)|(info)|(debug)$/i =~ v
+        options[:log_level] = eval("Logger::#{v.upcase}")
+      else
+        raise "Invalid log level."
+      end
+    end
+    opt.parse!(ARGV)
+  end
+rescue OptionParser::InvalidOption
+  $stderr.print <<MES
+error: Invalid Option
+#{help_message}
+MES
+  exit(2)
+rescue OptionParser::InvalidArgument
+  $stderr.print <<MES
+error: Invalid Argument
+#{help_message}
+MES
+  exit(2)
+end
+
+if ARGV.size == 0 || !File.exist?(ARGV[0])
+  raise "Invalid arguments. Please refer '#{File.basename(__FILE__)} -h'."
+end
+
+ARGV.each do |path|
+  puts "load #{path}"
+  load path
+end
+
+DRbQS.start_server(options)

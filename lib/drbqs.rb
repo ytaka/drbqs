@@ -6,6 +6,8 @@ require 'drb/acl'
 require 'rinda/tuplespace'
 require 'rinda/rinda'
 
+require 'drbqs/server_define'
+
 module DRbQS
   autoload :Server, 'drbqs/server'
   autoload :Client, 'drbqs/client'

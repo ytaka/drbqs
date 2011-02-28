@@ -21,6 +21,11 @@ module DRbQS
   class Server
     attr_reader :queue
 
+    # :port
+    # :acl
+    # :log_file
+    # :log_level
+    # :check_alive
     def initialize(opts = {})
       @port = opts[:port] || ROOT_DEFAULT_PORT
       @acl = acl_init(opts[:acl])
