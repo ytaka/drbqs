@@ -1,5 +1,6 @@
 require 'drbqs/message'
 require 'drbqs/queue'
+require 'drbqs/acl_file'
 
 module DRbQS
   class CheckAlive
@@ -24,7 +25,7 @@ module DRbQS
 
     def initialize(opts = {})
       @port = opts[:port] || ROOT_DEFAULT_PORT
-      @acl = opts[:acl]
+      @acl = acl_init(opts[:acl])
       @ts = {
         :message => Rinda::TupleSpace.new,
         :queue => Rinda::TupleSpace.new,
@@ -37,6 +38,18 @@ module DRbQS
       @check_alive = CheckAlive.new(opts[:check_alive])
       @empty_queue_hook = nil
     end
+
+    def acl_init(acl_arg)
+      case acl_arg
+      when Array
+        ACL.new(acl_arg)
+      when String
+        ACLFile.load(acl_arg)
+      else
+        nil
+      end
+    end
+    private :acl_init
 
     def start
       DRb.install_acl(@acl) if @acl
