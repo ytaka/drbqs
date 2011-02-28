@@ -31,8 +31,12 @@ module DRbQS
         :queue => Rinda::TupleSpace.new,
         :result => Rinda::TupleSpace.new
       }
-      @logger = Logger.new(opts[:log_file] || 'drbqs_server.log')
-      @logger.level = opts[:log_level] || Logger::ERROR
+      if opts[:log_file]
+        @logger = Logger.new(opts[:log_file])
+        @logger.level = opts[:log_level] || Logger::ERROR
+      else
+        @logger = nil
+      end
       @message = MessageServer.new(@ts[:message], @logger)
       @queue= QueueServer.new(@ts[:queue], @ts[:result], @logger)
       @check_alive = CheckAlive.new(opts[:check_alive])
