@@ -5,15 +5,14 @@
 
 Gem::Specification.new do |s|
   s.name = %q{drbqs}
-  s.version = "0.0.3"
+  s.version = "0.0.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Takayuki YAMAGUCHI"]
-  s.date = %q{2011-02-28}
-  s.default_executable = %q{drbqs-node}
-  s.description = %q{Queuing system over network that is implemented by dRuby.}
+  s.date = %q{2011-03-01}
+  s.description = %q{Task queuing system over network that is implemented by dRuby.}
   s.email = %q{d@ytak.info}
-  s.executables = ["drbqs-node"]
+  s.executables = ["drbqs-node", "drbqs-server"]
   s.extra_rdoc_files = [
     "LICENSE.txt",
     "README.rdoc"
@@ -27,6 +26,7 @@ Gem::Specification.new do |s|
     "Rakefile",
     "VERSION",
     "bin/drbqs-node",
+    "bin/drbqs-server",
     "drbqs.gemspec",
     "lib/drbqs.rb",
     "lib/drbqs/acl_file.rb",
@@ -35,6 +35,7 @@ Gem::Specification.new do |s|
     "lib/drbqs/message.rb",
     "lib/drbqs/queue.rb",
     "lib/drbqs/server.rb",
+    "lib/drbqs/server_define.rb",
     "lib/drbqs/task_client.rb",
     "spec/acl_file_spec.rb",
     "spec/data/acl.txt",
