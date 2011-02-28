@@ -15,6 +15,9 @@ options = {
 
 begin
   OptionParser.new(help_message) do |opt|
+    opt.on('-p PORT', '--port', Integer, 'Set the port number of server.') do |v|
+      options[:port] = v
+    end
     opt.on('--acl FILE', String, 'Set a file to define ACL.') do |v|
       options[:acl] = v
     end
