@@ -5,13 +5,15 @@
 
 Gem::Specification.new do |s|
   s.name = %q{drbqs}
-  s.version = "0.0.2"
+  s.version = "0.0.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Takayuki YAMAGUCHI"]
-  s.date = %q{2011-02-27}
+  s.date = %q{2011-02-28}
+  s.default_executable = %q{drbqs-node}
   s.description = %q{Queuing system over network that is implemented by dRuby.}
   s.email = %q{d@ytak.info}
+  s.executables = ["drbqs-node"]
   s.extra_rdoc_files = [
     "LICENSE.txt",
     "README.rdoc"
@@ -24,15 +26,20 @@ Gem::Specification.new do |s|
     "README.rdoc",
     "Rakefile",
     "VERSION",
+    "bin/drbqs-node",
     "drbqs.gemspec",
     "lib/drbqs.rb",
+    "lib/drbqs/acl_file.rb",
     "lib/drbqs/client.rb",
     "lib/drbqs/connection.rb",
     "lib/drbqs/message.rb",
     "lib/drbqs/queue.rb",
     "lib/drbqs/server.rb",
     "lib/drbqs/task_client.rb",
+    "spec/acl_file_spec.rb",
+    "spec/data/acl.txt",
     "spec/drbqs_spec.rb",
+    "spec/server_spec.rb",
     "spec/spec_helper.rb"
   ]
   s.homepage = %q{http://github.com/ytaka/drbqs}
@@ -41,7 +48,9 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.5.2}
   s.summary = %q{dRuby Queueing System}
   s.test_files = [
+    "spec/acl_file_spec.rb",
     "spec/drbqs_spec.rb",
+    "spec/server_spec.rb",
     "spec/spec_helper.rb"
   ]
 
