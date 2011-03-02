@@ -67,7 +67,7 @@ module DRbQS
 
     def check_connection(force = nil)
       if force || @check_alive.significant_interval?
-        @logger.info("Check connection") if @logger
+        @logger.debug("Check connection") if @logger
         @message.check_connection
         @check_alive.set_checking
       end
@@ -124,7 +124,7 @@ module DRbQS
         check_connection
         count_results = @queue.get_result
         exec_hook
-        @logger.info("Calculating tasks: #{@queue.calculating_task_number}") if @logger
+        @logger.debug("Calculating tasks: #{@queue.calculating_task_number}") if @logger
         if count_results <= 1
           sleep(WAIT_NEW_RESULT)
         end

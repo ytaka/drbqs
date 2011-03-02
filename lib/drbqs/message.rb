@@ -54,11 +54,11 @@ module DRbQS
     end
 
     def manage_message(mes, arg)
-      @logger.debug("Get message") { [mes, arg] } if @logger
+      @logger.info("Get message") { [mes, arg] } if @logger
       case mes
       when :connect
         a = [arg, @node_list.get_new_id(arg)]
-        @logger.debug("New node") { a } if @logger
+        @logger.info("New node") { a } if @logger
         @message.write(a)
       when :alive
         @node_list.set_alive(arg)

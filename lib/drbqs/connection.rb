@@ -19,6 +19,8 @@ module DRbQS
       s = create_id_string
       @message.write([:connect, s])
       @id = @message.take([s, Fixnum])[1]
+      @logger.info("Get node id: #{@id}") if @logger
+      @id
     end
 
     def get_initialization
@@ -36,7 +38,9 @@ module DRbQS
         case sym
         when :alive_p
           @message.write([:alive, @id])
+          @logger.info("Send alive signal of node id #{@id}") if @logger
         when :exit
+          @logger.info("Get exit signal") if @logger
           Kernel.exit
         end
       rescue Rinda::RequestExpiredError
