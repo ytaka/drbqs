@@ -37,6 +37,9 @@ begin
     opt.on('--log-stdout', 'Use stdout for outputting logs. This option cancels --log-prefix.') do |v|
       options[:log_prefix] = nil
     end
+    opt.on('--debug', 'Set $DEBUG true.') do |v|
+      $DEBUG = true
+    end
     opt.parse!(ARGV)
   end
 rescue OptionParser::InvalidOption

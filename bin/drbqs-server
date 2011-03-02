@@ -32,6 +32,9 @@ begin
         raise "Invalid log level."
       end
     end
+    opt.on('--debug', 'Set $DEBUG true.') do |v|
+      $DEBUG = true
+    end
     opt.parse!(ARGV)
   end
 rescue OptionParser::InvalidOption
