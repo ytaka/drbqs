@@ -62,6 +62,9 @@ module DRbQS
         @message.write(a)
       when :alive
         @node_list.set_alive(arg)
+      when :exit_server
+        @logger.info("Get exit message from #{arg.to_s}") if @logger
+        return :exit_server
       else
         puts "Invalid message from #{arg.to_s}"
       end

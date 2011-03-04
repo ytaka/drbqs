@@ -124,9 +124,16 @@ module DRbQS
       end
     end
 
+    def check_message
+      if @message.get_message == :exit_server
+        self.exit
+      end
+    end
+    private :check_message
+
     def wait
       loop do
-        @message.get_message
+        check_message
         check_connection
         count_results = @queue.get_result
         exec_hook

@@ -11,6 +11,7 @@ require 'drbqs/server_define'
 module DRbQS
   autoload :Server, 'drbqs/server'
   autoload :Client, 'drbqs/client'
+  autoload :Manage, 'drbqs/manage'
 
   ROOT_DEFAULT_PORT = 13500
 end
