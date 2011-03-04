@@ -1,0 +1,49 @@
+#!/usr/bin/env ruby
+
+require 'drbqs'
+require 'optparse'
+
+Version = '0.0.1'
+
+help_message =<<HELP
+#{File.basename(__FILE__)} <command> <uri>
+
+<command> is 'exit-signal'.
+HELP
+
+begin
+  OptionParser.new(help_message) do |opt|
+    opt.on('--debug', 'Set $DEBUG true.') do |v|
+      $DEBUG = true
+    end
+    opt.parse!(ARGV)
+  end
+rescue OptionParser::InvalidOption
+  $stderr.print <<MES
+error: Invalid Option
+#{help_message}
+MES
+  exit(2)
+rescue OptionParser::InvalidArgument
+  $stderr.print <<MES
+error: Invalid Argument
+#{help_message}
+MES
+  exit(2)
+end
+
+if ARGV.size != 2
+  raise "Invalid arguments number. Please refer '#{File.basename(__FILE__)} -h'."
+end
+
+command = ARGV[0]
+uri = ARGV[1]
+
+manage = DRbQS::Manage.new(uri)
+
+case command
+when 'exit-signal'
+  manage.send_exit_signal
+else
+  raise "Invalid command: #{command}"
+end
