@@ -118,6 +118,12 @@ module DRbQS
       Kernel.exit
     end
 
+    def set_signal_trap
+      Signal.trap(:TERM) do
+        self.exit
+      end
+    end
+
     def wait
       loop do
         @message.get_message

@@ -15,6 +15,7 @@ module DRbQS
     end
     server = DRbQS::Server.new(options)
     @@server_create.call(server)
+    server.set_signal_trap
     server.start
     server.wait
   end
