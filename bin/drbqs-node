@@ -6,7 +6,9 @@ require 'optparse'
 Version = '0.0.1'
 
 help_message =<<HELP
-#{File.basename(__FILE__)} [uri] [process_number]
+Usage: #{File.basename(__FILE__)} [<uri>] [<process_number>] [options ...]
+Start DRbQS nodes connecting to <uri>.
+
 HELP
 
 LOG_PREFIX_DEFAULT = 'drbqs_node'

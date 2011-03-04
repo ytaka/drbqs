@@ -6,7 +6,9 @@ require 'optparse'
 Version = '0.0.1'
 
 help_message =<<HELP
-#{File.basename(__FILE__)} server_definition.rb [other files ...]
+Usage: #{File.basename(__FILE__)} <definition.rb> [other files ...] [options ...]
+Start DRbQS server of definition files.
+
 HELP
 
 options = {

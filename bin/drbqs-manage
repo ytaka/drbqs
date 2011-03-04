@@ -6,9 +6,10 @@ require 'optparse'
 Version = '0.0.1'
 
 help_message =<<HELP
-#{File.basename(__FILE__)} <command> <uri>
-
+Usage: #{File.basename(__FILE__)} <command> <uri>
+Manage DRbQS server by sending messages.
 <command> is 'exit-signal'.
+
 HELP
 
 begin
