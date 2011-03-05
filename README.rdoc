@@ -30,7 +30,7 @@ We make server.rb as the following.
 
  require_relative 'sum.rb'
  
- DRbQS.define_server do |server|
+ DRbQS.define_server do |server, argv, opts|
    10.step(100, 10) do |i|
      task = DRbQS::Task.new(Sum.new(i - 10, i), :exec)
      server.queue.add(task)
@@ -47,13 +47,15 @@ In terminal, we load server.rb and execute server of drbqs.
 
 === Start node and connect server
 
-We type in terminal.
+Because nodes needs class Sum,
+the nodes load sum.rb when they starts.
+Then, we type in terminal.
 
- drbqs-node druby://localhost:13500/
+ drbqs-node druby://localhost:13500/ -l sum.rb
 
 To use two cpu cores we execute two processes by the following.
 
- drbqs-node 2 druby://localhost:13500/
+ drbqs-node 2 druby://localhost:13500/ -l sum.rb
 
 Then, if it succeeds, the calculation starts.
 If it finishes, the server and node ends.
