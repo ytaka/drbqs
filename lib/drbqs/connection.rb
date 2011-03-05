@@ -6,21 +6,23 @@ module DRbQS
     def initialize(message, logger = nil)
       @message = message
       @logger = logger
-      @id = nil
+      @id_number = nil
+      @id_string = create_id_string
     end
 
     def create_id_string
       t = Time.now
-      sprintf("#{Socket.gethostname} %d%d%d", t.to_i, t.usec, rand(1000))
+      sprintf("%d%d%d:#{Socket.gethostname}", t.to_i, t.usec, rand(1000))
     end
     private :create_id_string
 
     def get_id
-      s = create_id_string
-      @message.write([:connect, s])
-      @id = @message.take([s, Fixnum])[1]
-      @logger.info("Get node id: #{@id}") if @logger
-      @id
+      unless @id_number
+        @message.write([:connect, @id_string])
+        @id_number = @message.take([@id_string, Fixnum])[1]
+        @logger.info("Get node id: #{@id_number}") if @logger
+      end
+      @id_number
     end
 
     def get_initialization
@@ -34,11 +36,11 @@ module DRbQS
 
     def respond_alive_signal
       begin
-        node_id, sym = @message.take([@id, Symbol], 0)
+        node_id, sym = @message.take([@id_number, Symbol], 0)
         case sym
         when :alive_p
-          @message.write([:alive, @id])
-          @logger.info("Send alive signal of node id #{@id}") if @logger
+          @message.write([:alive, @id_number])
+          @logger.info("Send alive signal of node id #{@id_number}") if @logger
         when :exit
           @logger.info("Get exit signal") if @logger
           return :exit
