@@ -40,6 +40,19 @@ module DRbQS
     end
     private :dump_not_send_result_to_file
 
+    def output_error(err)
+      if @logger
+        @logger.error("Raise error in calculating thread: #{err.to_s}") { "\n" + err.backtrace.join("\n") }
+      end
+    end
+    private :output_error
+
+    def process_exit
+      dump_not_send_result_to_file
+      Kernel.exit
+    end
+    private :process_exit
+
     def calculate
       cn = Thread.new do
         begin
@@ -51,9 +64,10 @@ module DRbQS
             @task_client.send_result
             sleep(WAIT_NEW_TASK)
           end
+        rescue => err
+          output_error(err)
         ensure
-          dump_not_send_result_to_file
-          Kernel.exit
+          process_exit
         end
       end
       exec = Thread.new do
@@ -63,11 +77,8 @@ module DRbQS
             @task_client.transmit(execute_task(marshal_obj, method_sym, args))
           end
         rescue => err
-          if @logger
-            @logger.error("Raise error in calculating thread: #{err.to_s}") { "\n" + err.backtrace.join("\n") }
-          end
-          dump_not_send_result_to_file
-          Kernel.exit
+          output_error(err)
+          process_exit
         end
       end
       cn.join
