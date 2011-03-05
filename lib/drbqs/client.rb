@@ -8,12 +8,14 @@ module DRbQS
     WAIT_NEW_TASK = 1
     OUTPUT_NOT_SEND_RESULT = 'not_send_result'
 
+    # :continue
     def initialize(access_uri, opts = {})
       @access_uri = access_uri
       @logger = Logger.new(opts[:log_file] || 'drbqs_client.log')
       @logger.level = opts[:log_level] || Logger::ERROR
       @connection = nil
       @task_client = nil
+      @process_continue = opts[:continue]
     end
 
     def execute_task(marshal_obj, method_sym, args)
@@ -49,11 +51,13 @@ module DRbQS
 
     def process_exit
       dump_not_send_result_to_file
-      Kernel.exit
+      unless @process_continue
+        Kernel.exit
+      end
     end
     private :process_exit
 
-    def calculate
+    def calculate(opts = {})
       cn = Thread.new do
         begin
           loop do
