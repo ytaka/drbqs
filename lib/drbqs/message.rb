@@ -50,6 +50,7 @@ module DRbQS
         mes = @message.take([Symbol, nil], 0)
         manage_message(*mes)
       rescue Rinda::RequestExpiredError
+        nil
       end
     end
 
@@ -66,7 +67,8 @@ module DRbQS
         @logger.info("Get exit message from #{arg.to_s}") if @logger
         return :exit_server
       else
-        puts "Invalid message from #{arg.to_s}"
+        @logger.error("Invalid message from #{arg.to_s}") if @logger
+        return nil
       end
     end
     private :manage_message
