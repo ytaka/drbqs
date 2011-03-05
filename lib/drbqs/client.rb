@@ -73,7 +73,7 @@ module DRbQS
       exec = Thread.new do
         begin
           loop do
-            marshal_obj, method_sym, args = @task_client.get
+            marshal_obj, method_sym, args = @task_client.dequeue_task
             @task_client.transmit(execute_task(marshal_obj, method_sym, args))
           end
         rescue => err
