@@ -41,7 +41,7 @@ module DRbQS
           @logger.info("Send alive signal of node id #{@id}") if @logger
         when :exit
           @logger.info("Get exit signal") if @logger
-          Kernel.exit
+          return :exit
         end
       rescue Rinda::RequestExpiredError
       end

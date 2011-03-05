@@ -4,6 +4,10 @@ require 'drbqs/task_client'
 module DRbQS
 
   class Client
+
+    WAIT_NEW_TASK = 1
+    OUTPUT_NOT_SEND_RESULT = 'not_send_result'
+
     def initialize(access_uri, opts = {})
       @access_uri = access_uri
       @logger = Logger.new(opts[:log_file] || 'drbqs_client.log')
@@ -28,21 +32,42 @@ module DRbQS
       end
     end
 
-    WAIT_NEW_TASK = 1
+    def dump_not_send_result_to_file
+      if data = @task_client.dump_result_queue
+        path = OUTPUT_NOT_SEND_RESULT + Time.now.to_i.to_s + '.dat'
+        open(path, 'w') { |f| f.print data }
+      end
+    end
+    private :dump_not_send_result_to_file
 
     def calculate
       cn = Thread.new do
-        loop do
-          @task_client.add_new_task
-          @connection.respond_alive_signal
-          @task_client.send_result
-          sleep(WAIT_NEW_TASK)
+        begin
+          loop do
+            @task_client.add_new_task
+            if @connection.respond_alive_signal == :exit
+              break
+            end
+            @task_client.send_result
+            sleep(WAIT_NEW_TASK)
+          end
+        ensure
+          dump_not_send_result_to_file
+          Kernel.exit
         end
       end
       exec = Thread.new do
-        loop do
-          marshal_obj, method_sym, args = @task_client.get
-          @task_client.transmit(execute_task(marshal_obj, method_sym, args))
+        begin
+          loop do
+            marshal_obj, method_sym, args = @task_client.get
+            @task_client.transmit(execute_task(marshal_obj, method_sym, args))
+          end
+        rescue => err
+          if @logger
+            @logger.error("Raise error in calculating thread: #{err.to_s}") { "\n" + err.backtrace.join("\n") }
+          end
+          dump_not_send_result_to_file
+          Kernel.exit
         end
       end
       cn.join

@@ -40,6 +40,18 @@ module DRbQS
       @result_queue.enq(result)
     end
 
+    def dump_result_queue
+      results = []
+      while @result_queue.size > 0
+        results << @result_queue.deq
+      end
+      if results.size > 0
+        Marshal.dump(results)
+      else
+        nil
+      end
+    end
+
   end
 
 end
