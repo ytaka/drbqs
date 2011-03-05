@@ -78,7 +78,7 @@ module DRbQS
         begin
           loop do
             marshal_obj, method_sym, args = @task_client.dequeue_task
-            @task_client.transmit(execute_task(marshal_obj, method_sym, args))
+            @task_client.queue_result(execute_task(marshal_obj, method_sym, args))
           end
         rescue => err
           output_error(err)

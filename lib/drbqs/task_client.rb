@@ -1,6 +1,6 @@
 module DRbQS
   class TaskClient
-    attr_reader :node_id
+    attr_reader :node_id, :calculating_task
 
     def initialize(node_id, queue, result, logger = nil)
       @node_id = node_id
@@ -25,6 +25,11 @@ module DRbQS
     end
     private :dequeue_result
 
+    def queue_task(task_id, ary)
+      @task_queue.enq(ary)
+      @calculating_task = task_id
+    end
+
     def dequeue_task
       @task_queue.deq
     end
@@ -33,8 +38,7 @@ module DRbQS
       unless @calculating_task
         begin
           task_id, obj, method_sym, args = @queue.take([Fixnum, nil, Symbol, nil], 0)
-          @calculating_task = task_id
-          @task_queue.enq([obj, method_sym, args])
+          queue_task(task_id, [obj, method_sym, args])
           @logger.info("Send accept signal: node #{@node_id} caluclating #{@calculating_task}") if @logger
           @result.write([:accept, @calculating_task, @node_id])
         rescue Rinda::RequestExpiredError
@@ -51,7 +55,7 @@ module DRbQS
       end
     end
 
-    def transmit(result)
+    def queue_result(result)
       @result_queue.enq(result)
     end
 
