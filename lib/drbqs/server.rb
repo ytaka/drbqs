@@ -78,6 +78,7 @@ module DRbQS
       @message.set_initialization(task)
     end
 
+    # &block takes self as an argument.
     def set_empty_queue_hook(&block)
       if block_given?
         @empty_queue_hook = block
@@ -86,6 +87,7 @@ module DRbQS
       end
     end
 
+    # &block takes self as an argument.
     def set_finish_hook(&block)
       if block_given?
         @finish_hook = block
