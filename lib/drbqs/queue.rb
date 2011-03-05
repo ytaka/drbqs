@@ -17,11 +17,13 @@ module DRbQS
     private :queue_task
 
     # &hook take two arguments: a QueueServer object and a result of task.
+    # Return task ID (for debug).
     def add(task)
       @task_id += 1
       @logger.info("New task: #{@task_id}") if @logger
       @cache[@task_id] = task
       queue_task(@task_id)
+      @task_id
     end
 
     def get_accept_signal
