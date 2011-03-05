@@ -7,6 +7,7 @@ Version = '0.0.1'
 
 help_message =<<HELP
 Usage: #{File.basename(__FILE__)} <definition.rb> [other files ...] [options ...]
+       #{File.basename(__FILE__)} <definition.rb> [other files ...] [options ...] -- [server options ...]
 Start DRbQS server of definition files.
 
 HELP
@@ -14,6 +15,14 @@ HELP
 options = {
   :log_file => STDOUT
 }
+
+if n = ARGV.index('--')
+  command_argv = ARGV[0..(n - 1)]
+  server_argv = ARGV[(n + 1)..-1]
+else
+  command_argv = ARGV
+  server_argv = []
+end
 
 begin
   OptionParser.new(help_message) do |opt|
@@ -37,7 +46,7 @@ begin
     opt.on('--debug', 'Set $DEBUG true.') do |v|
       $DEBUG = true
     end
-    opt.parse!(ARGV)
+    opt.parse!(command_argv)
   end
 rescue OptionParser::InvalidOption
   $stderr.print <<MES
@@ -53,13 +62,14 @@ MES
   exit(2)
 end
 
-if ARGV.size == 0 || !File.exist?(ARGV[0])
+if command_argv.size == 0 || !File.exist?(command_argv[0])
   raise "Invalid arguments. Please refer '#{File.basename(__FILE__)} -h'."
 end
 
-ARGV.each do |path|
+command_argv.each do |path|
   puts "load #{path}"
   load path
 end
 
+DRbQS.parse_option(server_argv)
 DRbQS.start_server(options)
