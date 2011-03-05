@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
-require 'drbqs/message'
+require 'drbqs/node_list'
 
 describe DRbQS::NodeList do
   before(:all) do
