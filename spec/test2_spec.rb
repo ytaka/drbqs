@@ -13,14 +13,8 @@ describe DRbQS do
       end
     end
     @process_id = fork do
-      server = DRbQS::Server.new(:port => 13501)
-
+      server = DRbQS::Server.new(:port => 13501, :finish_exit => true)
       server.set_task_generator(@task_generator)
-
-      server.set_finish_hook do |serv|
-        serv.exit
-      end
-
       server.set_signal_trap
       server.start
       server.wait

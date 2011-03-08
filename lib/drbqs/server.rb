@@ -24,10 +24,17 @@ module DRbQS
     attr_reader :queue
 
     # :port
+    #   Set the port of server.
     # :acl
+    #   Set the ACL instance.
     # :log_file
+    #   Set the path of log files.
     # :log_level
+    #   Set the level of logging.
     # :check_alive
+    #   Set the time interval of checking alive nodes.
+    # :finish_exit
+    #   Exit programs in finish_hook.
     def initialize(opts = {})
       @port = opts[:port] || ROOT_DEFAULT_PORT
       @acl = acl_init(opts[:acl])
@@ -46,7 +53,13 @@ module DRbQS
       @queue= QueueServer.new(@ts[:queue], @ts[:result], @logger)
       @check_alive = CheckAlive.new(opts[:check_alive])
       @task_generator = []
+      @finish_hook = nil
       @empty_queue_hook = nil
+      if opts[:finish_exit]
+        set_finish_hook do |serv|
+          serv.exit
+        end
+      end
     end
 
     def acl_init(acl_arg)
