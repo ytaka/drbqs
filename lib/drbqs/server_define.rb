@@ -52,19 +52,9 @@ HELP
 
   @@server_def = ServerDefinition.new
 
-  def self.define_server(&block)
-    @@server_def.define_server(&block)
-  end
-
-  def self.option_parser(&block)
-    @@server_def.option_parser(&block)
-  end
-
-  def self.parse_option(opt_argv)
-    @@server_def.parse_option(opt_argv)
-  end
-
-  def self.start_server(options)
-    @@server_def.start_server(options)
+  class << self
+    [:define_server, :option_parser, :parse_option, :start_server].each do |m|
+      define_method(m, &@@server_def.method(m))
+    end
   end
 end
