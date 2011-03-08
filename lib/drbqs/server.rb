@@ -18,6 +18,8 @@ module DRbQS
     end
   end
 
+  # When we set both empty_queue_hook and task_generator,
+  # empty_queue_hook is prior to task_generator.
   class Server
     attr_reader :queue
 
@@ -43,6 +45,7 @@ module DRbQS
       @message = MessageServer.new(@ts[:message], @logger)
       @queue= QueueServer.new(@ts[:queue], @ts[:result], @logger)
       @check_alive = CheckAlive.new(opts[:check_alive])
+      @task_generator = []
       @empty_queue_hook = nil
     end
 
@@ -74,6 +77,26 @@ module DRbQS
     end
     private :check_connection
 
+    def set_task_generator(task_generator)
+      @task_generator << task_generator
+    end
+
+    def add_tasks_from_generator
+      if @task_generator.size > 0 && @queue.empty?
+        if tasks = @task_generator[0].new_tasks
+          tasks.each { |t| @queue.add(t) }
+          @logger.debug("Generator add #{tasks.size} tasks.") if @logger
+        else
+          @task_generator.delete_at(0)
+          @logger.info("Generator creates all tasks and then has been deleted.") if @logger
+          if @task_generator.size > 0
+            add_tasks_from_generator
+          end
+        end
+      end
+    end
+    private :add_tasks_from_generator
+
     def set_initialization_task(task)
       @message.set_initialization(task)
     end
@@ -101,6 +124,7 @@ module DRbQS
         @logger.info("Execute empty queue hook.") if @logger
         @empty_queue_hook.call(self)
       end
+      add_tasks_from_generator
       if @finish_hook && @queue.finished?
         @logger.info("Execute finish hook.") if @logger
         @finish_hook.call(self)
@@ -134,6 +158,7 @@ module DRbQS
     private :check_message
 
     def wait
+      @task_generator.each { |tgen| tgen.init }
       loop do
         check_message
         check_connection

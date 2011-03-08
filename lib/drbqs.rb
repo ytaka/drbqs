@@ -12,6 +12,7 @@ module DRbQS
   autoload :Server, 'drbqs/server'
   autoload :Client, 'drbqs/client'
   autoload :Task, 'drbqs/task'
+  autoload :TaskGenerator, 'drbqs/task_generator'
   autoload :Manage, 'drbqs/manage'
 
   ROOT_DEFAULT_PORT = 13500

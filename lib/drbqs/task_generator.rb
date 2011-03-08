@@ -6,6 +6,7 @@ module DRbQS
       end
       @__fiber__ = nil
       @__iterate__ = nil
+      @__fiber_init__ = nil
     end
 
     def have_next?
@@ -18,10 +19,16 @@ module DRbQS
 
     def set(iterate = 1, &block)
       @__iterate__ = iterate
-      @__fiber__ = Fiber.new do
-        instance_eval(&block)
-        nil
+      @__fiber_init__ = lambda do
+        @__fiber__ = Fiber.new do
+          instance_eval(&block)
+          nil
+        end
       end
+    end
+
+    def init
+      @__fiber_init__.call
     end
 
     # Return an array of new tasks.
