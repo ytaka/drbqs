@@ -13,6 +13,17 @@ module DRbQS
       !!@__fiber__
     end
 
+    def add_task(arg)
+      case arg
+      when DRbQS::Task
+        Fiber.yield(arg)
+      when Array
+        arg.each { |t| Fiber.yield(t) }
+      else
+        raise "Invalid type of an argument."
+      end
+    end
+
     def create_add_task(*args, &block)
       Fiber.yield(DRbQS::Task.new(*args, &block))
     end
