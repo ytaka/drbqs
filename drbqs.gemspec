@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{drbqs}
-  s.version = "0.0.6"
+  s.version = "0.0.7"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Takayuki YAMAGUCHI"]
@@ -33,6 +33,7 @@ Gem::Specification.new do |s|
     "example/drbqs-manage-test.rb",
     "example/drbqs-node-test.rb",
     "example/drbqs-server-test.rb",
+    "example/server/server_def.rb",
     "example/sum/server_def.rb",
     "example/sum/sum.rb",
     "lib/drbqs.rb",
@@ -45,6 +46,7 @@ Gem::Specification.new do |s|
     "lib/drbqs/queue.rb",
     "lib/drbqs/server.rb",
     "lib/drbqs/server_define.rb",
+    "lib/drbqs/server_hook.rb",
     "lib/drbqs/task.rb",
     "lib/drbqs/task_client.rb",
     "lib/drbqs/task_generator.rb",
@@ -56,6 +58,7 @@ Gem::Specification.new do |s|
     "spec/node_list_spec.rb",
     "spec/queue_spec.rb",
     "spec/server_define_spec.rb",
+    "spec/server_hook_spec.rb",
     "spec/server_spec.rb",
     "spec/spec_helper.rb",
     "spec/task_client_spec.rb",
@@ -68,7 +71,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://github.com/ytaka/drbqs}
   s.licenses = ["GPL3"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.7}
+  s.rubygems_version = %q{1.6.1}
   s.summary = %q{dRuby Queueing System}
   s.test_files = [
     "spec/acl_file_spec.rb",
@@ -78,6 +81,7 @@ Gem::Specification.new do |s|
     "spec/node_list_spec.rb",
     "spec/queue_spec.rb",
     "spec/server_define_spec.rb",
+    "spec/server_hook_spec.rb",
     "spec/server_spec.rb",
     "spec/spec_helper.rb",
     "spec/task_client_spec.rb",
@@ -89,7 +93,6 @@ Gem::Specification.new do |s|
   ]
 
   if s.respond_to? :specification_version then
-    current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
