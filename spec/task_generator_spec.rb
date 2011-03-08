@@ -21,12 +21,21 @@ describe DRbQS::TaskGenerator do
         create_add_task(i, :to_s)
       end
     end
+    subject.init
     check_task_ary(subject.new_tasks, 2)
     check_task_ary(subject.new_tasks, 1)
     subject.new_tasks.should be_nil
   end
 
   it "should debug generator" do
-    subject.debug_all_tasks.should be_true
+    subject.set(2) do
+      @data.each do |i|
+        create_add_task(i, :to_s)
+      end
+    end
+    subject.init
+    group_number, task_number = subject.debug_all_tasks
+    group_number.should == 2
+    task_number.should == 3
   end
 end

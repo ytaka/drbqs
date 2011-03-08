@@ -39,7 +39,7 @@ module DRbQS
     end
 
     def init
-      @__fiber_init__.call
+      @__fiber_init__.call if @__fiber_init__
     end
 
     # Return an array of new tasks.
@@ -68,18 +68,20 @@ module DRbQS
       nil
     end
 
-    # Create all tasks for test and return true if all tasks created properly.
+    # Create all tasks for test and return [group_number, task_number] if all tasks created properly.
     def debug_all_tasks(limit = nil)
-      i = 0
+      group_number = 0
+      task_number = 0
       while ary = new_tasks
-        ary.each? do |t|
-          unless DRbQS::TaskGenerator === t
-            raise "Invalid task by #{i}th generation: #{t.inspect}"
+        ary.each do |t|
+          unless DRbQS::Task === t
+            raise "Invalid #{i}th task: #{t.inspect}"
           end
+          task_number += 1
         end
-        i += 1
+        group_number += 1
       end
-      true
+      [group_number, task_number]
     end
   end
 end
