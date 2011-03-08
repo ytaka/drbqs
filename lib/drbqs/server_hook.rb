@@ -32,14 +32,18 @@ module DRbQS
       name
     end
 
-    def delete(key, name)
-      @hook[key].delete_if { |ary| ary[0] == name }
+    def delete(key, name = nil)
+      if name
+        @hook[key].delete_if { |ary| ary[0] == name }
+      else
+        @hook[key].clear
+      end
     end
 
     def specific_proc(key)
       case key
       when :finish
-        Kernel.exit if @finish_exit
+        @finish_exit.call if @finish_exit
       end
     end
     private :specific_proc
@@ -52,7 +56,11 @@ module DRbQS
       @hook[key].each do |ary|
         ary[1].call(*args)
       end
-      specific_proc(:finish)
+      specific_proc(key)
+    end
+
+    def set_finish_exit(&block)
+      @finish_exit = block
     end
   end
 

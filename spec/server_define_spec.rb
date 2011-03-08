@@ -9,7 +9,7 @@ describe DRbQS::ServerDefinition do
     it "should define server" do
       @server_definition.should_receive(:define_server)
       DRbQS.define_server do |server, argv, opts|
-        server.set_finish_hook do |serv|
+        server.add_hook(:finish) do |serv|
           serv.exit
         end
       end

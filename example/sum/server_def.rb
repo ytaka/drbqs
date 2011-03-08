@@ -21,7 +21,7 @@ DRbQS.define_server do |server, argv, opts|
     server.queue.add(task)
   end
 
-  server.set_finish_hook do |serv|
+  server.add_hook(:finish) do |serv|
     serv.exit
   end
 end

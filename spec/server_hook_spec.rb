@@ -36,6 +36,18 @@ describe DRbQS::ServerHook do
     subject.hook_names(:finish).should be_empty
   end
 
+  it "should delete all hooks" do
+    name = subject.add(:finish) do |server|
+      3 + 4
+    end
+    name = subject.add(:finish) do |server|
+      5 + 6
+    end
+    subject.hook_names(:finish).should have(2).items
+    subject.delete(:finish)
+    subject.hook_names(:finish).should be_empty
+  end
+
   it "should execute hooks" do
     exec_flag = {}
     subject.add(:finish) do |server|
@@ -47,5 +59,14 @@ describe DRbQS::ServerHook do
     subject.exec(:finish)
     exec_flag[:first].should be_true
     exec_flag[:second].should be_true
+  end
+
+  it "should execute finish_exit" do
+    execute = nil
+    subject.set_finish_exit do
+      execute = true
+    end
+    subject.exec(:finish)
+    execute.should be_true
   end
 end

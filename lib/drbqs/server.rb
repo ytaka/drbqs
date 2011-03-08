@@ -1,6 +1,7 @@
 require 'drbqs/message'
 require 'drbqs/queue'
 require 'drbqs/acl_file'
+require 'drbqs/server_hook'
 
 module DRbQS
   class CheckAlive
@@ -53,13 +54,8 @@ module DRbQS
       @queue= QueueServer.new(@ts[:queue], @ts[:result], @logger)
       @check_alive = CheckAlive.new(opts[:check_alive])
       @task_generator = []
-      @finish_hook = nil
-      @empty_queue_hook = nil
-      if opts[:finish_exit]
-        set_finish_hook do |serv|
-          serv.exit
-        end
-      end
+      @hook = DRbQS::ServerHook.new
+      @hook.set_finish_exit { self.exit } if opts[:finish_exit]
     end
 
     def acl_init(acl_arg)
@@ -114,33 +110,25 @@ module DRbQS
       @message.set_initialization(task)
     end
 
+    # +key+ is :empty_queue or :finish_exit.
     # &block takes self as an argument.
-    def set_empty_queue_hook(&block)
-      if block_given?
-        @empty_queue_hook = block
-      else
-        @empty_queue_hook = nil
-      end
+    def add_hook(key, name = nil, &block)
+      @hook.add(key, name, &block)
     end
 
-    # &block takes self as an argument.
-    def set_finish_hook(&block)
-      if block_given?
-        @finish_hook = block
-      else
-        @finish_hook = nil
-      end
+    def delete_hook(key, name = nil)
+      @hook.delete(key, name)
     end
 
     def exec_hook
-      if @empty_queue_hook && @queue.empty?
+      if @queue.empty?
         @logger.info("Execute empty queue hook.") if @logger
-        @empty_queue_hook.call(self)
+        @hook.exec(:empty_queue, self)
       end
       add_tasks_from_generator
-      if @finish_hook && @queue.finished?
+      if @queue.finished?
         @logger.info("Execute finish hook.") if @logger
-        @finish_hook.call(self)
+        @hook.exec(:finish, self)
       end
     end
     private :exec_hook
