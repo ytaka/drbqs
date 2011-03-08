@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{drbqs}
-  s.version = "0.0.5"
+  s.version = "0.0.6"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Takayuki YAMAGUCHI"]
-  s.date = %q{2011-03-05}
+  s.date = %q{2011-03-08}
   s.description = %q{Task queuing system over network that is implemented by dRuby.}
   s.email = %q{d@ytak.info}
   s.executables = ["drbqs-manage", "drbqs-node", "drbqs-server"]
@@ -41,29 +41,55 @@ Gem::Specification.new do |s|
     "lib/drbqs/connection.rb",
     "lib/drbqs/manage.rb",
     "lib/drbqs/message.rb",
+    "lib/drbqs/node_list.rb",
     "lib/drbqs/queue.rb",
     "lib/drbqs/server.rb",
     "lib/drbqs/server_define.rb",
+    "lib/drbqs/task.rb",
     "lib/drbqs/task_client.rb",
+    "lib/drbqs/task_generator.rb",
     "spec/acl_file_spec.rb",
+    "spec/connection_spec.rb",
     "spec/data/acl.txt",
-    "spec/drbqs_spec.rb",
+    "spec/manage_spec.rb",
+    "spec/message_spec.rb",
+    "spec/node_list_spec.rb",
+    "spec/queue_spec.rb",
+    "spec/server_define_spec.rb",
     "spec/server_spec.rb",
-    "spec/spec_helper.rb"
+    "spec/spec_helper.rb",
+    "spec/task_client_spec.rb",
+    "spec/task_generator_spec.rb",
+    "spec/task_spec.rb",
+    "spec/test/test1.rb",
+    "spec/test1_spec.rb",
+    "spec/test2_spec.rb"
   ]
   s.homepage = %q{http://github.com/ytaka/drbqs}
   s.licenses = ["GPL3"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.5.2}
+  s.rubygems_version = %q{1.3.7}
   s.summary = %q{dRuby Queueing System}
   s.test_files = [
     "spec/acl_file_spec.rb",
-    "spec/drbqs_spec.rb",
+    "spec/connection_spec.rb",
+    "spec/manage_spec.rb",
+    "spec/message_spec.rb",
+    "spec/node_list_spec.rb",
+    "spec/queue_spec.rb",
+    "spec/server_define_spec.rb",
     "spec/server_spec.rb",
-    "spec/spec_helper.rb"
+    "spec/spec_helper.rb",
+    "spec/task_client_spec.rb",
+    "spec/task_generator_spec.rb",
+    "spec/task_spec.rb",
+    "spec/test/test1.rb",
+    "spec/test1_spec.rb",
+    "spec/test2_spec.rb"
   ]
 
   if s.respond_to? :specification_version then
+    current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
