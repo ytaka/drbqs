@@ -36,6 +36,8 @@ module DRbQS
     #   Set the time interval of checking alive nodes.
     # :finish_exit
     #   Exit programs in finish_hook.
+    # :signal_trap
+    #   Set trapping signal.
     def initialize(opts = {})
       @port = opts[:port] || ROOT_DEFAULT_PORT
       @acl = acl_init(opts[:acl])
@@ -54,8 +56,8 @@ module DRbQS
       @queue= QueueServer.new(@ts[:queue], @ts[:result], @logger)
       @check_alive = CheckAlive.new(opts[:check_alive])
       @task_generator = []
-      @hook = DRbQS::ServerHook.new
-      @hook.set_finish_exit { self.exit } if opts[:finish_exit]
+      hook_init(opts[:finish_exit])
+      set_signal_trap if opts[:signal_trap]
     end
 
     def acl_init(acl_arg)
@@ -69,6 +71,12 @@ module DRbQS
       end
     end
     private :acl_init
+
+    def hook_init(finish_exit)
+      @hook = DRbQS::ServerHook.new
+      @hook.set_finish_exit { self.exit } if finish_exit
+    end
+    private :hook_init
 
     def start
       DRb.install_acl(@acl) if @acl
