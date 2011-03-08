@@ -94,7 +94,7 @@ module DRbQS
     end
     private :check_connection
 
-    def set_task_generator(task_generator)
+    def add_task_generator(task_generator)
       @task_generator << task_generator
     end
 

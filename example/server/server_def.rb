@@ -6,7 +6,7 @@ task_generator.set do
 end
 
 server = DRbQS::Server.new(:port => 13501, :finish_exit => true)
-server.set_task_generator(task_generator)
+server.add_task_generator(task_generator)
 server.set_signal_trap
 server.start
 server.wait
