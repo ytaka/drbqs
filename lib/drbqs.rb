@@ -14,6 +14,7 @@ module DRbQS
   autoload :Task, 'drbqs/task'
   autoload :TaskGenerator, 'drbqs/task_generator'
   autoload :Manage, 'drbqs/manage'
+  autoload :Config, 'drbqs/config'
 
   ROOT_DEFAULT_PORT = 13500
 end
