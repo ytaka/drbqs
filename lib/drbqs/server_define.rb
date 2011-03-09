@@ -12,9 +12,11 @@ HELP
       @option_parse = nil
       @opts = {}
       @argv = nil
+      @default_server_opts = nil
     end
 
-    def define_server(&block)
+    def define_server(default_opts = {}, &block)
+      @default_server_opts = default_opts
       if @server_create
         raise ArgumentError, "The server has already defined."
       end
@@ -38,22 +40,40 @@ HELP
       @argv = opt_argv  
     end
 
+    def create_server(options)
+      server = DRbQS::Server.new(@default_server_opts.merge(options))
+      @server_create.call(server, @argv, @opts)
+      server.set_signal_trap
+      server
+    end
+    private :create_server
+
     def start_server(options)
       unless @server_create
         raise "Can not get server definition."
       end
-      server = DRbQS::Server.new(options)
-      @server_create.call(server, @argv, @opts)
-      server.set_signal_trap
+      server = create_server(options)
       server.start
       server.wait
+    end
+
+    def test_server(options, type = :all)
+      server = create_server(options)
+      case type
+      when :task
+        puts "*** Test of Task Generators ***"
+        server.test_task_generator
+      else
+        puts "*** Not be yet implemented ***"
+      end
     end
   end
 
   @@server_def = ServerDefinition.new
 
   class << self
-    [:define_server, :option_parser, :parse_option, :start_server].each do |m|
+    [:define_server, :option_parser, :parse_option,
+     :start_server, :test_server].each do |m|
       define_method(m, &@@server_def.method(m))
     end
   end

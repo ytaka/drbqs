@@ -13,7 +13,8 @@ Start DRbQS server of definition files.
 HELP
 
 options = {
-  :log_file => STDOUT
+  :log_file => STDOUT,
+  :command_type => :server_start
 }
 
 if n = ARGV.index('--')
@@ -46,6 +47,9 @@ begin
     opt.on('--debug', 'Set $DEBUG true.') do |v|
       $DEBUG = true
     end
+    opt.on('--test STR', String, 'Execute test.') do |v|
+      options[:command_type] = "test_#{v}"
+    end
     opt.parse!(command_argv)
   end
 rescue OptionParser::InvalidOption
@@ -72,4 +76,10 @@ command_argv.each do |path|
 end
 
 DRbQS.parse_option(server_argv)
-DRbQS.start_server(options)
+case options[:command_type]
+when /^test/
+  type = options[:command_type].split('_')[1].intern
+  DRbQS.test_server(options, type)
+else
+  DRbQS.start_server(options)
+end

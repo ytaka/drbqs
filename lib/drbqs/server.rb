@@ -166,8 +166,13 @@ module DRbQS
     end
     private :check_message
 
-    def wait
+    def task_generator_init
       @task_generator.each { |tgen| tgen.init }
+    end
+    private :task_generator_init
+
+    def wait
+      task_generator_init
       loop do
         check_message
         check_connection
@@ -177,6 +182,15 @@ module DRbQS
         if count_results <= 1
           sleep(WAIT_NEW_RESULT)
         end
+      end
+    end
+
+    def test_task_generator
+      task_generator_init
+      @task_generator.each_with_index do |t, i|
+        puts "Test task generator [#{i}]"
+        set_num, task_num = t.debug_all_tasks
+        puts "Create: task sets #{set_num}, all tasks #{task_num}"
       end
     end
   end
