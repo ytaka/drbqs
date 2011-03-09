@@ -102,7 +102,7 @@ module DRbQS
       if @task_generator.size > 0 && @queue.empty?
         if tasks = @task_generator[0].new_tasks
           tasks.each { |t| @queue.add(t) }
-          @logger.debug("Generator add #{tasks.size} tasks.") if @logger
+          @logger.info("Generator add #{tasks.size} tasks.") if @logger
         else
           @task_generator.delete_at(0)
           @logger.info("Generator creates all tasks and then has been deleted.") if @logger
@@ -185,11 +185,11 @@ module DRbQS
       end
     end
 
-    def test_task_generator
+    def test_task_generator(opts = {})
       task_generator_init
       @task_generator.each_with_index do |t, i|
         puts "Test task generator [#{i}]"
-        set_num, task_num = t.debug_all_tasks
+        set_num, task_num = t.debug_all_tasks(opts)
         puts "Create: task sets #{set_num}, all tasks #{task_num}"
       end
     end

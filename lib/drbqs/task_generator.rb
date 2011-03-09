@@ -75,8 +75,12 @@ module DRbQS
       nil
     end
 
+    DEBUG_TASK_PROGRESS = 1000
+
     # Create all tasks for test and return [group_number, task_number] if all tasks created properly.
-    def debug_all_tasks(limit = nil)
+    def debug_all_tasks(opts = {})
+      limit = opts[:limit]
+      progress = opts[:progress]
       group_number = 0
       task_number = 0
       while ary = new_tasks
@@ -85,6 +89,12 @@ module DRbQS
             raise "Invalid #{i}th task: #{t.inspect}"
           end
           task_number += 1
+          if progress && (task_number % DEBUG_TASK_PROGRESS == 0)
+            puts "#{task_number} tasks have been created."
+          end
+          if limit && task_number > limit
+            break
+          end
         end
         group_number += 1
       end

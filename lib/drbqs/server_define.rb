@@ -57,12 +57,12 @@ HELP
       server.wait
     end
 
-    def test_server(options, type = :all)
+    def test_server(options, type, arg = [])
       server = create_server(options)
       case type
       when :task
         puts "*** Test of Task Generators ***"
-        server.test_task_generator
+        server.test_task_generator(:limit => arg[0] ? arg[0].to_i : nil, :progress => true)
       else
         puts "*** Not be yet implemented ***"
       end

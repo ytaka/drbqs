@@ -78,8 +78,9 @@ end
 DRbQS.parse_option(server_argv)
 case options[:command_type]
 when /^test/
-  type = options[:command_type].split('_')[1].intern
-  DRbQS.test_server(options, type)
+  s = options[:command_type].split('_')[1].split(',')
+  type = s[0].intern
+  DRbQS.test_server(options, type, s[1..-1])
 else
   DRbQS.start_server(options)
 end
