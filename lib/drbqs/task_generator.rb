@@ -1,4 +1,7 @@
 module DRbQS
+  class DRbQS::TaskCreatingError < StandardError
+  end
+
   class TaskGenerator
     def initialize(data = {})
       data.each do |key, val|
@@ -32,7 +35,11 @@ module DRbQS
       @__iterate__ = iterate
       @__fiber_init__ = lambda do
         @__fiber__ = Fiber.new do
-          instance_eval(&block)
+          begin
+            instance_eval(&block)
+          rescue => err
+            raise DRbQS::TaskCreatingError, "\n  #{err.to_s}"
+          end
           nil
         end
       end
