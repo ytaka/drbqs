@@ -9,6 +9,7 @@ module DRbQS
 
     def create_config
       Config.check_directory_create
+      Config.save_sample
     end
 
     def send_exit_signal
