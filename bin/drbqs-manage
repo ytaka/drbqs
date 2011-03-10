@@ -33,24 +33,22 @@ MES
   exit(2)
 end
 
-def check_argument_size(n)
-  if ARGV.size != n
+def check_argument_size(n, check_method)
+  unless ARGV.size.__send__(check_method, n)
     raise "Invalid arguments number. Please refer '#{File.basename(__FILE__)} -h'."
   end
 end
 
 command = ARGV[0]
-uri = ARGV[1]
-
-manage = DRbQS::Manage.new(uri)
+manage = DRbQS::Manage.new
 
 case command
 when 'exit-signal'
-  check_argument_size(2)
-  manage.send_exit_signal
+  check_argument_size(2, :==)
+  uri = ARGV[1]
+  manage.send_exit_signal(uri)
 when 'initialize'
-  check_argument_size(1)
+  check_argument_size(1, :==)
   manage.create_config
-else
   raise "Invalid command: #{command}"
 end

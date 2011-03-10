@@ -27,12 +27,12 @@ describe DRbQS do
 
     @uri = 'druby://:13501'
 
-    @manage = DRbQS::Manage.new(@uri)
+    @manage = DRbQS::Manage.new
   end
 
   it "should send exit signal" do
     lambda do
-      @manage.send_exit_signal
+      @manage.send_exit_signal(@uri)
     end.should_not raise_error
     lambda do
       i = 0
@@ -45,6 +45,13 @@ describe DRbQS do
         sleep(1)
       end
     end.should_not raise_error
+  end
+
+  it "should split arguments" do
+    ary = ['abc', 'def', '--', '123', '45', '6']
+    a1, a2 = DRbQS::Manage.split_arguments(ary)
+    a1.should == ['abc', 'def']
+    a2.should == ['123', '45', '6']
   end
 
 end
