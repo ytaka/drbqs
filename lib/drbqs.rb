@@ -15,6 +15,7 @@ module DRbQS
   autoload :TaskGenerator, 'drbqs/task_generator'
   autoload :Manage, 'drbqs/manage'
   autoload :Config, 'drbqs/config'
+  autoload :SSHShell, 'drbqs/ssh_shell'
 
   ROOT_DEFAULT_PORT = 13500
 end

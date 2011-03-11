@@ -20,5 +20,11 @@ module DRbQS
       obj = DRbObject.new_with_uri(access_uri)
       obj[:message].write([:exit_server, "Command of #{Socket.gethostname}"])
     end
+
+    def execute_over_ssh(dest, opts, command)
+      ssh = DRbQS::SSHShell.new(dest, opts)
+      ssh.get_environment
+      ssh.start(command)
+    end
   end
 end

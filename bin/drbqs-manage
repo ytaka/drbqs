@@ -6,18 +6,38 @@ require 'optparse'
 Version = '0.0.1'
 
 help_message =<<HELP
-Usage: #{File.basename(__FILE__)} <command> <uri>
+Usage: #{File.basename(__FILE__)} <command> [arguments ...]
 Manage DRbQS server by sending messages.
-<command> is 'exit-signal'.
+<command> is 'exit-signal', 'initialize', or 'ssh'.
 
 HELP
+
+command = ARGV[0]
+argv, command_args = DRbQS::Manage.split_arguments(ARGV)
+
+options = {}
 
 begin
   OptionParser.new(help_message) do |opt|
     opt.on('--debug', 'Set $DEBUG true.') do |v|
       $DEBUG = true
     end
-    opt.parse!(ARGV)
+    opt.on('--port NUM', Integer, 'Set the port of ssh server.') do |v|
+      options[:port] = v
+    end
+    opt.on('--shell STR', String, 'Set the shell over ssh') do |v|
+      options[:shell] = v
+    end
+    opt.on('--rvm STR', String, 'Ruby version to use on RVM over ssh.') do |v|
+      options[:rvm] = v
+    end
+    opt.on('--rvm-init PATH', String, 'Path of script to initialize RVM over ssh.') do |v|
+      options[:rvm_init] = v
+    end
+    opt.on('--output PATH', String, 'File path that stdout and stderr are output to over ssh.') do |v|
+      options[:output] = v
+    end
+    opt.parse!(argv)
   end
 rescue OptionParser::InvalidOption
   $stderr.print <<MES
@@ -33,22 +53,26 @@ MES
   exit(2)
 end
 
-def check_argument_size(n, check_method)
-  unless ARGV.size.__send__(check_method, n)
+def check_argument_size(argv, check_method, n)
+  unless argv.size.__send__(check_method, n)
     raise "Invalid arguments number. Please refer '#{File.basename(__FILE__)} -h'."
   end
 end
 
-command = ARGV[0]
 manage = DRbQS::Manage.new
 
 case command
 when 'exit-signal'
-  check_argument_size(2, :==)
-  uri = ARGV[1]
+  check_argument_size(argv, :==, 2)
+  uri = argv[1]
   manage.send_exit_signal(uri)
 when 'initialize'
-  check_argument_size(1, :==)
+  check_argument_size(argv, :==, 1)
   manage.create_config
+when 'ssh'
+  check_argument_size(argv, :>=, 2)
+  dest = argv[1]
+  manage.execute_over_ssh(dest, options, command_args)
+else
   raise "Invalid command: #{command}"
 end
