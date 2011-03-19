@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Takayuki YAMAGUCHI"]
-  s.date = %q{2011-03-08}
+  s.date = %q{2011-03-20}
   s.description = %q{Task queuing system over network that is implemented by dRuby.}
   s.email = %q{d@ytak.info}
   s.executables = ["drbqs-manage", "drbqs-node", "drbqs-server"]
@@ -30,15 +30,19 @@ Gem::Specification.new do |s|
     "bin/drbqs-server",
     "drbqs.gemspec",
     "example/README.md",
+    "example/command/server_def.rb",
     "example/drbqs-manage-test.rb",
     "example/drbqs-node-test.rb",
     "example/drbqs-server-test.rb",
-    "example/server/server_def.rb",
+    "example/server/server.rb",
     "example/sum/server_def.rb",
     "example/sum/sum.rb",
+    "example/sum2/server_def.rb",
+    "example/sum2/sum.rb",
     "lib/drbqs.rb",
     "lib/drbqs/acl_file.rb",
     "lib/drbqs/client.rb",
+    "lib/drbqs/config.rb",
     "lib/drbqs/connection.rb",
     "lib/drbqs/manage.rb",
     "lib/drbqs/message.rb",
@@ -47,10 +51,12 @@ Gem::Specification.new do |s|
     "lib/drbqs/server.rb",
     "lib/drbqs/server_define.rb",
     "lib/drbqs/server_hook.rb",
+    "lib/drbqs/ssh_shell.rb",
     "lib/drbqs/task.rb",
     "lib/drbqs/task_client.rb",
     "lib/drbqs/task_generator.rb",
     "spec/acl_file_spec.rb",
+    "spec/config_spec.rb",
     "spec/connection_spec.rb",
     "spec/data/acl.txt",
     "spec/manage_spec.rb",
@@ -61,6 +67,7 @@ Gem::Specification.new do |s|
     "spec/server_hook_spec.rb",
     "spec/server_spec.rb",
     "spec/spec_helper.rb",
+    "spec/ssh_shell_spec.rb",
     "spec/task_client_spec.rb",
     "spec/task_generator_spec.rb",
     "spec/task_spec.rb",
@@ -71,10 +78,11 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://github.com/ytaka/drbqs}
   s.licenses = ["GPL3"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.6.1}
+  s.rubygems_version = %q{1.5.2}
   s.summary = %q{dRuby Queueing System}
   s.test_files = [
     "spec/acl_file_spec.rb",
+    "spec/config_spec.rb",
     "spec/connection_spec.rb",
     "spec/manage_spec.rb",
     "spec/message_spec.rb",
@@ -84,6 +92,7 @@ Gem::Specification.new do |s|
     "spec/server_hook_spec.rb",
     "spec/server_spec.rb",
     "spec/spec_helper.rb",
+    "spec/ssh_shell_spec.rb",
     "spec/task_client_spec.rb",
     "spec/task_generator_spec.rb",
     "spec/task_spec.rb",
