@@ -44,7 +44,10 @@ module DRbQS
     def requeue_for_deleted_node_id(deleted)
       deleted.each do |node_id|
         if task_id_ary = @calculating[node_id]
-          task_id_ary.each { |task_id| queue_task(task_id) }
+          task_id_ary.each do |task_id|
+            queue_task(task_id)
+            @logger.info("Requeue: task #{task_id}.") if @logger
+          end
           @calculating.delete(node_id)
         end
       end
