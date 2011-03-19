@@ -7,31 +7,33 @@ describe DRbQS::SSHShell do
     ssh = DRbQS::SSHShell.new('user@hostname')
     ssh.user.should == 'user'
     ssh.host.should == 'hostname'
+    ssh.port.should be_nil
     ssh.directory.should be_nil
   end
 
   it "should split destination including directory" do
-    ssh = DRbQS::SSHShell.new('user@hostname:/path/to/directory')
+    ssh = DRbQS::SSHShell.new('user@hostname:22', :dir => '/path/to/directory')
     ssh.user.should == 'user'
     ssh.host.should == 'hostname'
+    ssh.port.should == 22
     ssh.directory.should == '/path/to/directory'
   end
 
   it "should raise error: not include '@'" do
     lambda do
-      DRbQS::SSHShell.new('userhostname:/path/to/directory')
+      DRbQS::SSHShell.new('userhostname')
     end.should raise_error
   end
 
   it "should raise error: empty user name" do
     lambda do
-      DRbQS::SSHShell.new('@hostname:/path/to/directory')
+      DRbQS::SSHShell.new('@hostname')
     end.should raise_error
   end
 
   it "should raise error: empty host name" do
     lambda do
-      DRbQS::SSHShell.new('user:/path/to/directory')
+      DRbQS::SSHShell.new('user:22')
     end.should raise_error
   end
 

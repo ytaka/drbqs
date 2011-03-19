@@ -22,8 +22,8 @@ begin
     opt.on('--debug', 'Set $DEBUG true.') do |v|
       $DEBUG = true
     end
-    opt.on('--port NUM', Integer, 'Set the port of ssh server.') do |v|
-      options[:port] = v
+    opt.on('--dir DIR', String, 'Set the base directory over ssh.') do |v|
+      options[:dir] = v
     end
     opt.on('--shell STR', String, 'Set the shell over ssh') do |v|
       options[:shell] = v

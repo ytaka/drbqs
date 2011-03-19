@@ -7,18 +7,21 @@ module DRbQS
   #   bash
   #   nohup
   class SSHShell
-    attr_reader :user, :host, :directory
+    class GetInvalidExitStatus < StandardError
+    end
+
+    attr_reader :user, :host, :directory, :port
 
     DEFAULT_RVM_SCRIPT = '$HOME/.rvm/scripts/rvm'
     DEFAULT_OUTPUT_FILE = 'drbqs_nohup.log'
 
     # :shell     shell to use
-    # :port      port number of ssh server
+    # :dir       base directory of ssh server
     # :rvm       version of ruby on rvm
     # :rvm_init  path of script to initialize rvm
     # :output    file to output of stdout and stderr
     def initialize(dest, opts = {})
-      @user, @host, @directory = split_destination(dest)
+      @user, @host, @port = split_destination(dest)
       if !(@host && @user)
         raise "Invalid destination of ssh server."
       end
@@ -29,7 +32,7 @@ module DRbQS
         @rvm_init = DEFAULT_RVM_SCRIPT
       end
       @out = opts[:output] || DEFAULT_OUTPUT_FILE
-      @port = opts[:port]
+      @directory = opts[:dir]
     end
 
     def split_destination(dest)
@@ -41,12 +44,14 @@ module DRbQS
       end
       if n = host_dir.index(':')
         host = host_dir[0..(n - 1)]
-        directory = host_dir[(n + 1)..-1]
+        port = host_dir[(n + 1)..-1]
       else
         host = host_dir
-        directory = nil
+        port = nil
       end
-      [user, host, directory].map { |s| s && s.size > 0 ? s : nil }
+      [user && user.size > 0 ? user : nil,
+       host && host.size > 0 ? host : nil,
+       port && port.size > 0 ? port.to_i : nil]
     end
     private :split_destination
 
