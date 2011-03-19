@@ -51,11 +51,11 @@ We can use two hooks of server: 'empty_queue' and 'finish'.
 
  DRbQS.define_server do |server, argv, opts|
    server.add_hook(:empty_queue) do |srv|
-     srm.queue.add( ... )
+     srv.queue.add( ... )
    end
    
    server.add_hook(:finish) do |srv|
-     srm.exit
+     srv.exit
    end
  end
 
