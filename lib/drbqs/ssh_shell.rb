@@ -55,12 +55,20 @@ module DRbQS
     end
     private :split_destination
 
+    def shell_exec(sh, cmd)
+      pr = sh.execute!(cmd)
+      if pr.exit_status != 0
+        raise GetInvalidExitStatus, "Can not execute '#{cmd}' on #{@host} properly."
+      end
+    end
+    private :shell_exec
+
     def execute_command(*cmds)
       Net::SSH.start(@host, @user, :port => @port) do |ssh|
         ssh.shell(@shell) do |sh|
-          sh.execute "cd #{@directory}" if @directory
-          sh.execute "source #{@rvm_init}" if @rvm_init
-          sh.execute "rvm use #{@rvm}" if @rvm
+          shell_exec(sh, "cd #{@directory}") if @directory
+          shell_exec(sh, "source #{@rvm_init}") if @rvm_init
+          shell_exec(sh, "rvm use #{@rvm}") if @rvm
           cmds.each do |c|
             sh.execute c
           end
