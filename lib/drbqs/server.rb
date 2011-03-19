@@ -5,8 +5,10 @@ require 'drbqs/server_hook'
 
 module DRbQS
   class CheckAlive
+    DEFAULT_INTERVAL_TIME = 300
+
     def initialize(interval)
-      @interval = interval || 300
+      @interval = interval || DEFAULT_INTERVAL_TIME
       @last = Time.now
     end
 
@@ -22,6 +24,9 @@ module DRbQS
   # When we set both empty_queue_hook and task_generator,
   # empty_queue_hook is prior to task_generator.
   class Server
+    WAIT_TIME_NODE_EXIT = 3
+    WAIT_TIME_NEW_RESULT = 1
+
     attr_reader :queue
 
     # :port
@@ -142,13 +147,10 @@ module DRbQS
     end
     private :exec_hook
 
-    WAIT_NODE_EXIT = 3
-    WAIT_NEW_RESULT = 1
-
     def exit
       @message.send_exit
       until @message.node_not_exist?
-        sleep(WAIT_NODE_EXIT)
+        sleep(WAIT_TIME_NODE_EXIT)
         check_connection(true)
       end
       Kernel.exit
@@ -181,7 +183,7 @@ module DRbQS
         exec_hook
         @logger.debug("Calculating tasks: #{@queue.calculating_task_number}") if @logger
         if count_results <= 1
-          sleep(WAIT_NEW_RESULT)
+          sleep(WAIT_TIME_NEW_RESULT)
         end
       end
     end
