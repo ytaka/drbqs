@@ -8,7 +8,7 @@ module DRbQS
     attr_reader :hook
 
     # Nodes execute obj.method_sym(*args).
-    # Server executes &hook with a server instance and an array of result
+    # Server executes &hook with a server instance and an object of result
     # after the server accepts the results from nodes.
     def initialize(obj, method_sym, args = [], &hook)
       begin
@@ -35,4 +35,29 @@ module DRbQS
     end
   end
 
+  class CommandExecute
+    def initialize(cmd)
+      @cmd = cmd
+      unless (Array === @cmd || String === @cmd)
+        raise ArgumentError, "Invalid command: #{@cmd.inspect}"
+      end
+    end
+
+    def exec
+      case @cmd
+      when Array
+        @cmd.each { |c| system(c) }
+      when String
+        system(@cmd)
+      end
+      $?.exitstatus
+    end
+  end
+
+  class CommandTask < Task
+    # &hook takes a server instance and exit number of command.
+    def initialize(cmd, &hook)
+      super(CommandExecute.new(cmd), :exec, &hook)
+    end
+  end
 end
