@@ -36,11 +36,16 @@ module DRbQS
   end
 
   class CommandExecute
-    def initialize(cmd)
+
+    # :transfer    String or Array
+    # :compress    true or false
+    def initialize(cmd, opts = {})
       @cmd = cmd
       unless (Array === @cmd || String === @cmd)
         raise ArgumentError, "Invalid command: #{@cmd.inspect}"
       end
+      @transfer = opts[:transfer]
+      @compress = opts[:compress]
     end
 
     def exec
@@ -50,14 +55,22 @@ module DRbQS
       when String
         system(@cmd)
       end
-      $?.exitstatus
+      exit_status = $?.exitstatus
+      if @transfer
+        if Array === @transfer
+          @transfer.each { |path| DRbQS::FileTransfer.enqueue(path, @compress) }
+        else
+          DRbQS::FileTransfer.enqueue(@transfer, @compress)
+        end
+      end
+      exit_status
     end
   end
 
   class CommandTask < Task
     # &hook takes a server instance and exit number of command.
-    def initialize(cmd, &hook)
-      super(CommandExecute.new(cmd), :exec, &hook)
+    def initialize(cmd, opts = {}, &hook)
+      super(CommandExecute.new(cmd, {}), :exec, &hook)
     end
   end
 end

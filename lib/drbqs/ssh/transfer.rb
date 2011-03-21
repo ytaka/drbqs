@@ -29,19 +29,23 @@ module DRbQS
   module FileTransfer
     @@files = Queue.new
 
-    def self.enqueue(path)
-      @@files.enq(path)
+    def self.enqueue(path, compress = false)
+      if compress
+        gz_path = path + '.gz'
+        Zlib::GzipWriter.open(gz_path, Zlib::BEST_COMPRESSION) do |gz|
+          gz.mtime = File.mtime(path)
+          gz.orig_name = path
+          gz.print File.open(path, 'rb'){ |f| f.read }
+        end
+        FileUtils.rm(path)
+        @@files.enq(gz_path)
+      else
+        @@files.enq(path)
+      end
     end
 
     def self.compress_enqueue(path)
-      gz_path = path + '.gz'
-      Zlib::GzipWriter.open(gz_path, Zlib::BEST_COMPRESSION) do |gz|
-        gz.mtime = File.mtime(path)
-        gz.orig_name = path
-        gz.print File.open(path, 'rb'){ |f| f.read }
-      end
-      FileUtils.rm(path)
-      self.enqueue(gz_path)
+      self.enqueue(gz_path, true)
     end
 
     def self.dequeue
