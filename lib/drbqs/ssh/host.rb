@@ -5,7 +5,7 @@ module DRbQS
   class SSHHost
     def initialize
       @dir = DRbQS::Config.get_host_file_directory
-      @host_files = Dir.glob("#{@dir}/*").map { |s| File.basename(s) }
+      @host_files = (Dir.glob("#{@dir}/*.yaml") + Dir.glob("#{@dir}/*.yml")).map { |s| File.basename(s) }
     end
 
     def get(name)
@@ -18,9 +18,9 @@ module DRbQS
 
     def get_options(name)
       if path = get(name)
-        return YAML.load_file(path)
+        return [path, YAML.load_file(path)]
       end
-      return {}
+      return [nil, {}]
     end
   end
 end
