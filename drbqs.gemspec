@@ -5,24 +5,24 @@
 
 Gem::Specification.new do |s|
   s.name = %q{drbqs}
-  s.version = "0.0.8"
+  s.version = "0.0.9"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Takayuki YAMAGUCHI"]
-  s.date = %q{2011-03-20}
+  s.date = %q{2011-03-22}
   s.description = %q{Task queuing system over network that is implemented by dRuby.}
   s.email = %q{d@ytak.info}
   s.executables = ["drbqs-manage", "drbqs-node", "drbqs-server"]
   s.extra_rdoc_files = [
     "LICENSE.txt",
-    "README.rdoc"
+    "README.md"
   ]
   s.files = [
     ".document",
     ".rspec",
     "Gemfile",
     "LICENSE.txt",
-    "README.rdoc",
+    "README.md",
     "Rakefile",
     "VERSION",
     "bin/drbqs-manage",
@@ -39,6 +39,8 @@ Gem::Specification.new do |s|
     "example/sum/sum.rb",
     "example/sum2/server_def.rb",
     "example/sum2/sum.rb",
+    "example/transfer/file.rb",
+    "example/transfer/server_def.rb",
     "lib/drbqs.rb",
     "lib/drbqs/acl_file.rb",
     "lib/drbqs/client.rb",
@@ -51,14 +53,18 @@ Gem::Specification.new do |s|
     "lib/drbqs/server.rb",
     "lib/drbqs/server_define.rb",
     "lib/drbqs/server_hook.rb",
-    "lib/drbqs/ssh_shell.rb",
+    "lib/drbqs/ssh/host.rb",
+    "lib/drbqs/ssh/shell.rb",
+    "lib/drbqs/ssh/transfer.rb",
     "lib/drbqs/task.rb",
     "lib/drbqs/task_client.rb",
     "lib/drbqs/task_generator.rb",
+    "lib/drbqs/utils/filename.rb",
     "spec/acl_file_spec.rb",
     "spec/config_spec.rb",
     "spec/connection_spec.rb",
     "spec/data/acl.txt",
+    "spec/filename_spec.rb",
     "spec/manage_spec.rb",
     "spec/message_spec.rb",
     "spec/node_list_spec.rb",
@@ -73,7 +79,8 @@ Gem::Specification.new do |s|
     "spec/task_spec.rb",
     "spec/test/test1.rb",
     "spec/test1_spec.rb",
-    "spec/test2_spec.rb"
+    "spec/test2_spec.rb",
+    "spec/transfer_spec.rb"
   ]
   s.homepage = %q{http://github.com/ytaka/drbqs}
   s.licenses = ["GPL3"]
@@ -84,6 +91,7 @@ Gem::Specification.new do |s|
     "spec/acl_file_spec.rb",
     "spec/config_spec.rb",
     "spec/connection_spec.rb",
+    "spec/filename_spec.rb",
     "spec/manage_spec.rb",
     "spec/message_spec.rb",
     "spec/node_list_spec.rb",
@@ -98,7 +106,8 @@ Gem::Specification.new do |s|
     "spec/task_spec.rb",
     "spec/test/test1.rb",
     "spec/test1_spec.rb",
-    "spec/test2_spec.rb"
+    "spec/test2_spec.rb",
+    "spec/transfer_spec.rb"
   ]
 
   if s.respond_to? :specification_version then
@@ -110,12 +119,18 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_development_dependency(%q<jeweler>, ["~> 1.5.2"])
       s.add_development_dependency(%q<rcov>, [">= 0"])
+      s.add_runtime_dependency(%q<net-ssh>, [">= 2.1.3"])
+      s.add_runtime_dependency(%q<net-ssh-shell>, [">= 0.1.0"])
+      s.add_development_dependency(%q<rspec>, [">= 2.5.0"])
     else
       s.add_dependency(%q<rspec>, [">= 2.5.0"])
       s.add_dependency(%q<yard>, ["~> 0.6.0"])
       s.add_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
       s.add_dependency(%q<rcov>, [">= 0"])
+      s.add_dependency(%q<net-ssh>, [">= 2.1.3"])
+      s.add_dependency(%q<net-ssh-shell>, [">= 0.1.0"])
+      s.add_dependency(%q<rspec>, [">= 2.5.0"])
     end
   else
     s.add_dependency(%q<rspec>, [">= 2.5.0"])
@@ -123,6 +138,9 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<bundler>, ["~> 1.0.0"])
     s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
     s.add_dependency(%q<rcov>, [">= 0"])
+    s.add_dependency(%q<net-ssh>, [">= 2.1.3"])
+    s.add_dependency(%q<net-ssh-shell>, [">= 0.1.0"])
+    s.add_dependency(%q<rspec>, [">= 2.5.0"])
   end
 end
 
