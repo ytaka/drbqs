@@ -19,3 +19,16 @@ describe DRbQS::Task do
     task1.same_target?(task2).should be_true
   end
 end
+
+describe DRbQS::CommandExecute do
+  it "should execute command" do
+    cmd_exec = DRbQS::CommandExecute.new('ls > /dev/null')
+    cmd_exec.exec.should == 0
+  end
+
+  it "should enqueue files" do
+    DRbQS::FileTransfer.should_receive(:enqueue).exactly(2)
+    cmd_exec = DRbQS::CommandExecute.new('ls > /dev/null', :transfer => ['hello', 'world'])
+    cmd_exec.exec
+  end
+end
