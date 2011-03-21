@@ -79,29 +79,28 @@ module DRbQS
     private :shell_exec_get_output
 
     def shell_exec(sh, cmd)
-      pr, result = shell_exec_get_output(sh, cmd)
-      output_command(cmd, result)
-      pr
+      ary = shell_exec_get_output(sh, cmd)
+      output_command(cmd, ary[1])
+      ary
     end
     private :shell_exec
 
     def shell_exec_check(sh, cmd)
-      pr = shell_exec(sh, cmd)
-      if pr.exit_status != 0
+      ary = shell_exec(sh, cmd)
+      if ary[0].exit_status != 0
         raise GetInvalidExitStatus, "Can not execute '#{cmd}' on #{@host} properly."
       end
+      ary
     end
     private :shell_exec_check
 
-    def execute_command(*cmds)
+    def execute_command(&block)
       Net::SSH.start(@host, @user, :port => @port) do |ssh|
         ssh.shell(@shell) do |sh|
           shell_exec_check(sh, "cd #{@directory}") if @directory
           shell_exec_check(sh, "source #{@rvm_init}") if @rvm_init
           shell_exec_check(sh, "rvm use #{@rvm}") if @rvm
-          cmds.each do |c|
-            shell_exec(sh, c)
-          end
+          yield(sh)
           shell_exec(sh, "exit")
         end
       end
@@ -109,10 +108,14 @@ module DRbQS
     private :execute_command
 
     def get_environment
-      execute_command('echo "directory: " `pwd`',
-                      'echo "files:"',
-                      'ls',
-                      'if which rvm > /dev/null; then rvm info; else ruby -v; fi')
+      execute_command do |sh|
+        ['echo "directory: " `pwd`',
+         'echo "files:"',
+         'ls',
+         'if which rvm > /dev/null; then rvm info; else ruby -v; fi'].each do |cmd|
+          shell_exec(sh, cmd)
+        end
+      end
     end
 
     def start(*args)
@@ -124,12 +127,13 @@ module DRbQS
           cmd = "nice " + cmd
         end
       end
-      if @nohup
-        fname = DRbQS::FileName.new(@nohup_output, :add => :auto, :type => :time, :position => :suffix)
-        path = fname.create(:directory => true)
-        cmd = "nohup #{cmd} > #{path} 2>&1 &"
+      execute_command do |sh|
+        if @nohup
+          pr, path = shell_exec_check(sh, "drbqs-manage new-filename #{@nohup_output}")
+          cmd = "nohup #{cmd} > #{path.strip} 2>&1 &"
+        end
+        shell_exec(sh, cmd)
       end
-      execute_command(cmd)
     end
   end
 end
