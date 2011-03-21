@@ -34,6 +34,8 @@ module DRbQS
       @nohup_output = opts[:output] || DEFAULT_OUTPUT_FILE
       @directory = opts[:dir]
       @out = $stdout
+      @nice = opts[:nice]
+      @nohup = opts[:nohup]
     end
 
     def split_destination(dest)
@@ -114,7 +116,18 @@ module DRbQS
     end
 
     def start(*args)
-      execute_command("nohup #{args.join(' ')} > #{@nohup_output} 2>&1 &")
+      cmd = args.join(' ')
+      if @nice
+        if Integer === @nice
+          cmd = "nice #{@nice.to_s} " + cmd
+        else
+          cmd = "nice " + cmd
+        end
+      end
+      if @nohup
+        cmd = "nohup #{cmd} > #{@nohup_output} 2>&1 &"
+      end
+      execute_command(cmd)
     end
   end
 end

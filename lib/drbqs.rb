@@ -16,6 +16,7 @@ module DRbQS
   autoload :Manage, 'drbqs/manage'
   autoload :Config, 'drbqs/config'
   autoload :SSHShell, 'drbqs/ssh/shell'
+  autoload :SSHHost, 'drbqs/ssh/host'
   autoload :CommandTask, 'drbqs/task'
   autoload :CommandExecute, 'drbqs/task'
 

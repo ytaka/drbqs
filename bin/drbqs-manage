@@ -12,10 +12,22 @@ Manage DRbQS server by sending messages.
 
 HELP
 
+def check_argument_size(argv, check_method, n)
+  unless argv.size.__send__(check_method, n)
+    raise "Invalid arguments number. Please refer '#{File.basename(__FILE__)} -h'."
+  end
+end
+
 command = ARGV[0]
 argv, command_args = DRbQS::Manage.split_arguments(ARGV)
 
 options = {}
+if /^ssh/ =~ command
+  check_argument_size(argv, :>=, 2)
+  ssh_host =DRbQS::SSHHost.new
+  options = ssh_host.get_options(argv[1])
+  argv[1] = options[:dest] if options[:dest]
+end
 
 begin
   OptionParser.new(help_message) do |opt|
@@ -37,6 +49,12 @@ begin
     opt.on('--output PATH', String, 'File path that stdout and stderr are output to over ssh.') do |v|
       options[:output] = v
     end
+    opt.on('--nice NUM', Integer, 'Set the value for nice command.') do |v|
+      options[:nice] = v
+    end
+    opt.on('--nohup', 'Use nohup command.') do |v|
+      options[:nohup] = true
+    end
     opt.parse!(argv)
   end
 rescue OptionParser::InvalidOption
@@ -53,12 +71,6 @@ MES
   exit(2)
 end
 
-def check_argument_size(argv, check_method, n)
-  unless argv.size.__send__(check_method, n)
-    raise "Invalid arguments number. Please refer '#{File.basename(__FILE__)} -h'."
-  end
-end
-
 manage = DRbQS::Manage.new
 
 case command
@@ -70,7 +82,6 @@ when 'initialize'
   check_argument_size(argv, :==, 1)
   manage.create_config
 when 'ssh'
-  check_argument_size(argv, :>=, 2)
   dest = argv[1]
   manage.execute_over_ssh(dest, options, command_args)
 else
