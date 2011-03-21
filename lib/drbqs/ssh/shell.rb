@@ -125,7 +125,9 @@ module DRbQS
         end
       end
       if @nohup
-        cmd = "nohup #{cmd} > #{@nohup_output} 2>&1 &"
+        fname = DRbQS::FileName.new(@nohup_output, :add => :auto, :type => :time, :position => :suffix)
+        path = fname.create(:directory => true)
+        cmd = "nohup #{cmd} > #{path} 2>&1 &"
       end
       execute_command(cmd)
     end
