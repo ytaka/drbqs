@@ -18,9 +18,21 @@ module DRbQS
       @process_continue = opts[:continue]
     end
 
+    def transfer_file
+      until FileTransfer.empty?
+        path = FileTransfer.dequeue
+        unless @transfer.scp(path)
+          raise "Can not send file: #{path}"
+        end
+      end
+    end
+    private :transfer_file
+
     def execute_task(marshal_obj, method_sym, args)
       obj = Marshal.load(marshal_obj)
-      obj.__send__(method_sym, *args)
+      result = obj.__send__(method_sym, *args)
+      transfer_file
+      result
     end
     private :execute_task
 
@@ -29,6 +41,7 @@ module DRbQS
       @connection = ConnectionClient.new(obj[:message], @logger)
       node_id = @connection.get_id
       @task_client = TaskClient.new(node_id, obj[:queue], obj[:result], @logger)
+      @transfer = obj[:transfer]
       if ary = @connection.get_initialization
         execute_task(*ary)
       end

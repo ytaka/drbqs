@@ -49,7 +49,8 @@ module DRbQS
       @ts = {
         :message => Rinda::TupleSpace.new,
         :queue => Rinda::TupleSpace.new,
-        :result => Rinda::TupleSpace.new
+        :result => Rinda::TupleSpace.new,
+        :transfer => nil
       }
       if opts[:log_file]
         @logger = Logger.new(opts[:log_file])
@@ -160,6 +161,10 @@ module DRbQS
       Signal.trap(:TERM) do
         self.exit
       end
+    end
+
+    def set_file_transfer(user, host, directory)
+      @ts[:transfer] = DRbQS::Transfer.new(user, host, directory)
     end
 
     def check_message
