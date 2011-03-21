@@ -2,6 +2,32 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 require 'drbqs/node_list'
 
+describe DRbQS::NodeHistory do
+  subject { DRbQS::NodeHistory.new }
+
+  it "should add new id" do
+    subject.add(1, 'hello')
+    ary = subject.each.to_a
+    ary.should have(1).items
+    ary[0][0].should == 1
+    ary[0][1].should have(2).items
+    ary[0][1][0].should == 'hello'
+    ary[0][1][1].should be_an_instance_of Time
+  end
+
+  it "should set disconnected" do
+    subject.add(1, 'hello')
+    subject.disconnect(1)
+    ary = subject.each.to_a
+    ary.should have(1).items
+    ary[0][0].should == 1
+    ary[0][1].should have(3).items
+    ary[0][1][0].should == 'hello'
+    ary[0][1][1].should be_an_instance_of Time
+    ary[0][1][2].should be_an_instance_of Time
+  end
+end
+
 describe DRbQS::NodeList do
   before(:all) do
     @node_list = DRbQS::NodeList.new
@@ -49,6 +75,20 @@ describe DRbQS::NodeList do
     @node_list.each do |id_num, id_str|
       alive_ids.include?(id_num).should be_true
     end
+  end
+
+  it "should add to history" do
+    node_list = DRbQS::NodeList.new
+    node_list.history.should_receive(:add)
+    node_list.get_new_id('hello')
+  end
+
+  it "should set disconnection to history" do
+    node_list = DRbQS::NodeList.new
+    node_list.history.should_receive(:disconnect)
+    node_list.get_new_id('hello')
+    node_list.set_check_connection
+    node_list.delete_not_alive
   end
 
 end
