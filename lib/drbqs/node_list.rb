@@ -32,7 +32,7 @@ module DRbQS
     def get_new_id(id_str)
       @id += 1
       @list[@id] = id_str
-      @history.add(@id, @id_str)
+      @history.add(@id, id_str)
       @id
     end
 
