@@ -28,11 +28,13 @@ module DRbQS
         @node_list.set_alive(arg)
       when :exit_server
         @logger.info("Get exit message from #{arg.to_s}") if @logger
-        return :exit_server
+      when :request_status
+        @logger.info("Get status request from #{arg.to_s}") if @logger
       else
         @logger.error("Invalid message from #{arg.to_s}") if @logger
         return nil
       end
+      return mes
     end
     private :manage_message
 
@@ -50,6 +52,29 @@ module DRbQS
       @node_list.each do |node_id, id_str|
         @message.write([node_id, :exit])
       end
+    end
+
+    def time_to_string(t)
+      t.strftime("%Y-%m-%d %H:%M:%S")
+    end
+    private :time_to_string
+
+    def send_status(calculating_task_id)
+      s = ''
+      @node_list.history.each do |node_id, hist|
+        s << sprintf("%4d %s\t", node_id, hist[0])
+        if hist.size == 3
+          s << "disconnected: (#{time_to_string(hist[1])} - #{time_to_string(hist[1])})\n"
+        else
+          task_ids = calculating_task_id[node_id]
+          s << "task: #{task_ids.map { |num| num.to_s }.join(', ')} (#{time_to_string(hist[1])})\n"
+        end
+      end
+      begin
+        @message.take([:status, nil], 0)
+      rescue Rinda::RequestExpiredError
+      end
+      @message.write([:status, s])
     end
 
     def node_not_exist?

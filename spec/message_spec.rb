@@ -68,4 +68,14 @@ describe DRbQS::MessageServer do
       end.should raise_error Rinda::RequestExpiredError
     end
   end
+
+  it "should get :request_status message" do
+    @message.write([:request_status, 'message_test'])
+    @message_server.get_message.should == :request_status
+  end
+
+  it "should send status" do
+    @message_server.send_status({})
+    @message.take([:status, nil]).should be_true
+  end
 end

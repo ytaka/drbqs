@@ -1,6 +1,7 @@
 module DRbQS
 
   class QueueServer
+    attr_reader :calculating
 
     def initialize(queue, result, logger = nil)
       @queue = queue

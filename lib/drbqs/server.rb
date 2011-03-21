@@ -163,8 +163,11 @@ module DRbQS
     end
 
     def check_message
-      if @message.get_message == :exit_server
+      case @message.get_message
+      when :exit_server
         self.exit
+      when :request_status
+        @message.send_status(@queue.calculating)
       end
     end
     private :check_message
