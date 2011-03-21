@@ -1,6 +1,5 @@
 require 'thread'
 require 'logger'
-require 'fileutils'
 require 'drb'
 require 'drb/acl'
 require 'rinda/tuplespace'
