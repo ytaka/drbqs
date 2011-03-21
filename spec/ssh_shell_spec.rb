@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
-require 'drbqs/ssh_shell'
+require 'drbqs/ssh/shell'
 
 describe DRbQS::SSHShell do
   it "should split destination" do
