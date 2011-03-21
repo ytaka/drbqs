@@ -31,8 +31,9 @@ module DRbQS
       if (@rvm || @rvm_init) && !(String === @rvm_init)
         @rvm_init = DEFAULT_RVM_SCRIPT
       end
-      @out = opts[:output] || DEFAULT_OUTPUT_FILE
+      @nohup_output = opts[:output] || DEFAULT_OUTPUT_FILE
       @directory = opts[:dir]
+      @out = $stdout
     end
 
     def split_destination(dest)
@@ -55,24 +56,51 @@ module DRbQS
     end
     private :split_destination
 
+    def output_command(cmd, result)
+      @out.puts "#{@user}@#{@host}$ #{cmd}" if @out
+      @out.print result
+    end
+    private :output_command
+
+    def shell_exec_get_output(sh, cmd)
+      result = ''
+      pr_cmd = sh.execute!(cmd) do |sh_proc|
+        sh_proc.on_output do |pr, data|
+          result << data
+        end
+        sh_proc.on_error_output do |pr, data|
+          result << data
+        end
+      end
+      [pr_cmd, result]
+    end
+    private :shell_exec_get_output
+
     def shell_exec(sh, cmd)
-      pr = sh.execute!(cmd)
+      pr, result = shell_exec_get_output(sh, cmd)
+      output_command(cmd, result)
+      pr
+    end
+    private :shell_exec
+
+    def shell_exec_check(sh, cmd)
+      pr = shell_exec(sh, cmd)
       if pr.exit_status != 0
         raise GetInvalidExitStatus, "Can not execute '#{cmd}' on #{@host} properly."
       end
     end
-    private :shell_exec
+    private :shell_exec_check
 
     def execute_command(*cmds)
       Net::SSH.start(@host, @user, :port => @port) do |ssh|
         ssh.shell(@shell) do |sh|
-          shell_exec(sh, "cd #{@directory}") if @directory
-          shell_exec(sh, "source #{@rvm_init}") if @rvm_init
-          shell_exec(sh, "rvm use #{@rvm}") if @rvm
+          shell_exec_check(sh, "cd #{@directory}") if @directory
+          shell_exec_check(sh, "source #{@rvm_init}") if @rvm_init
+          shell_exec_check(sh, "rvm use #{@rvm}") if @rvm
           cmds.each do |c|
-            sh.execute c
+            shell_exec(sh, c)
           end
-          sh.execute "exit"
+          shell_exec(sh, "exit")
         end
       end
     end
@@ -86,7 +114,7 @@ module DRbQS
     end
 
     def start(*args)
-      execute_command("nohup #{args.join(' ')} > #{@out} 2>&1 &")
+      execute_command("nohup #{args.join(' ')} > #{@nohup_output} 2>&1 &")
     end
   end
 end
