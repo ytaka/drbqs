@@ -119,7 +119,7 @@ module DRbQS
       cmd = args.join(' ')
       if @nice
         if Integer === @nice
-          cmd = "nice #{@nice.to_s} " + cmd
+          cmd = "nice -n #{@nice.to_s} " + cmd
         else
           cmd = "nice " + cmd
         end
