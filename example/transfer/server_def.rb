@@ -8,9 +8,10 @@ require_relative 'file.rb'
 DRbQS.define_server(:finish_exit => true) do |server, argv, opts|
   tgen = DRbQS::TaskGenerator.new(:sleep_time => 2)
   tgen.set do
-    3.times do |i|
-      create_add_task(CreateFile.new(i), :create)
-    end
+    create_add_task(CreateFile.new(1), :create)
+    create_add_task(CreateFile.new(2), :create_compress)
+    create_add_task(CreateDirectory.new(3), :create)
+    create_add_task(CreateDirectory.new(4), :create_compress)
   end
   server.add_task_generator(tgen)
 

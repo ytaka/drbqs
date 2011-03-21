@@ -4,6 +4,7 @@ module DRbQS
 
   # Transfer files to directory on DRbQS server.
   # In this class we use scp command.
+  # Note that after we transfer files we delete the files.
   class Transfer
 
     # options
@@ -20,11 +21,16 @@ module DRbQS
       unless File.exist?(path)
         raise ArgumentError, "File #{path} does not exist."
       end
-      system("scp -r #{path} #{@user}@#{@host}:#{File.join(@directory, name)} > /dev/null 2>&1")
+      if system("scp -r #{path} #{@user}@#{@host}:#{File.join(@directory, name)} > /dev/null 2>&1")
+        FileUtils.rm_r(path)
+        return true
+      end
+      return false
     end
   end
 
   # To compress files, we use gzip and tar command.
+  # Note that if we compress files then we delete the source files.
   module FileTransfer
     @@files = Queue.new
 
@@ -32,7 +38,7 @@ module DRbQS
       if compress
         if File.directory?(path)
           gz_path = "#{path.sub(/\/$/, '')}.tar.gz"
-          p cmd = "tar czf #{gz_path} -C #{File.dirname(path)} #{File.basename(path)} > /dev/null 2>&1"
+          cmd = "tar czf #{gz_path} -C #{File.dirname(path)} #{File.basename(path)} > /dev/null 2>&1"
         else
           gz_path = path + '.gz'
           cmd = "gzip --best #{path} > /dev/null 2>&1"
@@ -42,6 +48,7 @@ module DRbQS
         elsif !system(cmd)
           raise "Can not compress: #{path}"
         end
+        FileUtils.rm_r(path) if File.exist?(path)
         @@files.enq(gz_path)
       else
         @@files.enq(path)
