@@ -19,6 +19,7 @@ module DRbQS
   autoload :SSHHost, 'drbqs/ssh/host'
   autoload :CommandTask, 'drbqs/task'
   autoload :CommandExecute, 'drbqs/task'
+  autoload :FileName, 'drbqs/utils/filename'
 
   ROOT_DEFAULT_PORT = 13500
 end
