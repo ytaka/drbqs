@@ -1,5 +1,4 @@
 require 'fileutils'
-require 'zlib'
 
 module DRbQS
 
@@ -21,23 +20,28 @@ module DRbQS
       unless File.exist?(path)
         raise ArgumentError, "File #{path} does not exist."
       end
-      system("scp #{path} #{@user}@#{@host}:#{File.join(@directory, name)} > /dev/null 2>&1")
+      system("scp -r #{path} #{@user}@#{@host}:#{File.join(@directory, name)} > /dev/null 2>&1")
     end
   end
 
-  # To compress files, we use gzip command.
+  # To compress files, we use gzip and tar command.
   module FileTransfer
     @@files = Queue.new
 
     def self.enqueue(path, compress = false)
       if compress
-        gz_path = path + '.gz'
-        Zlib::GzipWriter.open(gz_path, Zlib::BEST_COMPRESSION) do |gz|
-          gz.mtime = File.mtime(path)
-          gz.orig_name = path
-          gz.print File.open(path, 'rb'){ |f| f.read }
+        if File.directory?(path)
+          gz_path = "#{path.sub(/\/$/, '')}.tar.gz"
+          p cmd = "tar czf #{gz_path} -C #{File.dirname(path)} #{File.basename(path)} > /dev/null 2>&1"
+        else
+          gz_path = path + '.gz'
+          cmd = "gzip --best #{path} > /dev/null 2>&1"
         end
-        FileUtils.rm(path)
+        if File.exist?(gz_path)
+          raise "File has already existed: #{gz_path}"
+        elsif !system(cmd)
+          raise "Can not compress: #{path}"
+        end
         @@files.enq(gz_path)
       else
         @@files.enq(path)
@@ -45,7 +49,7 @@ module DRbQS
     end
 
     def self.compress_enqueue(path)
-      self.enqueue(gz_path, true)
+      self.enqueue(path, true)
     end
 
     def self.dequeue
