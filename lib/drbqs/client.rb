@@ -6,6 +6,8 @@ module DRbQS
   class Client
 
     WAIT_NEW_TASK = 1
+    PRIORITY_RESPOND = 10
+    PRIORITY_CALCULATE = 0
     OUTPUT_NOT_SEND_RESULT = 'not_send_result'
 
     # :continue
@@ -98,6 +100,8 @@ module DRbQS
           process_exit
         end
       end
+      cn.priority = PRIORITY_RESPOND
+      exec.priority = PRIORITY_CALCULATE
       cn.join
     end
   end
