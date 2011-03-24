@@ -59,18 +59,21 @@ module DRbQS
       begin
         loop do
           get_accept_signal
-          sym, task_id, result = @result.take([:result, Fixnum, nil], 0)
+          sym, task_id, node_id, result = @result.take([:result, Fixnum, Fixnum, nil], 0)
           count += 1
-          if ary = @calculating.find { |k, v| v.include?(task_id) }
-            node_id = ary[0]
-            @calculating[node_id].delete(task_id)
-          else
-            node_id = nil
-          end
           @logger.info("Get: result of #{task_id} from node #{node_id}.") if @logger
-          task = @cache.delete(task_id)
-          if hook = task.hook
-            hook.call(self, result)
+          unless @calculating[node_id].delete(task_id)
+            @logger.error("Task #{task_id} does not exist in list of calculating tasks.") if @logger
+          end
+          if ary = @calculating.find { |k, v| v.include?(task_id) }
+            @logger.error("Node #{ary[0]} is calculating task #{task_id}, too.") if @logger
+          end
+          if task = @cache.delete(task_id)
+            if hook = task.hook
+              hook.call(self, result)
+            end
+          else
+            @logger.error("Task #{task_id} is not cached.") if @logger
           end
         end
       rescue Rinda::RequestExpiredError

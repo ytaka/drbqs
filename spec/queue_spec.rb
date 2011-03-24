@@ -37,7 +37,7 @@ describe DRbQS::QueueServer do
   end
 
   it "should get result" do
-    @ts[:result].write([:result, @task[:id], :result_object])
+    @ts[:result].write([:result, @task[:id], @node_id, :result_object])
     @queue_server.get_result
     @queue_server.calculating_task_number.should == 0
     @queue_server.empty?.should be_true

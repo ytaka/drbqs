@@ -54,7 +54,7 @@ module DRbQS
       if !result_empty?
         result = dequeue_result
         @logger.info("Send result: #{@calculating_task}") { result.inspect } if @logger
-        @result.write([:result, @calculating_task, result])
+        @result.write([:result, @calculating_task, @node_id, result])
         @calculating_task = nil
       end
     end

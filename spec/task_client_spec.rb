@@ -48,6 +48,6 @@ describe DRbQS::TaskClient do
     @task_client.task_empty?.should be_true
     @task_client.result_empty?.should be_true
     @task_client.calculating_task.should be_nil
-    @ts_result.take([:result, nil, nil], 0).should be_true
+    @ts_result.take([:result, nil, nil, nil], 0).should be_true
   end
 end
