@@ -34,7 +34,7 @@ module DRbQS
       end
     end
 
-    def respond_alive_signal
+    def respond_signal
       begin
         node_id, sym = @message.take([@id_number, Symbol], 0)
         case sym

@@ -75,7 +75,7 @@ module DRbQS
         begin
           loop do
             @task_client.add_new_task
-            if @connection.respond_alive_signal == :exit
+            if @connection.respond_signal == :exit
               break
             end
             @task_client.send_result
