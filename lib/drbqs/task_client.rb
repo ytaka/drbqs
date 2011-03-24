@@ -12,6 +12,10 @@ module DRbQS
       @logger = logger
     end
 
+    def calculating?
+      !!@calculating_task
+    end
+
     def task_empty?
       @task_queue.empty?
     end
