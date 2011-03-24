@@ -61,13 +61,17 @@ module DRbQS
 
     def send_status(calculating_task_id)
       s = ''
-      @node_list.history.each do |node_id, hist|
-        s << sprintf("%4d %s\t", node_id, hist[0])
-        if hist.size == 3
-          s << "disconnected: (#{time_to_string(hist[1])} - #{time_to_string(hist[2])})\n"
+      @node_list.history.each do |node_id, events|
+        if events.size == 0 || events.size > 2
+          raise "Invalid history of nodes: #{events.inspect}"
+        end
+        connect = events[0]
+        s << sprintf("%4d %s\t", node_id, connect[2])
+        if disconnect = events[1]
+          s << "disconnected: (#{time_to_string(connect[0])} - #{time_to_string(disconnect[0])})\n"
         else
           task_ids = calculating_task_id[node_id]
-          s << "task: #{task_ids.map { |num| num.to_s }.join(', ')} (#{time_to_string(hist[1])})\n"
+          s << "task: #{task_ids.map { |num| num.to_s }.join(', ')} (#{time_to_string(connect[0])})\n"
         end
       end
       begin

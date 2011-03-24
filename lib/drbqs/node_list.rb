@@ -14,7 +14,7 @@ module DRbQS
     def get_new_id(id_str)
       @id += 1
       @list[@id] = id_str
-      @history.begin(@id, id_str)
+      @history.set(@id, :connect, @list[@id])
       @id
     end
 
@@ -29,7 +29,7 @@ module DRbQS
     def delete_not_alive
       @check.each do |id|
         @list.delete(id)
-        @history.finish(id)
+        @history.set(id, :disconnect)
       end
       deleted = @check
       @check = []

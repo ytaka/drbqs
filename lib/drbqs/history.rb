@@ -1,17 +1,23 @@
 module DRbQS
   class History
     def initialize
-      @data = {}
+      @data = Hash.new { |h, k| h[k] = Array.new }
     end
 
-    def begin(id, *args)
-      @data[id] = args + [Time.now]
+    def set(id, *args)
+      @data[id] << [Time.now] + args
     end
 
-    def finish(id)
-      if @data[id]
-        @data[id] << Time.now
-      end
+    def size
+      @data.size
+    end
+
+    def events(id)
+      @data[id]
+    end
+
+    def number_of_events(id)
+      @data[id].size
     end
 
     def each(&block)

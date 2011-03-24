@@ -53,15 +53,15 @@ describe DRbQS::NodeList do
 
   it "should add to history" do
     node_list = DRbQS::NodeList.new
-    node_list.history.should_receive(:begin)
+    node_list.history.should_receive(:set).with(1, :connect, 'hello')
     node_list.get_new_id('hello')
   end
 
   it "should set disconnection to history" do
     node_list = DRbQS::NodeList.new
-    node_list.history.should_receive(:finish)
     node_list.get_new_id('hello')
     node_list.set_check_connection
+    node_list.history.should_receive(:set).with(1, :disconnect)
     node_list.delete_not_alive
   end
 
