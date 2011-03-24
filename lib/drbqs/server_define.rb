@@ -63,6 +63,8 @@ HELP
       when :task
         puts "*** Test of Task Generators ***"
         server.test_task_generator(:limit => arg[0] ? arg[0].to_i : nil, :progress => true)
+      when :exec
+        server.test_exec(:limit => arg[0] ? arg[0].to_i : nil)
       else
         puts "*** Not be yet implemented ***"
       end

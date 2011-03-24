@@ -201,6 +201,27 @@ module DRbQS
       end
     end
 
+    def test_exec(opts = {})
+      task_generator_init
+      dummy_client = DRbQS::Client.new(nil, :log_file => $stdout, :log_level => opts[:log_level])
+      dummy_task_client = DRbQS::TaskClient.new(nil, @ts[:queue], nil)
+      num = 0
+      loop do
+        num += 1
+        exec_hook
+        if ary = dummy_task_client.get_task
+          task_id, marshal_obj, method_sym, args = ary
+          result = dummy_client.instance_eval { execute_task(marshal_obj, method_sym, args) }
+          @queue.instance_eval do
+            exec_task_hook(task_id, result)
+          end
+        end
+        if opts[:limit] && num > opts[:limit]
+          break
+        end
+      end
+    end
+
     def test_task_generator(opts = {})
       task_generator_init
       @task_generator.each_with_index do |t, i|
