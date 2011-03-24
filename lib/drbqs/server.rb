@@ -171,11 +171,13 @@ module DRbQS
     end
 
     def check_message
-      case @message.get_message
-      when :exit_server
-        self.exit
-      when :request_status
-        @message.send_status(@queue.calculating)
+      while mes = @message.get_message
+        case mes
+        when :exit_server
+          self.exit
+        when :request_status
+          @message.send_status(@queue.calculating)
+        end
       end
     end
     private :check_message
