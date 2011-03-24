@@ -64,7 +64,7 @@ module DRbQS
       @node_list.history.each do |node_id, hist|
         s << sprintf("%4d %s\t", node_id, hist[0])
         if hist.size == 3
-          s << "disconnected: (#{time_to_string(hist[1])} - #{time_to_string(hist[1])})\n"
+          s << "disconnected: (#{time_to_string(hist[1])} - #{time_to_string(hist[2])})\n"
         else
           task_ids = calculating_task_id[node_id]
           s << "task: #{task_ids.map { |num| num.to_s }.join(', ')} (#{time_to_string(hist[1])})\n"
