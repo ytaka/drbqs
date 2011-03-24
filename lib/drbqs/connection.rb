@@ -12,7 +12,7 @@ module DRbQS
 
     def create_id_string
       t = Time.now
-      sprintf("%d%d%d:#{Socket.gethostname}", t.to_i, t.usec, rand(1000))
+      sprintf("#{Socket.gethostname}:%d", Process.pid)
     end
     private :create_id_string
 
