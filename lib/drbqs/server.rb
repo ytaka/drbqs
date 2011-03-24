@@ -93,7 +93,7 @@ module DRbQS
 
     def check_connection(force = nil)
       if force || @check_alive.significant_interval?
-        @logger.debug("Check connection") if @logger
+        @logger.info("Check connections.") if @logger
         deleted_node_ids = @message.check_connection
         @queue.requeue_for_deleted_node_id(deleted_node_ids)
         @check_alive.set_checking

@@ -40,7 +40,7 @@ module DRbQS
 
     def check_connection
       deleted = @node_list.delete_not_alive
-      @logger.info("IDs of deleted nodes") { deleted } if @logger
+      @logger.info("IDs of deleted nodes") { deleted } if deleted.size > 0 && @logger
       @node_list.each do |id, str|
         @message.write([id, :alive_p])
       end
