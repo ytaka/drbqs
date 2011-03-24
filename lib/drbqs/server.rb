@@ -9,6 +9,9 @@ module DRbQS
 
     def initialize(interval)
       @interval = interval || DEFAULT_INTERVAL_TIME
+      if !(Numeric === @interval) || @interval < 0
+        raise ArgumentError, "Invalid interval time."
+      end
       @last = Time.now
     end
 
