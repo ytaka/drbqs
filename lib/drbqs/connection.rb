@@ -37,12 +37,12 @@ module DRbQS
     def respond_signal
       begin
         node_id, sym = @message.take([@id_number, Symbol], 0)
+        @logger.info("Get signal: #{sym.inspect}") if @logger
         case sym
         when :alive_p
           @message.write([:server, :alive, @id_number])
           @logger.info("Send alive signal of node id #{@id_number}") if @logger
         when :exit
-          @logger.info("Get exit signal") if @logger
           return :exit
         end
       rescue Rinda::RequestExpiredError
