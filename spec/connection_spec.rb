@@ -13,7 +13,7 @@ describe DRbQS::ConnectionClient do
 
   it "should get node ID." do
     @connection.get_id.should == @node_id
-    @message.take([:connect, nil]).should be_true
+    @message.take([:server, :connect, nil], 0).should be_true
   end
 
   it "should get no initialization method." do
@@ -28,12 +28,12 @@ describe DRbQS::ConnectionClient do
 
   it "should respond :alive_p signal" do
     @message.write([@node_id, :alive_p])
-    @connection.respond_alive_signal
-    @message.take([:alive, nil]).should be_true
+    @connection.respond_signal
+    @message.take([:server, :alive, nil], 0).should be_true
   end
 
   it "should respond :exit signal" do
     @message.write([@node_id, :exit])
-    @connection.respond_alive_signal.should == :exit
+    @connection.respond_signal.should == :exit
   end
 end

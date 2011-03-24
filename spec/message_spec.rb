@@ -28,7 +28,7 @@ describe DRbQS::MessageServer do
   it "should get :connect message" do
     5.times do |i|
       id_str = "connect_test_#{i}"
-      @message.write([:connect, id_str])
+      @message.write([:server, :connect, id_str])
       @message_server.get_message
       (ary = @message.take([id_str, Fixnum])).should be_true
       @node_id_list << ary[1]
@@ -38,14 +38,14 @@ describe DRbQS::MessageServer do
 
   it "should get :alive message" do
     node_id = 73
-    @message.write([:alive, node_id])
+    @message.write([:server, :alive, node_id])
     node_list = @message_server.instance_variable_get(:@node_list)
     node_list.should_receive(:set_alive).with(node_id)
     @message_server.get_message
   end
 
   it "should get :exit_server message" do
-    @message.write([:exit_server, 'message_test'])
+    @message.write([:server, :exit_server, 'message_test'])
     @message_server.get_message.should == :exit_server
   end
 
@@ -70,7 +70,7 @@ describe DRbQS::MessageServer do
   end
 
   it "should get :request_status message" do
-    @message.write([:request_status, 'message_test'])
+    @message.write([:server, :request_status, 'message_test'])
     @message_server.get_message.should == :request_status
   end
 

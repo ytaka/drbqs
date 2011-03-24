@@ -18,7 +18,7 @@ module DRbQS
 
     def get_id
       unless @id_number
-        @message.write([:connect, @id_string])
+        @message.write([:server, :connect, @id_string])
         @id_number = @message.take([@id_string, Fixnum])[1]
         @logger.info("Get node id: #{@id_number}") if @logger
       end
@@ -39,7 +39,7 @@ module DRbQS
         node_id, sym = @message.take([@id_number, Symbol], 0)
         case sym
         when :alive_p
-          @message.write([:alive, @id_number])
+          @message.write([:server, :alive, @id_number])
           @logger.info("Send alive signal of node id #{@id_number}") if @logger
         when :exit
           @logger.info("Get exit signal") if @logger

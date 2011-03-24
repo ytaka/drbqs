@@ -15,11 +15,11 @@ module DRbQS
     private :get_hostname
 
     def send_exit_signal
-      @message.write([:exit_server, get_hostname])
+      @message.write([:server, :exit_server, get_hostname])
     end
 
     def get_status
-      @message.write([:request_status, get_hostname])
+      @message.write([:server, :request_status, get_hostname])
       i = 0
       loop do
         begin

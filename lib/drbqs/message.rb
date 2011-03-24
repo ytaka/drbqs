@@ -10,8 +10,8 @@ module DRbQS
 
     def get_message
       begin
-        mes = @message.take([Symbol, nil], 0)
-        manage_message(*mes)
+        mes = @message.take([:server, Symbol, nil], 0)
+        manage_message(*mes[1..2])
       rescue Rinda::RequestExpiredError
         nil
       end
