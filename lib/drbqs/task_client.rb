@@ -38,14 +38,21 @@ module DRbQS
       @task_queue.deq
     end
 
+    def get_task
+      begin
+        @queue.take([Fixnum, nil, Symbol, nil], 0)
+      rescue Rinda::RequestExpiredError
+        nil
+      end
+    end
+
     def add_new_task
       unless @calculating_task
-        begin
-          task_id, obj, method_sym, args = @queue.take([Fixnum, nil, Symbol, nil], 0)
+        if ary = get_task
+          task_id, obj, method_sym, args = ary
           queue_task(task_id, [obj, method_sym, args])
           @logger.info("Send accept signal: node #{@node_id} caluclating #{@calculating_task}") if @logger
           @result.write([:accept, @calculating_task, @node_id])
-        rescue Rinda::RequestExpiredError
         end
       end
     end

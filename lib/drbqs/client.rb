@@ -72,15 +72,29 @@ module DRbQS
     end
     private :process_exit
 
-    def calculate(opts = {})
-      cn = Thread.new do
+    def communicate_with_server
+      @task_client.add_new_task
+      if @connection.respond_signal == :exit
+        return nil
+      end
+      @task_client.send_result
+      return true
+    end
+    private :communicate_with_server
+
+    def calculate_task
+      marshal_obj, method_sym, args = @task_client.dequeue_task
+      @task_client.queue_result(execute_task(marshal_obj, method_sym, args))
+    end
+    private :calculate_task
+
+    def thread_communicate
+      Thread.new do
         begin
           loop do
-            @task_client.add_new_task
-            if @connection.respond_signal == :exit
+            unless communicate_with_server
               break
             end
-            @task_client.send_result
             sleep(WAIT_NEW_TASK)
           end
         rescue => err
@@ -89,17 +103,26 @@ module DRbQS
           process_exit
         end
       end
-      exec = Thread.new do
+    end
+    private :thread_communicate
+
+    def thread_calculate
+      Thread.new do
         begin
           loop do
-            marshal_obj, method_sym, args = @task_client.dequeue_task
-            @task_client.queue_result(execute_task(marshal_obj, method_sym, args))
+            calculate_task
           end
         rescue => err
           output_error(err)
           process_exit
         end
       end
+    end
+    private :thread_calculate
+
+    def calculate(opts = {})
+      cn = thread_communicate
+      exec = thread_calculate
       cn.priority = PRIORITY_RESPOND
       exec.priority = PRIORITY_CALCULATE
       cn.join
