@@ -54,6 +54,27 @@ module DRbQS
       end
     end
 
+    def delete_task_id(node_id, task_id)
+      unless @calculating[node_id].delete(task_id)
+        @logger.error("Task #{task_id} does not exist in list of calculating tasks.") if @logger
+      end
+      if ary = @calculating.find { |k, v| v.include?(task_id) }
+        @logger.error("Node #{ary[0]} is calculating task #{task_id}, too.") if @logger
+      end
+    end
+    private :delete_task_id
+
+    def exec_task_hook(task_id, result)
+      if task = @cache.delete(task_id)
+        if hook = task.hook
+          hook.call(self, result)
+        end
+      else
+        @logger.error("Task #{task_id} is not cached.") if @logger
+      end
+    end
+    private :exec_task_hook
+
     def get_result
       count = 0
       begin
@@ -62,19 +83,8 @@ module DRbQS
           sym, task_id, node_id, result = @result.take([:result, Fixnum, Fixnum, nil], 0)
           count += 1
           @logger.info("Get: result of #{task_id} from node #{node_id}.") if @logger
-          unless @calculating[node_id].delete(task_id)
-            @logger.error("Task #{task_id} does not exist in list of calculating tasks.") if @logger
-          end
-          if ary = @calculating.find { |k, v| v.include?(task_id) }
-            @logger.error("Node #{ary[0]} is calculating task #{task_id}, too.") if @logger
-          end
-          if task = @cache.delete(task_id)
-            if hook = task.hook
-              hook.call(self, result)
-            end
-          else
-            @logger.error("Task #{task_id} is not cached.") if @logger
-          end
+          delete_task_id(node_id, task_id)
+          exec_task_hook(task_id, result)
         end
       rescue Rinda::RequestExpiredError
         @logger.debug("Get: #{count} results.") if @logger
