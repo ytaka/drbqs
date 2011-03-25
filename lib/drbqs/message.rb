@@ -2,6 +2,8 @@ require 'drbqs/node_list'
 
 module DRbQS
   class MessageServer
+    include HistoryUtils
+
     def initialize(message, logger = nil)
       @message = message
       @node_list = NodeList.new
@@ -53,11 +55,6 @@ module DRbQS
         @message.write([node_id, :exit])
       end
     end
-
-    def time_to_string(t)
-      t.strftime("%Y-%m-%d %H:%M:%S")
-    end
-    private :time_to_string
 
     def send_status(calculating_task_id)
       s = ''
