@@ -157,6 +157,7 @@ module DRbQS
         sleep(WAIT_TIME_NODE_EXIT)
         check_connection(true)
       end
+      @logger.info("History of tasks") { "\n" + @queue.all_logs } if @logger
       Kernel.exit
     end
 

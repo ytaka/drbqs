@@ -1,7 +1,11 @@
+require 'drbqs/history'
+
 module DRbQS
 
   class QueueServer
-    attr_reader :calculating
+    include HistoryUtils
+
+    attr_reader :calculating, :history
 
     def initialize(queue, result, logger = nil)
       @queue = queue
@@ -9,6 +13,7 @@ module DRbQS
       @task_id = 0
       @cache = {}
       @calculating = Hash.new { |hash, key| hash[key] = Array.new }
+      @history = DRbQS::History.new
       @logger = logger
     end
 
@@ -24,6 +29,7 @@ module DRbQS
       @logger.info("New task: #{@task_id}") if @logger
       @cache[@task_id] = task
       queue_task(@task_id)
+      @history.set(@task_id, :add)
       @task_id
     end
 
@@ -34,6 +40,7 @@ module DRbQS
           sym, task_id, node_id = @result.take([:accept, Fixnum, Fixnum], 0)
           count += 1
           @calculating[node_id] << task_id
+          @history.set(task_id, :calculate, node_id)
           @logger.info("Accept: task #{task_id} by node #{node_id}.") if @logger
         end
       rescue Rinda::RequestExpiredError
@@ -47,6 +54,7 @@ module DRbQS
         if task_id_ary = @calculating[node_id]
           task_id_ary.each do |task_id|
             queue_task(task_id)
+            @history.set(task_id, :requeue)
             @logger.info("Requeue: task #{task_id}.") if @logger
           end
           @calculating.delete(node_id)
@@ -67,6 +75,7 @@ module DRbQS
     def exec_task_hook(task_id, result)
       if task = @cache.delete(task_id)
         if hook = task.hook
+          @history.set(task_id, :hook)
           hook.call(self, result)
         end
       else
@@ -82,6 +91,7 @@ module DRbQS
           get_accept_signal
           sym, task_id, node_id, result = @result.take([:result, Fixnum, Fixnum, nil], 0)
           count += 1
+          @history.set(task_id, :result, node_id)
           @logger.info("Get: result of #{task_id} from node #{node_id}.") if @logger
           delete_task_id(node_id, task_id)
           exec_task_hook(task_id, result)
@@ -107,6 +117,22 @@ module DRbQS
     # return true. Otherwise, false.
     def finished?
       @cache.size == 0
+    end
+
+    def all_logs
+      s = ''
+      @history.each do |task_id, events|
+        s << "Task #{task_id}\n"
+        events.each do |ev|
+          case ev[1]
+          when :add, :requeue, :hook
+            s << "  #{time_to_string(ev[0])}\t#{ev[1]}\n"
+          when :calculate, :result
+            s << "  #{time_to_string(ev[0])}\t#{ev[1]} (node #{ev[2]})\n"
+          end
+        end
+      end
+      s
     end
   end
 
