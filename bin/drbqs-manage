@@ -91,7 +91,7 @@ when 'ssh'
   manage.execute_over_ssh(dest, options, command_args)
 when 'new-filename'
   check_argument_size(argv, :==, 2)
-  fname = DRbQS::FileName.new(argv[1], :add => :auto, :type => :time, :position => :suffix)
+  fname = FileName.new(argv[1], :add => :auto, :type => :time, :position => :suffix)
   $stdout.puts fname.create(:directory => true)
 else
   raise "Invalid command: #{command}"

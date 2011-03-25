@@ -82,7 +82,6 @@ puts "Connect to #{uri}"
 puts "Execute #{process_num} processes"
 
 if options[:log_prefix]
-  require 'fileutils'
   if /\/$/ =~ options[:log_prefix]
     options[:log_prefix] += 'out'
   end

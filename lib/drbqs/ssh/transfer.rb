@@ -1,5 +1,3 @@
-require 'fileutils'
-
 module DRbQS
 
   # Transfer files to directory on DRbQS server.
