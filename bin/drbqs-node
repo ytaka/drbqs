@@ -85,14 +85,14 @@ if options[:log_prefix]
   if /\/$/ =~ options[:log_prefix]
     options[:log_prefix] += 'out'
   end
-  options[:log_prefix] = File.expand_path(options[:log_prefix])
-  FileUtils.mkdir_p(File.dirname(options[:log_prefix]))
 end
 
 process_num.times do |i|
   fork do
     if options[:log_prefix]
-      logfile = "#{options[:log_prefix]}_#{Time.now.strftime("%Y%m%d%H%M")}_#{Process.pid}.log"
+      logfile = FileName.create(options[:log_prefix], :position => :suffix, :type => :time,
+                                :add => :always, :directory => true,
+                                :format => lambda { |t| t.strftime("%Y%m%d_%H%M_#{Process.pid}.log") })
     else
       logfile = STDOUT
     end
