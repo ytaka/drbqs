@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{drbqs}
-  s.version = "0.0.9"
+  s.version = "0.0.10"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Takayuki YAMAGUCHI"]
-  s.date = %q{2011-03-22}
+  s.date = %q{2011-03-25}
   s.description = %q{Task queuing system over network that is implemented by dRuby.}
   s.email = %q{d@ytak.info}
   s.executables = ["drbqs-manage", "drbqs-node", "drbqs-server"]
@@ -46,6 +46,7 @@ Gem::Specification.new do |s|
     "lib/drbqs/client.rb",
     "lib/drbqs/config.rb",
     "lib/drbqs/connection.rb",
+    "lib/drbqs/history.rb",
     "lib/drbqs/manage.rb",
     "lib/drbqs/message.rb",
     "lib/drbqs/node_list.rb",
@@ -65,10 +66,12 @@ Gem::Specification.new do |s|
     "spec/connection_spec.rb",
     "spec/data/acl.txt",
     "spec/filename_spec.rb",
+    "spec/history_spec.rb",
     "spec/manage_spec.rb",
     "spec/message_spec.rb",
     "spec/node_list_spec.rb",
     "spec/queue_spec.rb",
+    "spec/server_check_alive_spec.rb",
     "spec/server_define_spec.rb",
     "spec/server_hook_spec.rb",
     "spec/server_spec.rb",
@@ -92,10 +95,12 @@ Gem::Specification.new do |s|
     "spec/config_spec.rb",
     "spec/connection_spec.rb",
     "spec/filename_spec.rb",
+    "spec/history_spec.rb",
     "spec/manage_spec.rb",
     "spec/message_spec.rb",
     "spec/node_list_spec.rb",
     "spec/queue_spec.rb",
+    "spec/server_check_alive_spec.rb",
     "spec/server_define_spec.rb",
     "spec/server_hook_spec.rb",
     "spec/server_spec.rb",
