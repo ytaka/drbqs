@@ -55,12 +55,7 @@ module DRbQS
         :result => Rinda::TupleSpace.new,
         :transfer => nil
       }
-      if opts[:log_file]
-        @logger = Logger.new(opts[:log_file])
-        @logger.level = opts[:log_level] || Logger::ERROR
-      else
-        @logger = nil
-      end
+      @logger = create_logger(opts[:log_file], opts[:log_level])
       @message = MessageServer.new(@ts[:message], @logger)
       @queue= QueueServer.new(@ts[:queue], @ts[:result], @logger)
       @check_alive = CheckAlive.new(opts[:check_alive])
@@ -68,6 +63,21 @@ module DRbQS
       hook_init(opts[:finish_exit])
       set_signal_trap if opts[:signal_trap]
     end
+
+    def create_logger(log_file, log_level)
+      if log_file
+        if IO === log_file
+          log_output = log_file
+        else
+          log_output = FileName.create(log_file, :position => :middle, :directory => true, :type => :number)
+        end
+        logger = Logger.new(log_output)
+        logger.level = log_level || Logger::ERROR
+        return logger
+      end
+      return nil
+    end
+    private :create_logger
 
     def acl_init(acl_arg)
       case acl_arg
