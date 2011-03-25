@@ -20,6 +20,7 @@ module DRbQS
   autoload :CommandExecute, 'drbqs/task'
   autoload :Transfer, 'drbqs/ssh/transfer'
   autoload :FileTransfer, 'drbqs/ssh/transfer'
+  autoload :Utils, 'drbqs/utils'
 
   ROOT_DEFAULT_PORT = 13500
 end

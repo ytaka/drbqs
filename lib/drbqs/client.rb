@@ -9,12 +9,12 @@ module DRbQS
     PRIORITY_RESPOND = 10
     PRIORITY_CALCULATE = 0
     OUTPUT_NOT_SEND_RESULT = 'not_send_result'
+    DEFAULT_LOG_FILE = 'drbqs_client.log'
 
     # :continue
     def initialize(access_uri, opts = {})
       @access_uri = access_uri
-      @logger = Logger.new(opts[:log_file] || 'drbqs_client.log')
-      @logger.level = opts[:log_level] || Logger::ERROR
+      @logger = DRbQS::Utils.create_logger(opts[:log_file] || DEFAULT_LOG_FILE, opts[:log_level])
       @connection = nil
       @task_client = nil
       @process_continue = opts[:continue]
