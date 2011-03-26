@@ -82,7 +82,9 @@ when 'exit-signal'
 when 'status'
   check_argument_size(argv, :==, 2)
   uri = argv[1]
-  $stdout.puts manage.get_status(uri)
+  if status = manage.get_status(uri)
+    $stdout.puts status
+  end
 when 'initialize'
   check_argument_size(argv, :==, 1)
   manage.create_config

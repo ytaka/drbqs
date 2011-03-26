@@ -53,15 +53,22 @@ module DRbQS
     def command_client(access_uri)
       obj = DRbObject.new_with_uri(access_uri)
       DRbQS::SendCommand.new(obj[:message])
+    rescue DRb::DRbConnError
+      $stderr.puts "Can not access #{access_uri}"
+      nil
     end
     private :command_client
 
     def send_exit_signal(access_uri)
-      command_client(access_uri).send_exit_signal
+      if client = command_client(access_uri)
+        client.send_exit_signal
+      end
     end
 
     def get_status(access_uri)
-      command_client(access_uri).get_status
+      if client = command_client(access_uri)
+        client.get_status
+      end
     end
 
     def execute_over_ssh(dest, opts, command)
