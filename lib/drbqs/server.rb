@@ -201,6 +201,9 @@ module DRbQS
       task_generator_init
       dummy_client = DRbQS::Client.new(nil, :log_file => $stdout, :log_level => opts[:log_level])
       dummy_task_client = DRbQS::TaskClient.new(nil, @ts[:queue], nil)
+      if @ts[:transfer]
+        dummy_client.instance_variable_set(:@transfer, DRbQS::TransferTest.new(@ts[:transfer].directory))
+      end
       num = 0
       loop do
         num += 1

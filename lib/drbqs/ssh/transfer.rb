@@ -4,6 +4,7 @@ module DRbQS
   # In this class we use scp command.
   # Note that after we transfer files we delete the files.
   class Transfer
+    attr_reader :user, :host, :directory
 
     # options
     #   :mkdir    true or nil
@@ -14,17 +15,35 @@ module DRbQS
       FileUtils.mkdir_p(@directory)
     end
 
+    def transfer_file(path, name)
+      system("scp -r #{path} #{@user}@#{@host}:#{File.join(@directory, name)} > /dev/null 2>&1")
+    end
+    private :transfer_file
+
     def scp(path)
       name = File.basename(path)
       unless File.exist?(path)
         raise ArgumentError, "File #{path} does not exist."
       end
-      if system("scp -r #{path} #{@user}@#{@host}:#{File.join(@directory, name)} > /dev/null 2>&1")
+      if transfer_file(path, name)
         FileUtils.rm_r(path)
         return true
       end
       return false
     end
+  end
+
+  class TransferTest < Transfer
+    def initialize(directory)
+      @directory = File.expand_path(directory)
+      FileUtils.mkdir_p(@directory)
+    end
+
+    def transfer_file(path, name)
+      FileUtils.cp(path, File.join(@directory, name))
+      true
+    end
+    private :transfer_file
   end
 
   # To compress files, we use gzip and tar command.
