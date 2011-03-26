@@ -72,15 +72,22 @@ module DRbQS
     end
     private :process_exit
 
+    def execute_finalization
+      if ary = @connection.get_finalization
+        execute_task(*ary)
+      end
+    rescue => err
+      output_error(err)
+    end
+    private :execute_finalization
+
     def communicate_with_server
       @task_client.add_new_task
       case @connection.respond_signal
       when :exit
         return nil
       when :finalize
-        if ary = @connection.get_finalization
-          execute_task(*ary)
-        end
+        execute_finalization
         return nil
       end
       @task_client.send_result
