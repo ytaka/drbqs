@@ -28,7 +28,7 @@ module DRbQS
   # empty_queue_hook is prior to task_generator.
   class Server
     WAIT_TIME_NODE_EXIT = 3
-    WAIT_TIME_NODE_FINALIZE = 30
+    WAIT_TIME_NODE_FINALIZE = 10
     WAIT_TIME_NEW_RESULT = 1
 
     attr_reader :queue
@@ -218,7 +218,6 @@ module DRbQS
       end
       num = 0
       loop do
-        num += 1
         exec_hook
         if ary = dummy_task_client.get_task
           task_id, marshal_obj, method_sym, args = ary
@@ -227,9 +226,14 @@ module DRbQS
             exec_task_hook(task_id, result)
           end
         end
-        if opts[:limit] && num > opts[:limit]
+        num += 1
+        if opts[:limit] && num >= opts[:limit]
           break
         end
+      end
+      if @finalization_task
+        args = @finalization_task.drb_args(nil)[1..-1]
+        dummy_client.instance_eval { execute_task(*args) }
       end
     end
 
