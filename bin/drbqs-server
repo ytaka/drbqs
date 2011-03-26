@@ -39,6 +39,15 @@ begin
         raise "Invalid log level."
       end
     end
+    opt.on('--file-directory DIR', String, 'Set the file archive directory.') do |v|
+      options[:file_directory] = v
+    end
+    opt.on('--scp-user USER', String, 'Set the user of scp destination.') do |v|
+      options[:scp_user] = v
+    end
+    opt.on('--scp-host HOST', String, 'Set the host of scp destination.') do |v|
+      options[:scp_host] = v
+    end
     opt.on('--debug', 'Set $DEBUG true.') do |v|
       $DEBUG = true
     end
