@@ -176,6 +176,7 @@ module DRbQS
 
     def set_file_transfer(user, host, directory)
       @ts[:transfer] = DRbQS::Transfer.new(user, host, directory)
+      @logger.info("File transfer") { @ts[:transfer].information } if @logger
     end
 
     def check_message

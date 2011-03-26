@@ -31,6 +31,10 @@ module DRbQS
       end
       return false
     end
+
+    def information
+      "#{@user}@#{@host} #{@directory}"
+    end
   end
 
   class TransferTest < Transfer
@@ -44,6 +48,10 @@ module DRbQS
       true
     end
     private :transfer_file
+
+    def information
+      @directory
+    end
   end
 
   # To compress files, we use gzip and tar command.
