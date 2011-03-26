@@ -25,13 +25,22 @@ module DRbQS
       @id_number
     end
 
-    def get_initialization
+    def get_special_task(label)
       begin
-        ary = @message.read([:initialize, nil, Symbol, nil], 0)
+        ary = @message.read([label, nil, Symbol, nil], 0)
         ary[1..-1]
       rescue Rinda::RequestExpiredError
         nil
       end
+    end
+    private :get_special_task
+
+    def get_initialization
+      get_special_task(:initialize)
+    end
+
+    def get_finalization
+      get_special_task(:finalize)
     end
 
     def respond_signal
@@ -42,8 +51,10 @@ module DRbQS
         when :alive_p
           @message.write([:server, :alive, @id_number])
           @logger.info("Send alive signal of node id #{@id_number}") if @logger
-        when :exit
-          return :exit
+        when :exit, :finalize
+          return sym
+        else
+          raise "Get invalid signal: #{sym.inspect}"
         end
       rescue Rinda::RequestExpiredError
       end

@@ -26,6 +26,16 @@ describe DRbQS::ConnectionClient do
     @connection.get_initialization.should == ary[1..-1]
   end
 
+  it "should get no finalization method." do
+    @connection.get_finalization.should be_nil
+  end
+
+  it "should get finalization" do
+    ary = [:finalize, [1, 2], :size, []]
+    @message.write(ary)
+    @connection.get_finalization.should == ary[1..-1]
+  end
+
   it "should respond :alive_p signal" do
     @message.write([@node_id, :alive_p])
     @connection.respond_signal

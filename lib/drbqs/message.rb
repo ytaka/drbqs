@@ -50,10 +50,20 @@ module DRbQS
       deleted
     end
 
-    def send_exit
+    def send_signal_to_all_nodes(signal)
       @node_list.each do |node_id, id_str|
-        @message.write([node_id, :exit])
+        @message.write([node_id, signal])
       end
+    end
+    private :send_signal_to_all_nodes
+
+    def send_exit
+      send_signal_to_all_nodes(:exit)
+    end
+
+    def send_finalization(task)
+      set_finalization(task)
+      send_signal_to_all_nodes(:finalize)
     end
 
     def send_status(calculating_task_id)
@@ -82,16 +92,24 @@ module DRbQS
       @node_list.empty?
     end
 
+    def set_special_task(label, task)
+      begin
+        @message.take([label, nil, Symbol, nil], 0)
+      rescue Rinda::RequestExpiredError
+      end
+      @message.write(task.drb_args(label))
+    end
+    private :set_special_task
+
     # If the task has already set,
     # the method overwrite old task of initialization by new task.
     def set_initialization(task)
-      begin
-        @message.take([:initialize, nil, Symbol, nil], 0)
-      rescue Rinda::RequestExpiredError
-      end
-      @message.write(task.drb_args(:initialize))
+      set_special_task(:initialize, task)
     end
 
+    def set_finalization(task)
+      set_special_task(:finalization, task)
+    end
   end
 
 end

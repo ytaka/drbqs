@@ -74,7 +74,13 @@ module DRbQS
 
     def communicate_with_server
       @task_client.add_new_task
-      if @connection.respond_signal == :exit
+      case @connection.respond_signal
+      when :exit
+        return nil
+      when :finalize
+        if ary = @connection.get_finalization
+          execute_task(*ary)
+        end
         return nil
       end
       @task_client.send_result

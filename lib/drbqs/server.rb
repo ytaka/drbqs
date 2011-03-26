@@ -28,6 +28,7 @@ module DRbQS
   # empty_queue_hook is prior to task_generator.
   class Server
     WAIT_TIME_NODE_EXIT = 3
+    WAIT_TIME_NODE_FINALIZE = 30
     WAIT_TIME_NEW_RESULT = 1
 
     attr_reader :queue
@@ -62,6 +63,7 @@ module DRbQS
       @task_generator = []
       hook_init(opts[:finish_exit])
       set_signal_trap if opts[:signal_trap]
+      @finalization_task = nil
     end
 
     def acl_init(acl_arg)
@@ -123,6 +125,10 @@ module DRbQS
       @message.set_initialization(task)
     end
 
+    def set_finalization_task(task)
+      @finalization_task = task
+    end
+
     # +key+ is :empty_queue or :finish_exit.
     # &block takes self as an argument.
     def add_hook(key, name = nil, &block)
@@ -147,9 +153,15 @@ module DRbQS
     private :exec_hook
 
     def exit
-      @message.send_exit
+      if @finalization_task
+        @message.send_finalization(@finalization_task)
+        wait_time = WAIT_TIME_NODE_FINALIZE
+      else
+        @message.send_exit
+        wait_time = WAIT_TIME_NODE_EXIT
+      end
       until @message.node_not_exist?
-        sleep(WAIT_TIME_NODE_EXIT)
+        sleep(wait_time)
         check_connection(true)
       end
       @logger.info("History of tasks") { "\n" + @queue.all_logs } if @logger
