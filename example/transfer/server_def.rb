@@ -15,5 +15,5 @@ DRbQS.define_server(:finish_exit => true) do |server, argv, opts|
   end
   server.add_task_generator(tgen)
 
-  server.set_file_transfer(ENV['USER'], 'localhost', '/tmp/drbqs_transfer_test/')
+  server.set_file_transfer('/tmp/drbqs_transfer_test/')
 end

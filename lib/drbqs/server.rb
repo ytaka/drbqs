@@ -47,6 +47,12 @@ module DRbQS
     #   Exit programs in finish_hook.
     # :signal_trap
     #   Set trapping signal.
+    # :scp_user
+    #   Set user of scp.
+    # :scp_host
+    #   Set host of scp.
+    # :file_directory
+    #   Set the setting of file directory.
     def initialize(opts = {})
       @port = opts[:port] || ROOT_DEFAULT_PORT
       @acl = acl_init(opts[:acl])
@@ -64,7 +70,17 @@ module DRbQS
       hook_init(opts[:finish_exit])
       set_signal_trap if opts[:signal_trap]
       @finalization_task = nil
+      @transfer_setting = get_transfer_setting(opts[:scp_host], opts[:scp_user], opts[:file_directory])
     end
+
+    def get_transfer_setting(host, user, directory)
+      setting = { :directory => directory, :user => user, :host => host, :set => true }
+      if host || user || directory
+        setting[:set] = true
+      end
+      setting
+    end
+    private :get_transfer_setting
 
     def acl_init(acl_arg)
       case acl_arg
@@ -85,6 +101,9 @@ module DRbQS
     private :hook_init
 
     def start
+      if @transfer_setting[:set] && @transfer_setting[:directory] && !@ts[:transfer]
+        set_file_transfer(@transfer_setting[:directory])
+      end
       DRb.install_acl(@acl) if @acl
       uri = "druby://:#{@port}"
       DRb.start_service(uri, @ts)
@@ -174,7 +193,9 @@ module DRbQS
       end
     end
 
-    def set_file_transfer(user, host, directory)
+    def set_file_transfer(directory, opts = {})
+      user = opts[:user] || @transfer_setting[:user] || ENV['USER']
+      host = opts[:host] || @transfer_setting[:host] || 'localhost'
       @ts[:transfer] = DRbQS::Transfer.new(user, host, directory)
       @logger.info("File transfer") { @ts[:transfer].information } if @logger
     end
