@@ -1,11 +1,16 @@
 require 'thread'
-require 'logger'
 require 'drb'
 require 'drb/acl'
 require 'rinda/tuplespace'
 require 'rinda/rinda'
 
 require 'drbqs/server_define'
+
+autoload :Logger, 'logger'
+autoload :FileUtils, 'fileutils'
+
+gem 'filename'
+autoload :FileName, 'filename'
 
 module DRbQS
   autoload :Server, 'drbqs/server'
@@ -24,6 +29,3 @@ module DRbQS
 
   ROOT_DEFAULT_PORT = 13500
 end
-
-autoload :FileUtils, 'fileutils'
-autoload :FileName, 'filename'
