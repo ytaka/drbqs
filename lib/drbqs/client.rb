@@ -18,6 +18,7 @@ module DRbQS
       @connection = nil
       @task_client = nil
       @process_continue = opts[:continue]
+      @signal_queue = Queue.new
     end
 
     def transfer_file
@@ -81,6 +82,12 @@ module DRbQS
     end
     private :execute_finalization
 
+    def send_error(err)
+      output_error(err)
+      @connection.send_node_error("#{err.to_s}\n#{err.backtrace.join("\n")}")
+    end
+    private :send_error
+
     def communicate_with_server
       @task_client.add_new_task
       case @connection.respond_signal
@@ -91,6 +98,14 @@ module DRbQS
         return nil
       end
       @task_client.send_result
+      until @signal_queue.empty?
+        signal, obj = @signal_queue.pop
+        case signal
+        when :node_error
+          send_error(obj)
+          process_exit
+        end
+      end
       return true
     end
     private :communicate_with_server
@@ -111,7 +126,7 @@ module DRbQS
             sleep(WAIT_NEW_TASK)
           end
         rescue => err
-          output_error(err)
+          send_error(err)
         ensure
           process_exit
         end
@@ -126,14 +141,20 @@ module DRbQS
             calculate_task
           end
         rescue => err
-          output_error(err)
-          process_exit
+          @signal_queue.push([:node_error, err])
         end
       end
     end
     private :thread_calculate
 
+    def set_signal_trap
+      Signal.trap(:TERM) do
+        process_exit
+      end
+    end
+
     def calculate(opts = {})
+      set_signal_trap
       cn = thread_communicate
       exec = thread_calculate
       cn.priority = PRIORITY_RESPOND

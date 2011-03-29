@@ -32,11 +32,15 @@ module DRbQS
         @logger.info("Get exit message from #{arg.to_s}") if @logger
       when :request_status
         @logger.info("Get status request from #{arg.to_s}") if @logger
+      when :node_error
+        @node_list.delete(arg[0])
+        @logger.info("Node Error (#{arg[0]})") { arg[1] } if @logger
+        return [mes, arg[0]]
       else
         @logger.error("Invalid message from #{arg.to_s}") if @logger
         return nil
       end
-      return mes
+      return [mes]
     end
     private :manage_message
 

@@ -59,5 +59,9 @@ module DRbQS
       rescue Rinda::RequestExpiredError
       end
     end
+
+    def send_node_error(error_message)
+      @message.write([:server, :node_error, [@id_number, error_message]])
+    end
   end
 end

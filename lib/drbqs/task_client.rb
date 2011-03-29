@@ -30,8 +30,8 @@ module DRbQS
     private :dequeue_result
 
     def queue_task(task_id, ary)
-      @task_queue.enq(ary)
       @calculating_task = task_id
+      @task_queue.enq(ary)
     end
 
     def dequeue_task
@@ -50,9 +50,9 @@ module DRbQS
       unless @calculating_task
         if ary = get_task
           task_id, obj, method_sym, args = ary
+          @logger.info("Send accept signal: node #{@node_id} caluclating #{task_id}") if @logger
+          @result.write([:accept, task_id, @node_id])
           queue_task(task_id, [obj, method_sym, args])
-          @logger.info("Send accept signal: node #{@node_id} caluclating #{@calculating_task}") if @logger
-          @result.write([:accept, @calculating_task, @node_id])
         end
       end
     end

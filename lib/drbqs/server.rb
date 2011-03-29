@@ -201,12 +201,16 @@ module DRbQS
     end
 
     def check_message
-      while mes = @message.get_message
+      while mes_arg = @message.get_message
+        mes, arg = mes_arg
         case mes
         when :exit_server
           self.exit
         when :request_status
           @message.send_status(@queue.calculating)
+        when :node_error
+          @queue.get_accept_signal
+          @queue.requeue_for_deleted_node_id([arg])
         end
       end
     end

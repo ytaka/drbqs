@@ -26,10 +26,14 @@ module DRbQS
       @check = @list.keys
     end
 
+    def delete(id)
+      @list.delete(id)
+      @history.set(id, :disconnect)
+    end
+
     def delete_not_alive
       @check.each do |id|
-        @list.delete(id)
-        @history.set(id, :disconnect)
+        delete(id)
       end
       deleted = @check
       @check = []
