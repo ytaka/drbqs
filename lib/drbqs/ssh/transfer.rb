@@ -93,5 +93,21 @@ module DRbQS
     def self.empty?
       @@files.empty?
     end
+
+    def self.decompress(server, filename)
+      dir = server.transfer_directory
+      path = File.join(dir, filename)
+      if File.exist?(path)
+        case path
+        when /\.tar\.gz$/
+          cmd = "tar xvzf #{path} -C #{dir} > /dev/null 2>&1"
+        when /\.gz$/
+          cmd = "gunzip #{path} > /dev/null 2>&1"
+        else
+          cmd = nil
+        end
+        system(cmd) if cmd
+      end
+    end
   end
 end
