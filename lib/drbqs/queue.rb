@@ -72,19 +72,18 @@ module DRbQS
     end
     private :delete_task_id
 
-    def exec_task_hook(task_id, result)
+    def exec_task_hook(main_server, task_id, result)
       if task = @cache.delete(task_id)
         if hook = task.hook
           @history.set(task_id, :hook)
-          hook.call(self, result)
+          hook.call(main_server, result)
         end
       else
         @logger.error("Task #{task_id} is not cached.") if @logger
       end
     end
-    private :exec_task_hook
 
-    def get_result
+    def get_result(main_server)
       count = 0
       begin
         loop do
@@ -94,7 +93,7 @@ module DRbQS
           @history.set(task_id, :result, node_id)
           @logger.info("Get: result of #{task_id} from node #{node_id}.") if @logger
           delete_task_id(node_id, task_id)
-          exec_task_hook(task_id, result)
+          exec_task_hook(main_server, task_id, result)
         end
       rescue Rinda::RequestExpiredError
         @logger.debug("Get: #{count} results.") if @logger

@@ -230,7 +230,7 @@ module DRbQS
       loop do
         check_message
         check_connection
-        count_results = @queue.get_result
+        count_results = @queue.get_result(self)
         exec_hook
         @logger.debug("Calculating tasks: #{@queue.calculating_task_number}") if @logger
         if count_results <= 1
@@ -268,9 +268,7 @@ module DRbQS
         if ary = dummy_task_client.get_task
           task_id, marshal_obj, method_sym, args = ary
           result = dummy_client.instance_eval { execute_task(marshal_obj, method_sym, args) }
-          @queue.instance_eval do
-            exec_task_hook(task_id, result)
-          end
+          @queue.exec_task_hook(self, task_id, result)
         end
         num += 1
         if opts[:limit] && num >= opts[:limit]
