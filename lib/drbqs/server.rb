@@ -162,6 +162,12 @@ module DRbQS
       @hook.delete(key, name)
     end
 
+    def exec_finish_hook
+      @logger.info("Execute finish hook.") if @logger
+      @hook.exec(:finish, self)
+    end
+    private :exec_finish_hook
+    
     def exec_hook
       if @queue.empty?
         @logger.info("Execute empty queue hook.") if @logger
@@ -169,8 +175,7 @@ module DRbQS
       end
       add_tasks_from_generator
       if @queue.finished?
-        @logger.info("Execute finish hook.") if @logger
-        @hook.exec(:finish, self)
+        exec_finish_hook
       end
     end
     private :exec_hook
@@ -280,6 +285,7 @@ module DRbQS
         args = @finalization_task.drb_args(nil)[1..-1]
         dummy_client.instance_eval { execute_task(*args) }
       end
+      exec_finish_hook
     end
 
     def test_task_generator(opts = {})
