@@ -73,6 +73,10 @@ module DRbQS
       @transfer_setting = get_transfer_setting(opts[:scp_host], opts[:scp_user], opts[:file_directory])
     end
 
+    def transfer_directory
+      @ts[:transfer] && @ts[:transfer].directory
+    end
+
     def get_transfer_setting(host, user, directory)
       setting = { :directory => directory, :user => user, :host => host, :set => true }
       if host || user || directory
