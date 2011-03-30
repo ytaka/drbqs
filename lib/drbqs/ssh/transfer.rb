@@ -74,10 +74,12 @@ module DRbQS
           raise "Can not compress: #{path}"
         end
         FileUtils.rm_r(path) if File.exist?(path)
-        @@files.enq(gz_path)
+        path_to_send = gz_path
       else
-        @@files.enq(path)
+        path_to_send = path
       end
+      @@files.enq(path_to_send)
+      File.basename(path_to_send)
     end
 
     def self.compress_enqueue(path)
