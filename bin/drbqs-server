@@ -18,6 +18,8 @@ options = {
   :acl => DRbQS::Config.get_acl_file
 }
 
+test_opts = {}
+
 command_argv, server_argv = DRbQS::Manage.split_arguments(ARGV)
 
 begin
@@ -47,6 +49,9 @@ begin
     end
     opt.on('--scp-host HOST', String, 'Set the host of scp destination.') do |v|
       options[:scp_host] = v
+    end
+    opt.on('--profile', 'Use profile for test exec.') do |v|
+      test_opts[:profile] = true
     end
     opt.on('--debug', 'Set $DEBUG true.') do |v|
       $DEBUG = true
@@ -84,7 +89,7 @@ case options[:command_type]
 when /^test/
   s = options[:command_type].split('_')[1].split(',')
   type = s[0].intern
-  DRbQS.test_server(options, type, s[1..-1])
+  DRbQS.test_server(options, type, s[1..-1], test_opts)
 else
   DRbQS.start_server(options)
 end

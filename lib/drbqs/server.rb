@@ -235,6 +235,21 @@ module DRbQS
       end
     end
 
+    def start_profile
+      require 'ruby-prof'
+      RubyProf.start
+    end
+    private :start_profile
+
+    def finish_profile
+      result = RubyProf.stop
+      printer = RubyProf::FlatPrinter.new(result)
+      # printer = RubyProf::GraphPrinter.new(result)
+      # printer = RubyProf::CallTreePrinter.new(result)
+      printer.print(STDOUT)
+    end
+    private :finish_profile
+
     def test_exec(opts = {})
       task_generator_init
       dummy_client = DRbQS::Client.new(nil, :log_file => $stdout, :log_level => opts[:log_level])
@@ -243,6 +258,7 @@ module DRbQS
         dummy_client.instance_variable_set(:@transfer, DRbQS::TransferTest.new(@ts[:transfer].directory))
       end
       num = 0
+      start_profile if opts[:profile]
       loop do
         exec_hook
         if ary = dummy_task_client.get_task
@@ -257,6 +273,7 @@ module DRbQS
           break
         end
       end
+      finish_profile if opts[:profile]
       if @finalization_task
         args = @finalization_task.drb_args(nil)[1..-1]
         dummy_client.instance_eval { execute_task(*args) }
