@@ -91,10 +91,6 @@ when 'initialize'
 when 'ssh'
   dest = argv[1]
   manage.execute_over_ssh(dest, options, command_args)
-when 'new-filename'
-  check_argument_size(argv, :==, 2)
-  fname = FileName.new(argv[1], :add => :auto, :type => :time, :position => :suffix)
-  $stdout.puts fname.create(:directory => true)
 else
   raise "Invalid command: #{command}"
 end
