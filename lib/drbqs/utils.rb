@@ -5,7 +5,7 @@ module DRbQS
         if IO === log_file
           log_output = log_file
         else
-          log_output = FileName.create(log_file, :position => :middle, :directory => true, :type => :number)
+          log_output = FileName.create(log_file, :position => :middle, :directory => :parent, :type => :number)
         end
         logger = Logger.new(log_output)
         logger.level = log_level || Logger::ERROR

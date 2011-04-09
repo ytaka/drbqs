@@ -129,7 +129,7 @@ module DRbQS
       end
       execute_command do |sh|
         if @nohup
-          pr, path = shell_exec_check(sh, "filename-create new -p middle -D -t time #{@nohup_output}")
+          pr, path = shell_exec_check(sh, "filename-create new -p middle -D parent -t time #{@nohup_output}")
           cmd = "nohup #{cmd} > #{path.strip} 2>&1 &"
         end
         shell_exec(sh, cmd)
