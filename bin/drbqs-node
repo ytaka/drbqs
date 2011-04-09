@@ -91,7 +91,7 @@ process_num.times do |i|
   fork do
     if options[:log_prefix]
       logfile = FileName.create(options[:log_prefix], :position => :suffix, :type => :time,
-                                :add => :always, :directory => true,
+                                :add => :always, :directory => :parent,
                                 :format => lambda { |t| t.strftime("%Y%m%d_%H%M_#{Process.pid}.log") })
     else
       logfile = STDOUT
