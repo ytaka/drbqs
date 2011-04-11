@@ -19,6 +19,7 @@ options = {
 }
 
 test_opts = {}
+execute_node_number = nil
 
 command_argv, server_argv = DRbQS::Manage.split_arguments(ARGV)
 
@@ -59,6 +60,9 @@ begin
     opt.on('--test STR', String, 'Execute test.') do |v|
       options[:command_type] = "test_#{v}"
     end
+    opt.on('--execute-node NUM', Integer, 'Execute nodes.') do |v|
+      execute_node_number = v
+    end
     opt.parse!(command_argv)
   end
 rescue OptionParser::InvalidOption
@@ -84,6 +88,8 @@ command_argv.each do |path|
   load path
 end
 
+WAIT_SERVER_TIME = 0.3
+
 DRbQS.parse_option(server_argv)
 case options[:command_type]
 when /^test/
@@ -91,5 +97,23 @@ when /^test/
   type = s[0].intern
   DRbQS.test_server(options, type, s[1..-1], test_opts)
 else
-  DRbQS.start_server(options)
+  if execute_node_number
+    fork do
+      DRbQS.start_server(options)
+    end
+    uri = "druby://:#{options[:port] || DRbQS::ROOT_DEFAULT_PORT}"
+    manage = DRbQS::Manage.new
+    begin
+      sleep(WAIT_SERVER_TIME)
+    end while !manage.get_status(uri)
+    node_log_file = nil
+    unless IO === options[:log_file]
+      node_log_file = FileName.create(options[:log_file], :add => :always, :position => :middle, :delimiter => '', :format => "_node_%02d")
+    end
+    exec_node = DRbQS::ExecuteNode.new(uri, node_log_file, options[:log_level])
+    exec_node.execute(execute_node_number)
+    exec_node.wait
+  else
+    DRbQS.start_server(options)
+  end
 end

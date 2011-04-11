@@ -88,5 +88,5 @@ if options[:log_prefix]
 end
 
 exec_node = DRbQS::ExecuteNode.new(uri, options[:log_prefix], options[:log_level])
-exec_node.exec(process_num)
+exec_node.execute(process_num)
 exec_node.wait

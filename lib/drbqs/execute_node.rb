@@ -5,9 +5,9 @@ module DRbQS
       @uri = uri
       @log_level = log_level
       if log_prefix
-        @fname = FileName.create(log_prefix, :position => :suffix, :type => :time,
-                                 :add => :always, :directory => :parent,
-                                 :format => lambda { |t| t.strftime("%Y%m%d_%H%M_#{Process.pid}.log") })
+        @fname = FileName.new(log_prefix, :position => :suffix, :type => :time,
+                              :add => :always, :directory => :parent,
+                              :format => lambda { |t| t.strftime("%Y%m%d_%H%M_#{Process.pid}.log") })
       else
         @fname = nil
       end
@@ -20,20 +20,20 @@ module DRbQS
       end
       return STDOUT
     end
-    private :log_file
+    private :get_log_file
 
-    def create_process(log_file)
+    def create_process
       @pid << fork do
-        client = DRbQS::Client.new(@uri, :log_level => @log_level, log_file)
+        client = DRbQS::Client.new(@uri, :log_level => @log_level, :log_file => get_log_file)
         client.connect
         client.calculate
       end
     end
     private :create_process
 
-    def self.execute(process_num)
+    def execute(process_num)
       process_num.times do |i|
-        create_process(get_log_file)
+        create_process
       end
     end
 
