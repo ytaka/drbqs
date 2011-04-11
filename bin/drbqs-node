@@ -87,19 +87,6 @@ if options[:log_prefix]
   end
 end
 
-process_num.times do |i|
-  fork do
-    if options[:log_prefix]
-      logfile = FileName.create(options[:log_prefix], :position => :suffix, :type => :time,
-                                :add => :always, :directory => :parent,
-                                :format => lambda { |t| t.strftime("%Y%m%d_%H%M_#{Process.pid}.log") })
-    else
-      logfile = STDOUT
-    end
-    client = DRbQS::Client.new(uri, :log_level => options[:log_level], :log_file => logfile)
-    client.connect
-    client.calculate
-  end
-end
-
-Process.waitall
+exec_node = DRbQS::ExecuteNode.new(uri, options[:log_prefix], options[:log_level])
+exec_node.exec(process_num)
+exec_node.wait
