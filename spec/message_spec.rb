@@ -46,7 +46,7 @@ describe DRbQS::MessageServer do
 
   it "should get :exit_server message" do
     @message.write([:server, :exit_server, 'message_test'])
-    @message_server.get_message.should == :exit_server
+    @message_server.get_message.should == [:exit_server]
   end
 
   it "should send exit message" do
@@ -71,7 +71,7 @@ describe DRbQS::MessageServer do
 
   it "should get :request_status message" do
     @message.write([:server, :request_status, 'message_test'])
-    @message_server.get_message.should == :request_status
+    @message_server.get_message.should == [:request_status]
   end
 
   it "should send status" do
