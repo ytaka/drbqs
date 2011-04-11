@@ -1,6 +1,8 @@
 module DRbQS
 
   class ExecuteNode
+    NODE_INTERVAL_TIME = 1
+
     def initialize(uri, log_prefix, log_level)
       @uri = uri
       @log_level = log_level
@@ -34,6 +36,7 @@ module DRbQS
     def execute(process_num)
       process_num.times do |i|
         create_process
+        sleep(NODE_INTERVAL_TIME)
       end
     end
 
