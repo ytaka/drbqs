@@ -128,6 +128,11 @@ module DRbQS
       @task_generator << task_generator
     end
 
+    def generator_waiting?
+      @task_generator.size > 0 && @task_generator[0].waiting?
+    end
+    private :generator_waiting?
+
     def add_tasks_from_generator
       if @task_generator.size > 0 && @queue.empty?
         if tasks = @task_generator[0].new_tasks
@@ -173,8 +178,10 @@ module DRbQS
         @logger.info("Execute empty queue hook.") if @logger
         @hook.exec(:empty_queue, self)
       end
-      add_tasks_from_generator
-      if @queue.finished?
+      if !generator_waiting? || @queue.finished?
+        add_tasks_from_generator
+      end
+      if !generator_waiting? && @queue.finished?
         exec_finish_hook
       end
     end
