@@ -2,18 +2,11 @@ module DRbQS
   class DRbQS::TaskCreatingError < StandardError
   end
 
-  class TaskGenerator
-    def initialize(data = {})
+  class TaskSource
+    def initialize(data)
       data.each do |key, val|
         instance_variable_set("@#{key.to_s}", val)
       end
-      @__fiber__ = nil
-      @__iterate__ = nil
-      @__fiber_init__ = nil
-    end
-
-    def have_next?
-      !!@__fiber__
     end
 
     def add_task(arg)
@@ -28,15 +21,37 @@ module DRbQS
     end
 
     def create_add_task(*args, &block)
-      Fiber.yield(DRbQS::Task.new(*args, &block))
+      add_task(DRbQS::Task.new(*args, &block))
+    end
+
+    def wait_all_tasks
+      Fiber.yield(:wait)
+    end
+  end
+
+  class TaskGenerator
+    def initialize(data = {})
+      @source = DRbQS::TaskSource.new(data)
+      @fiber = nil
+      @iterate = nil
+      @fiber_init = nil
+      @wait = false
+    end
+
+    def have_next?
+      !!@fiber
+    end
+
+    def waiting?
+      @wait
     end
 
     def set(iterate = 1, &block)
-      @__iterate__ = iterate
-      @__fiber_init__ = lambda do
-        @__fiber__ = Fiber.new do
+      @iterate = iterate
+      @fiber_init = lambda do
+        @fiber = Fiber.new do
           begin
-            instance_eval(&block)
+            @source.instance_eval(&block)
           rescue => err
             raise DRbQS::TaskCreatingError, "\n  #{err.to_s}"
           end
@@ -46,25 +61,29 @@ module DRbQS
     end
 
     def init
-      @__fiber_init__.call if @__fiber_init__
+      @fiber_init.call if @fiber_init
     end
 
     # Return an array of new tasks.
     def new_tasks
-      if @__fiber__
+      if @fiber
+        @wait = false
         task_ary = []
-        @__iterate__.times do |i|
-          if task_new = @__fiber__.resume
+        @iterate.times do |i|
+          if task_new = @fiber.resume
             case task_new
             when DRbQS::Task
               task_ary << task_new
             when Array
               task_ary.concat(task_new)
+            when :wait
+              @wait = true
+              break
             else
               raise "Invalid type of new task."
             end
           else
-            @__fiber__ = nil
+            @fiber = nil
             break
           end
         end
