@@ -89,6 +89,7 @@ command_argv.each do |path|
 end
 
 WAIT_SERVER_TIME = 0.3
+NODE_INTERVAL_TIME = 1
 
 DRbQS.parse_option(server_argv)
 case options[:command_type]
@@ -111,7 +112,7 @@ else
       node_log_file = FileName.create(options[:log_file], :add => :always, :position => :middle, :delimiter => '', :format => "_node_%02d")
     end
     exec_node = DRbQS::ExecuteNode.new(uri, node_log_file, options[:log_level])
-    exec_node.execute(execute_node_number)
+    exec_node.execute(execute_node_number, NODE_INTERVAL_TIME)
     exec_node.wait
   else
     DRbQS.start_server(options)
