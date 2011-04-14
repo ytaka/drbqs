@@ -58,9 +58,9 @@ module DRbQS
     end
     private :dump_not_send_result_to_file
 
-    def output_error(err)
+    def output_error(err, mes)
       if @logger
-        @logger.error("Raise error in calculating thread: #{err.to_s}") { "\n" + err.backtrace.join("\n") }
+        @logger.error("#{mes}: #{err.to_s}") { "\n" + err.backtrace.join("\n") }
       end
     end
     private :output_error
@@ -78,12 +78,12 @@ module DRbQS
         execute_task(*ary)
       end
     rescue => err
-      output_error(err)
+      output_error(err, "On finalization")
     end
     private :execute_finalization
 
-    def send_error(err)
-      output_error(err)
+    def send_error(err, mes)
+      output_error(err, mes)
       @connection.send_node_error("#{err.to_s}\n#{err.backtrace.join("\n")}")
     end
     private :send_error
@@ -102,7 +102,7 @@ module DRbQS
         signal, obj = @signal_queue.pop
         case signal
         when :node_error
-          send_error(obj)
+          send_error(obj, "Communicating with server")
           process_exit
         end
       end
@@ -126,7 +126,7 @@ module DRbQS
             sleep(WAIT_NEW_TASK)
           end
         rescue => err
-          send_error(err)
+          send_error(err, "Calculating thread")
         ensure
           process_exit
         end
