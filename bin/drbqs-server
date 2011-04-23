@@ -3,7 +3,7 @@
 require 'drbqs'
 require 'optparse'
 
-Version = '0.0.12'
+Version = DRbQS::VERSION
 
 help_message =<<HELP
 Usage: #{File.basename(__FILE__)} <definition.rb> [other files ...] [options ...]

@@ -30,4 +30,6 @@ module DRbQS
   autoload :ExecuteNode, 'drbqs/execute_node'
 
   ROOT_DEFAULT_PORT = 13500
+
+  VERSION = '0.0.13'
 end
