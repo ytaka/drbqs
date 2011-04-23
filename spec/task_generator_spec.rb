@@ -3,9 +3,9 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 require 'drbqs/task_generator'
 
 describe DRbQS::TaskGenerator do
-  def check_task_ary(tasks, num)
+  def check_task_ary(tasks, num, cl = DRbQS::Task)
     tasks.should have(num).items
-    tasks.all? { |t| DRbQS::Task === t }.should be_true
+    tasks.all? { |t| cl === t }.should be_true
   end
 
   subject { DRbQS::TaskGenerator.new(:abc => 'ABC', :def => 123, :data => [1, 2, 3]) }
@@ -17,7 +17,7 @@ describe DRbQS::TaskGenerator do
   end
 
   it "should create new tasks" do
-    subject.set(2) do
+    subject.set(:generate => 2) do
       @data.each do |i|
         create_add_task(i, :to_s)
       end
@@ -28,8 +28,21 @@ describe DRbQS::TaskGenerator do
     subject.new_tasks.should be_nil
   end
 
+  it "should should create task sets" do
+    subject.set(:generate => 2, :collect => 10) do
+      100.times do |i|
+        create_add_task(i, :to_s)
+      end
+    end
+    subject.init
+    5.times do |i|
+      check_task_ary(subject.new_tasks, 2, DRbQS::TaskSet)
+    end
+    subject.new_tasks.should be_nil
+  end
+
   it "should debug generator" do
-    subject.set(2) do
+    subject.set(:generate => 2) do
       @data.each do |i|
         create_add_task(i, :to_s)
       end
@@ -41,7 +54,7 @@ describe DRbQS::TaskGenerator do
   end
 
   it "should wait" do
-    subject.set(2) do
+    subject.set(:generate => 2) do
       @data.each do |i|
         if i == 2
           wait_all_tasks

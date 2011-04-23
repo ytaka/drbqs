@@ -23,6 +23,7 @@ module DRbQS
   autoload :SSHHost, 'drbqs/ssh/host'
   autoload :CommandTask, 'drbqs/task'
   autoload :CommandExecute, 'drbqs/task'
+  autoload :TaskSet, 'drbqs/task'
   autoload :Transfer, 'drbqs/ssh/transfer'
   autoload :FileTransfer, 'drbqs/ssh/transfer'
   autoload :Utils, 'drbqs/utils'

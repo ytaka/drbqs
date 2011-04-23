@@ -34,6 +34,7 @@ module DRbQS
       @source = DRbQS::TaskSource.new(data)
       @fiber = nil
       @iterate = nil
+      @task_set = nil
       @fiber_init = nil
       @wait = false
     end
@@ -46,8 +47,15 @@ module DRbQS
       @wait
     end
 
-    def set(iterate = 1, &block)
-      @iterate = iterate
+    # The options :generate and :collect are available.
+    # opts[:generate] is the number of tasks per one generation.
+    # The generator creates a task set from opts[:collect] tasks.
+    def set(opts = {}, &block)
+      @iterate = opts[:generate] || 1
+      @task_set = opts[:collect]
+      if @iterate < 1 || (@task_set && @task_set < 1)
+        raise ArgumentError, "Invalid option."
+      end
       @fiber_init = lambda do
         @fiber = Fiber.new do
           begin
@@ -69,7 +77,9 @@ module DRbQS
       if @fiber
         @wait = false
         task_ary = []
-        @iterate.times do |i|
+        iteration = @iterate
+        iteration *= @task_set if @task_set
+        iteration.times do |i|
           if task_new = @fiber.resume
             case task_new
             when DRbQS::Task
@@ -88,6 +98,11 @@ module DRbQS
           end
         end
         if task_ary.size > 0
+          if @task_set
+            task_ary = task_ary.each_slice(@task_set).map do |ary|
+              DRbQS::TaskSet.new(ary)
+            end
+          end
           return task_ary
         end
       end
