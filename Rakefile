@@ -43,3 +43,13 @@ task :default => :spec
 
 require 'yard'
 YARD::Rake::YardocTask.new
+
+task "version:constant" do
+  dir = File.dirname(__FILE__)
+  path = File.join(dir, 'lib/drbqs.rb')
+  data = File.read(path)
+  version = File.read(File.join(dir, 'VERSION'))
+  open(path, 'w') do |f|
+    f.print data.sub(/^  VERSION = '.*'$/, "  VERSION = '#{version}'")
+  end
+end
