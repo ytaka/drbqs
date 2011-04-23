@@ -53,7 +53,7 @@ module DRbQS
           begin
             @source.instance_eval(&block)
           rescue => err
-            raise DRbQS::TaskCreatingError, "\n  #{err.to_s}"
+            raise DRbQS::TaskCreatingError, "\n  #{err.to_s}\n#{err.backtrace.join("\n")}"
           end
           nil
         end

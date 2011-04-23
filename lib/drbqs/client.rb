@@ -32,8 +32,7 @@ module DRbQS
     private :transfer_file
 
     def execute_task(marshal_obj, method_sym, args)
-      obj = Marshal.load(marshal_obj)
-      result = obj.__send__(method_sym, *args)
+      result = DRbQS::Task.execute_task(marshal_obj, method_sym, args)
       transfer_file
       result
     end

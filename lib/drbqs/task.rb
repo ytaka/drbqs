@@ -33,6 +33,11 @@ module DRbQS
         @method_sym == other.instance_variable_get(:@method_sym) &&
         @args == other.instance_variable_get(:@args)
     end
+
+    def self.execute_task(marshal_obj, method_sym, args)
+      obj = Marshal.load(marshal_obj)
+      obj.__send__(method_sym, *args)
+    end
   end
 
   class CommandExecute
@@ -71,6 +76,46 @@ module DRbQS
     # &hook takes a server instance and exit number of command.
     def initialize(cmd, opts = {}, &hook)
       super(CommandExecute.new(cmd, {}), :exec, &hook)
+    end
+  end
+
+  class TaskContainer
+    def initialize(task_ary)
+      @data = task_ary.map.with_index do |task, i|
+        task.drb_args(i)
+      end
+    end
+
+    def exec
+      @data.map do |ary|
+        DRbQS::Task.execute_task(*ary[1..-1])
+      end
+    end
+
+    def data
+      @data
+    end
+    protected :data
+
+    def ==(other)
+      other.data.each_with_index.all? do |ary, i|
+        ary == @data[i]
+      end
+    end
+  end
+
+  class TaskSet < Task
+    def initialize(task_ary)
+      @original_hook = task_ary.map do |task|
+        task.hook
+      end
+      super(DRbQS::TaskContainer.new(task_ary), :exec) do |srv, result|
+        result.each_with_index do |res, i|
+          if hook = @original_hook[i]
+            hook.call(srv, res)
+          end
+        end
+      end
     end
   end
 end
