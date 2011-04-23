@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{drbqs}
-  s.version = "0.0.12"
+  s.version = "0.0.13"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Takayuki YAMAGUCHI"]
-  s.date = %q{2011-04-09}
+  s.date = %q{2011-04-23}
   s.description = %q{Task queuing system over network that is implemented by dRuby.}
   s.email = %q{d@ytak.info}
   s.executables = ["drbqs-manage", "drbqs-node", "drbqs-server"]
@@ -48,6 +48,7 @@ Gem::Specification.new do |s|
     "lib/drbqs/client.rb",
     "lib/drbqs/config.rb",
     "lib/drbqs/connection.rb",
+    "lib/drbqs/execute_node.rb",
     "lib/drbqs/history.rb",
     "lib/drbqs/manage.rb",
     "lib/drbqs/message.rb",
@@ -89,7 +90,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://github.com/ytaka/drbqs}
   s.licenses = ["GPL3"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.7.2}
+  s.rubygems_version = %q{1.6.2}
   s.summary = %q{dRuby Queueing System}
   s.test_files = [
     "spec/acl_file_spec.rb",
@@ -124,6 +125,9 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_development_dependency(%q<jeweler>, ["~> 1.5.2"])
       s.add_development_dependency(%q<rcov>, [">= 0"])
+      s.add_development_dependency(%q<filename>, [">= 0.0.5"])
+      s.add_development_dependency(%q<net-ssh>, [">= 2.1.3"])
+      s.add_development_dependency(%q<net-ssh-shell>, [">= 0.1.0"])
       s.add_runtime_dependency(%q<net-ssh>, [">= 2.1.3"])
       s.add_runtime_dependency(%q<net-ssh-shell>, [">= 0.1.0"])
       s.add_runtime_dependency(%q<filename>, [">= 0.0.5"])
@@ -134,6 +138,9 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
       s.add_dependency(%q<rcov>, [">= 0"])
+      s.add_dependency(%q<filename>, [">= 0.0.5"])
+      s.add_dependency(%q<net-ssh>, [">= 2.1.3"])
+      s.add_dependency(%q<net-ssh-shell>, [">= 0.1.0"])
       s.add_dependency(%q<net-ssh>, [">= 2.1.3"])
       s.add_dependency(%q<net-ssh-shell>, [">= 0.1.0"])
       s.add_dependency(%q<filename>, [">= 0.0.5"])
@@ -145,6 +152,9 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<bundler>, ["~> 1.0.0"])
     s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
     s.add_dependency(%q<rcov>, [">= 0"])
+    s.add_dependency(%q<filename>, [">= 0.0.5"])
+    s.add_dependency(%q<net-ssh>, [">= 2.1.3"])
+    s.add_dependency(%q<net-ssh-shell>, [">= 0.1.0"])
     s.add_dependency(%q<net-ssh>, [">= 2.1.3"])
     s.add_dependency(%q<net-ssh-shell>, [">= 0.1.0"])
     s.add_dependency(%q<filename>, [">= 0.0.5"])
