@@ -6,6 +6,9 @@ module DRbQS
   class Transfer
     attr_reader :user, :host, :directory
 
+    SCP_RETRY = 3
+    SCP_RETRY_INTERVAL = 10
+
     # options
     #   :mkdir    true or nil
     def initialize(user, host, directory)
@@ -16,7 +19,14 @@ module DRbQS
     end
 
     def transfer_file(path, name)
-      system("scp -r #{path} #{@user}@#{@host}:#{File.join(@directory, name)} > /dev/null 2>&1")
+      cmd = "scp -r #{path} #{@user}@#{@host}:#{File.join(@directory, name)} > /dev/null 2>&1"
+      SCP_RETRY.times do |i|
+        if system(cmd)
+          return true
+        end
+        sleep(SCP_RETRY_INTERVAL)
+      end
+      false
     end
     private :transfer_file
 
