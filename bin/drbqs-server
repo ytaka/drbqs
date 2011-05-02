@@ -28,6 +28,9 @@ begin
     opt.on('-p PORT', '--port', Integer, 'Set the port number of server.') do |v|
       options[:port] = v
     end
+    opt.on('-u PATH', '--unix', String, 'Set the path of unix domain socket.') do |v|
+      options[:unix] = v
+    end
     opt.on('--acl FILE', String, 'Set a file to define ACL.') do |v|
       options[:acl] = v
     end
@@ -102,7 +105,7 @@ else
     fork do
       DRbQS.start_server(options)
     end
-    uri = "druby://:#{options[:port] || DRbQS::ROOT_DEFAULT_PORT}"
+    uri = DRbQS::Server.get_uri(options)
     manage = DRbQS::Manage.new
     begin
       sleep(WAIT_SERVER_TIME)
