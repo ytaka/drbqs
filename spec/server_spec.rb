@@ -13,6 +13,32 @@ describe DRbQS::Server do
       ACL.should_receive(:new).with(ary)
       DRbQS::Server.new(:acl => ary, :log_file => nil)
     end
+
+    it "should raise error for invalid unix domain" do
+      lambda do
+        DRbQS::Server.new(:unix => "not_exist/dir/abc")
+      end.should raise_error
+    end
+
+    it "should get default uri" do
+      server = DRbQS::Server.new
+      server.uri.should == "druby://:#{DRbQS::ROOT_DEFAULT_PORT}"
+    end
+
+    it "should get uri of tcp" do
+      server = DRbQS::Server.new(:port => 9999)
+      server.uri.should == "druby://:9999"
+    end
+
+    it "should get uri of unix domain" do
+      server = DRbQS::Server.new(:unix => "/tmp/drbqs")
+      server.uri.should == "drbunix:/tmp/drbqs"
+    end
+
+    it "should prefer port number option" do
+      server = DRbQS::Server.new(:unix => "/tmp/drbqs", :port => 9999)
+      server.uri.should == "druby://:9999"
+    end
   end
 
   context "when we start DRbQS::Server" do
