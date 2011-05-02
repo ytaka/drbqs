@@ -27,6 +27,19 @@ module DRbQS
   # When we set both empty_queue_hook and task_generator,
   # empty_queue_hook is prior to task_generator.
   class Server
+    def self.get_uri(opts = {})
+      if opts[:port] || !opts[:unix]
+        port = opts[:port] || ROOT_DEFAULT_PORT
+        "druby://:#{port}"
+      else
+        path = File.expand_path(opts[:unix])
+        unless File.directory?(File.dirname(path))
+          raise ArgumentError, "Directory #{File.dirname(path)} does not exist."
+        end
+        "drbunix:#{path}"
+      end
+    end
+
     WAIT_TIME_NODE_EXIT = 3
     WAIT_TIME_NODE_FINALIZE = 10
     WAIT_TIME_NEW_RESULT = 1
@@ -57,16 +70,7 @@ module DRbQS
     # :file_directory
     #   Set the setting of file directory.
     def initialize(opts = {})
-      if opts[:port] || !opts[:unix]
-        port = opts[:port] || ROOT_DEFAULT_PORT
-        @uri = "druby://:#{port}"
-      else
-        path = File.expand_path(opts[:unix])
-        unless File.directory?(File.dirname(path))
-          raise ArgumentError, "Directory #{File.dirname(path)} does not exist."
-        end
-        @uri = "drbunix:#{path}"
-      end
+      @uri = DRbQS::Server.get_uri(opts)
       @acl = acl_init(opts[:acl])
       @ts = {
         :message => Rinda::TupleSpace.new,
