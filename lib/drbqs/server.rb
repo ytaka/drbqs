@@ -31,10 +31,13 @@ module DRbQS
     WAIT_TIME_NODE_FINALIZE = 10
     WAIT_TIME_NEW_RESULT = 1
 
-    attr_reader :queue
+    attr_reader :queue, :uri
 
     # :port
     #   Set the port of server.
+    # :unix
+    #   Set the path of unix domain socket.
+    #   If :port is specified, :port is preceded.
     # :acl
     #   Set the ACL instance.
     # :log_file
@@ -54,7 +57,16 @@ module DRbQS
     # :file_directory
     #   Set the setting of file directory.
     def initialize(opts = {})
-      @port = opts[:port] || ROOT_DEFAULT_PORT
+      if opts[:port] || !opts[:unix]
+        port = opts[:port] || ROOT_DEFAULT_PORT
+        @uri = "druby://:#{port}"
+      else
+        path = File.expand_path(opts[:unix])
+        unless File.directory?(File.dirname(path))
+          raise ArgumentError, "Directory #{File.dirname(path)} does not exist."
+        end
+        @uri = "drbunix:#{path}"
+      end
       @acl = acl_init(opts[:acl])
       @ts = {
         :message => Rinda::TupleSpace.new,
@@ -109,9 +121,8 @@ module DRbQS
         set_file_transfer(@transfer_setting[:directory])
       end
       DRb.install_acl(@acl) if @acl
-      uri = "druby://:#{@port}"
-      DRb.start_service(uri, @ts)
-      @logger.info("Start DRb service") { uri } if @logger
+      DRb.start_service(@uri, @ts)
+      @logger.info("Start DRb service") { @uri } if @logger
     end
 
     def check_connection(force = nil)
