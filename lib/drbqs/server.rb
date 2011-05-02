@@ -33,8 +33,10 @@ module DRbQS
         "druby://:#{port}"
       else
         path = File.expand_path(opts[:unix])
-        unless File.directory?(File.dirname(path))
+        if !File.directory?(File.dirname(path))
           raise ArgumentError, "Directory #{File.dirname(path)} does not exist."
+        elsif File.exist?(path)
+          raise ArgumentError, "File #{path} already exists."
         end
         "drbunix:#{path}"
       end

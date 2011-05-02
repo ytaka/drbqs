@@ -14,7 +14,13 @@ describe DRbQS::Server do
       DRbQS::Server.new(:acl => ary, :log_file => nil)
     end
 
-    it "should raise error for invalid unix domain" do
+    it "should raise error for existing path" do
+      lambda do
+        DRbQS::Server.new(:unix => __FILE__)
+      end.should raise_error
+    end
+
+    it "should raise error for none of parent directory" do
       lambda do
         DRbQS::Server.new(:unix => "not_exist/dir/abc")
       end.should raise_error
