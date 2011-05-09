@@ -10,3 +10,14 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 RSpec.configure do |config|
   
 end
+
+def drbqs_test_tuple_space(uri)
+  ts = {
+    :message => Rinda::TupleSpace.new,
+    :queue => Rinda::TupleSpace.new,
+    :result => Rinda::TupleSpace.new,
+    :transfer => nil
+  }
+  DRb.start_service(uri, ts)
+  ts
+end

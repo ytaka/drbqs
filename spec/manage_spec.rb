@@ -1,50 +1,14 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
+require 'drbqs/message.rb'
 require_relative 'test/test1.rb'
 
-describe DRbQS do
+describe DRbQS::Manage do
   before(:all) do
-    @tasks = []
-    5.times do |i|
-      @tasks << DRbQS::Task.new(Test1.new, :echo, [i])
-    end
-    @process_id = fork do
-      server = DRbQS::Server.new(:port => 13501)
-
-      @tasks.each do |task|
-        server.queue.add(task)
-      end
-
-      server.add_hook(:finish) do |serv|
-        serv.exit
-      end
-
-      server.set_signal_trap
-      server.start
-      server.wait
-    end
-    sleep(1)
-
-    @uri = 'druby://:13501'
-
+    @uri = "druby://:13600"
+    @ts = drbqs_test_tuple_space(@uri)
+    @message = DRbQS::MessageServer.new(@ts[:message])
     @manage = DRbQS::Manage.new
-  end
-
-  it "should send exit signal" do
-    lambda do
-      @manage.send_exit_signal(@uri)
-    end.should_not raise_error
-    lambda do
-      i = 0
-      while !Process.waitpid(@process_id, Process::WNOHANG)
-        i += 1
-        if i > 10
-          Process.kill(:KILL, @process_id)
-          raise "Server process does not finish."
-        end
-        sleep(1)
-      end
-    end.should_not raise_error
   end
 
   it "should split arguments" do
@@ -54,4 +18,24 @@ describe DRbQS do
     a2.should == ['123', '45', '6']
   end
 
+  it "should send exit signal" do
+    lambda do
+      @manage.send_exit_signal(@uri)
+    end.should_not raise_error
+    @message.get_message.should == [:exit_server]
+  end
+
+  it "should send node exit signal" do
+    node_id = 100
+    lambda do
+      @manage.send_node_exit_after_task(@uri, node_id)
+    end.should_not raise_error
+    @message.get_message.should == [:exit_after_task, node_id]
+  end
+
+  it "should get status" do
+    dummy_status = "status data"
+    @ts[:message].write([:status, dummy_status])
+    @manage.get_status(@uri).should == dummy_status
+  end
 end
