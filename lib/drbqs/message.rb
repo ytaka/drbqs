@@ -30,6 +30,9 @@ module DRbQS
         @node_list.set_alive(arg)
       when :exit_server
         @logger.info("Get exit message from #{arg.to_s}") if @logger
+      when :exit_after_task
+        @logger.info("Get exit message for node #{arg.to_s} after current task") if @logger
+        return [mes, arg]
       when :request_status
         @logger.info("Get status request from #{arg.to_s}") if @logger
       when :node_error
@@ -40,7 +43,7 @@ module DRbQS
         @logger.error("Invalid message from #{arg.to_s}") if @logger
         return nil
       end
-      return [mes]
+      [mes]
     end
     private :manage_message
 
@@ -54,20 +57,30 @@ module DRbQS
       deleted
     end
 
+    def send_signal(node_id, signal)
+      @message.write([node_id, signal])
+    end
+    private :send_signal
+
     def send_signal_to_all_nodes(signal)
       @node_list.each do |node_id, id_str|
-        @message.write([node_id, signal])
+        send_signal(node_id, signal)
       end
     end
     private :send_signal_to_all_nodes
 
+    # Send all nodes a message to exit.
     def send_exit
       send_signal_to_all_nodes(:exit)
     end
 
-    def send_finalization(task)
-      set_finalization(task)
+    # Send all nodes a message to finalize and exit.
+    def send_finalization
       send_signal_to_all_nodes(:finalize)
+    end
+
+    def send_exit_after_task(node_id)
+      send_signal(node_id, :exit_after_task)
     end
 
     def send_status(calculating_task_id)
@@ -94,6 +107,10 @@ module DRbQS
 
     def node_not_exist?
       @node_list.empty?
+    end
+
+    def node_exist?(node_id)
+      @node_list.exist?(node_id)
     end
 
     def set_special_task(label, task)

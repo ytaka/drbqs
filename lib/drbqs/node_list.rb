@@ -47,6 +47,10 @@ module DRbQS
     def empty?
       @list.size == 0
     end
+
+    def exist?(id)
+      @list.find { |a| a[0] == id }
+    end
   end
 
 end

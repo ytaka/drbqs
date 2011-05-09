@@ -8,7 +8,7 @@ Version = DRbQS::VERSION
 help_message =<<HELP
 Usage: #{File.basename(__FILE__)} <command> [arguments ...]
 Manage DRbQS server by sending messages.
-<command> is 'exit-signal', 'initialize', or 'ssh'.
+<command> is 'exit-signal', 'exit-after-task', 'initialize', or 'ssh'.
 
 HELP
 
@@ -24,7 +24,7 @@ argv, command_args = DRbQS::Manage.split_arguments(ARGV)
 options = {}
 if /^ssh/ =~ command
   check_argument_size(argv, :>=, 2)
-  ssh_host =DRbQS::SSHHost.new
+  ssh_host = DRbQS::SSHHost.new
   path, options = ssh_host.get_options(argv[1])
   $stdout.puts "Use configuration: #{path}" if path
   argv[1] = options[:dest] if options[:dest]
@@ -79,6 +79,11 @@ when 'exit-signal'
   check_argument_size(argv, :==, 2)
   uri = argv[1]
   manage.send_exit_signal(uri)
+when 'exit-after-task'
+  check_argument_size(argv, :==, 3)
+  uri = argv[1]
+  node_id = argv[2].to_i
+  manage.send_node_exit_after_task(uri, node_id)
 when 'status'
   check_argument_size(argv, :==, 2)
   uri = argv[1]

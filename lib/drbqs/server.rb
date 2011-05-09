@@ -172,6 +172,7 @@ module DRbQS
 
     def set_finalization_task(task)
       @finalization_task = task
+      @message.set_finalization(@finalization_task)
     end
 
     # +key+ is :empty_queue or :finish_exit.
@@ -206,7 +207,7 @@ module DRbQS
 
     def exit
       if @finalization_task
-        @message.send_finalization(@finalization_task)
+        @message.send_finalization
         wait_time = WAIT_TIME_NODE_FINALIZE
       else
         @message.send_exit
@@ -241,6 +242,11 @@ module DRbQS
           self.exit
         when :request_status
           @message.send_status(@queue.calculating)
+        when :exit_after_task
+          node_id = arg
+          if @message.node_exist?(node_id)
+            @message.send_exit_after_task(node_id)
+          end
         when :node_error
           @queue.get_accept_signal
           @queue.requeue_for_deleted_node_id([arg])

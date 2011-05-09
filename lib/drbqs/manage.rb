@@ -14,12 +14,21 @@ module DRbQS
     end
     private :get_hostname
 
+    def send_signal_to_server(signal, arg)
+      @message.write([:server, signal, arg])
+    end
+    private :send_signal_to_server
+
     def send_exit_signal
-      @message.write([:server, :exit_server, get_hostname])
+      send_signal_to_server(:exit_server, get_hostname)
+    end
+
+    def send_node_exit_after_task(node_id)
+      send_signal_to_server(:exit_after_task, node_id)
     end
 
     def get_status
-      @message.write([:server, :request_status, get_hostname])
+      send_signal_to_server(:request_status, get_hostname)
       i = 0
       loop do
         begin
@@ -62,6 +71,12 @@ module DRbQS
     def send_exit_signal(access_uri)
       if client = command_client(access_uri)
         client.send_exit_signal
+      end
+    end
+
+    def send_node_exit_after_task(access_uri, node_id)
+      if client = command_client(access_uri)
+        client.send_node_exit_after_task(node_id)
       end
     end
 

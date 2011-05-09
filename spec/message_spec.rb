@@ -25,6 +25,14 @@ describe DRbQS::MessageServer do
     @message.take([:initialize, nil, Symbol, nil], 0).should be_true
   end
 
+  it "should set finalization task" do
+    lambda do
+      @message.take([:finalization, nil, Symbol, nil], 0)
+    end.should raise_error Rinda::RequestExpiredError
+    @message_server.set_finalization(DRbQS::Task.new(Object.new, :object_id))
+    @message.take([:finalization, nil, Symbol, nil], 0).should be_true
+  end
+
   it "should get :connect message" do
     5.times do |i|
       id_str = "connect_test_#{i}"
@@ -49,11 +57,22 @@ describe DRbQS::MessageServer do
     @message_server.get_message.should == [:exit_server]
   end
 
+  it "should get :exit_after_task message" do
+    @message.write([:server, :exit_after_task, 1])
+    @message_server.get_message.should == [:exit_after_task, 1]
+  end
+
   it "should send exit message" do
     @message_server.send_exit
     @node_id_list.each do |id|
       @message.take([id, :exit]).should be_true
     end
+  end
+
+  it "should send exit_after_task message" do
+    id = 1
+    @message_server.send_exit_after_task(id)
+    @message.take([id, :exit_after_task]).should be_true
   end
 
   it "should delete a node" do

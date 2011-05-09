@@ -44,10 +44,18 @@ describe DRbQS::TaskClient do
   end
 
   it "should send result" do
-    @task_client.send_result
+    @task_client.send_result.should be_nil
     @task_client.task_empty?.should be_true
     @task_client.result_empty?.should be_true
     @task_client.calculating_task.should be_nil
     @ts_result.take([:result, nil, nil, nil], 0).should be_true
+  end
+
+  it "should set exit_after_task" do
+    @ts_queue.write([@task_id] + @task_example)
+    @task_client.set_exit_after_task
+    @task_client.add_new_task
+    @task_client.task_empty?.should be_true
+    @task_client.send_result.should be_true
   end
 end

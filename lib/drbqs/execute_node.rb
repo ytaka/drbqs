@@ -1,6 +1,8 @@
 module DRbQS
 
   class ExecuteNode
+    attr_reader :pid
+
     def initialize(uri, log_prefix, log_level)
       @uri = uri
       @log_level = log_level

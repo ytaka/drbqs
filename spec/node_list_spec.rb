@@ -26,6 +26,18 @@ describe DRbQS::NodeList do
     end
   end
 
+  it "should return true for existence of node id" do
+    @id_list.each do |id_num, id_str|
+      @node_list.exist?(id_num).should be_true
+    end
+  end
+
+  it "should not return true for nonexistent node id" do
+    [1000, 2000, 3000].each do |id|
+      @node_list.exist?(id).should_not be_true
+    end
+  end
+
   it "should delete all ids" do
     @node_list.empty?.should_not be_true
     @node_list.set_check_connection

@@ -51,7 +51,7 @@ module DRbQS
         when :alive_p
           @message.write([:server, :alive, @id_number])
           @logger.info("Send alive signal of node id #{@id_number}") if @logger
-        when :exit, :finalize
+        when :exit, :finalize, :exit_after_task
           return sym
         else
           raise "Get invalid signal: #{sym.inspect}"

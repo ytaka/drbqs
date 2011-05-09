@@ -7,6 +7,7 @@ module DRbQS
       @queue = queue
       @result = result
       @calculating_task = nil
+      @exit_after_task = nil
       @task_queue = Queue.new
       @result_queue = Queue.new
       @logger = logger
@@ -46,8 +47,12 @@ module DRbQS
       end
     end
 
+    def set_exit_after_task
+      @exit_after_task = true
+    end
+
     def add_new_task
-      unless @calculating_task
+      if !@calculating_task && !@exit_after_task
         if ary = get_task
           task_id, obj, method_sym, args = ary
           @logger.info("Send accept signal: node #{@node_id} caluclating #{task_id}") if @logger
@@ -57,6 +62,7 @@ module DRbQS
       end
     end
 
+    # If the method return true, a node should finilize and exit.
     def send_result
       if !result_empty?
         result = dequeue_result
@@ -64,6 +70,7 @@ module DRbQS
         @result.write([:result, @calculating_task, @node_id, result])
         @calculating_task = nil
       end
+      @exit_after_task
     end
 
     def queue_result(result)

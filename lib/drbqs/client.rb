@@ -88,15 +88,18 @@ module DRbQS
     private :send_error
 
     def communicate_with_server
+      flag_finilize_exit = false
       @task_client.add_new_task
       case @connection.respond_signal
       when :exit
         return nil
       when :finalize
-        execute_finalization
-        return nil
+        flag_finilize_exit = true
+      when :exit_after_task
+        @task_client.set_exit_after_task
+        @process_continue = nil
       end
-      @task_client.send_result
+      flag_finilize_exit = @task_client.send_result
       until @signal_queue.empty?
         signal, obj = @signal_queue.pop
         case signal
@@ -105,7 +108,11 @@ module DRbQS
           process_exit
         end
       end
-      return true
+      if flag_finilize_exit
+        execute_finalization
+        return nil
+      end
+      true
     end
     private :communicate_with_server
 
