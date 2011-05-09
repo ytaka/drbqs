@@ -35,15 +35,7 @@ describe DRbQS do
       @manage.send_exit_signal(@uri)
     end.should_not raise_error
     lambda do
-      i = 0
-      while !Process.waitpid(@process_id, Process::WNOHANG)
-        i += 1
-        if i > 10
-          Process.kill(:KILL, @process_id)
-          raise "Server process does not finish."
-        end
-        sleep(1)
-      end
+      drbqs_wait_kill_server(@process_id)
     end.should_not raise_error
   end
 end
