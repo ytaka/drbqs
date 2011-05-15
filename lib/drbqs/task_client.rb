@@ -70,7 +70,7 @@ module DRbQS
         @result.write([:result, @calculating_task, @node_id, result])
         @calculating_task = nil
       end
-      @exit_after_task
+      !@calculating_task && @exit_after_task
     end
 
     def queue_result(result)
