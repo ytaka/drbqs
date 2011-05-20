@@ -12,6 +12,11 @@ autoload :FileUtils, 'fileutils'
 gem 'filename'
 autoload :FileName, 'filename'
 
+gem 'net-sftp'
+module Net
+  autoload :SFTP, 'net/sftp'
+end
+
 module DRbQS
   autoload :Server, 'drbqs/server'
   autoload :Client, 'drbqs/client'

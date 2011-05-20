@@ -18,28 +18,18 @@ module DRbQS
       FileUtils.mkdir_p(@directory)
     end
 
-    def transfer_file(path, name)
-      cmd = "scp -r #{path} #{@user}@#{@host}:#{File.join(@directory, name)} > /dev/null 2>&1"
-      SCP_RETRY.times do |i|
-        if system(cmd)
-          return true
-        end
-        sleep(SCP_RETRY_INTERVAL)
-      end
-      false
+    def upload_name(path)
+      File.join(@directory, File.basename(path))
     end
-    private :transfer_file
+    private :upload_name
 
-    def scp(path)
-      name = File.basename(path)
-      unless File.exist?(path)
-        raise ArgumentError, "File #{path} does not exist."
+    def transfer(files)
+      Net::SFTP.start(@host, @user) do |sftp|
+        files.each do |path|
+          sftp.upload(path, upload_name(path))
+        end
       end
-      if transfer_file(path, name)
-        FileUtils.rm_r(path)
-        return true
-      end
-      return false
+      true
     end
 
     def information
@@ -53,11 +43,12 @@ module DRbQS
       FileUtils.mkdir_p(@directory)
     end
 
-    def transfer_file(path, name)
-      FileUtils.cp(path, File.join(@directory, name))
+    def transfer(files)
+      files.each do |path|
+        FileUtils.cp(path, upload_name(path))
+      end
       true
     end
-    private :transfer_file
 
     def information
       @directory

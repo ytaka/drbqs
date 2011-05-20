@@ -22,10 +22,13 @@ module DRbQS
     end
 
     def transfer_file
+      files = []
       until FileTransfer.empty?
-        path = FileTransfer.dequeue
-        unless @transfer.scp(path)
-          raise "Can not send file: #{path}"
+        files << FileTransfer.dequeue
+      end
+      if files.size > 0
+        unless @transfer.transfer(files)
+          raise "Can not send file: #{files.join(", ")}"
         end
       end
     end
