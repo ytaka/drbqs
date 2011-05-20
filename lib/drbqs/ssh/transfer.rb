@@ -23,10 +23,12 @@ module DRbQS
     end
     private :upload_name
 
+    # Transfer and delete +files+.
     def transfer(files)
       Net::SFTP.start(@host, @user) do |sftp|
         files.each do |path|
           sftp.upload(path, upload_name(path))
+          FileUtils.rm_r(path)
         end
       end
       true
@@ -45,7 +47,7 @@ module DRbQS
 
     def transfer(files)
       files.each do |path|
-        FileUtils.cp(path, upload_name(path))
+        FileUtils.mv(path, upload_name(path))
       end
       true
     end
