@@ -14,4 +14,5 @@ group :development do
   gem "filename", ">= 0.0.5"
   gem "net-ssh", ">= 2.1.3"
   gem "net-ssh-shell", ">= 0.1.0"
+  gem "net-sftp", ">= 2.0.5"
 end
