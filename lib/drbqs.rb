@@ -29,10 +29,14 @@ module DRbQS
   autoload :CommandTask, 'drbqs/task'
   autoload :CommandExecute, 'drbqs/task'
   autoload :TaskSet, 'drbqs/task'
-  autoload :Transfer, 'drbqs/ssh/transfer'
   autoload :FileTransfer, 'drbqs/ssh/transfer'
   autoload :Utils, 'drbqs/utils'
   autoload :ExecuteNode, 'drbqs/execute_node'
+
+  module Transfer
+    autoload :SFTP, 'drbqs/ssh/transfer'
+    autoload :Local, 'drbqs/ssh/transfer'
+  end
 
   ROOT_DEFAULT_PORT = 13500
 
