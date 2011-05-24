@@ -57,21 +57,21 @@ describe DRbQS::Server do
 
     it "should set defalt settings of DRbQS::FileTransfer" do
       server = DRbQS::Server.new(:file_directory => '/tmp')
-      DRbQS::Transfer.should_receive(:new).with(ENV['USER'], 'localhost', '/tmp')
+      DRbQS::Transfer::SFTP.should_receive(:new).with(ENV['USER'], 'localhost', '/tmp')
       DRb.should_receive(:start_service).once
       server.start
     end
 
     it "should set DRbQS::FileTransfer" do
       server = DRbQS::Server.new(:file_directory => '/tmp', :scp_user => 'hello', :scp_host => 'example.com')
-      DRbQS::Transfer.should_receive(:new).with('hello', 'example.com', '/tmp')
+      DRbQS::Transfer::SFTP.should_receive(:new).with('hello', 'example.com', '/tmp')
       DRb.should_receive(:start_service).once
       server.start
     end
 
     it "should set DRbQS::FileTransfer by DRbQS::Server#set_file_transfer" do
       server = DRbQS::Server.new
-      DRbQS::Transfer.should_receive(:new).with(ENV['USER'], 'localhost', '/tmp')
+      DRbQS::Transfer::SFTP.should_receive(:new).with(ENV['USER'], 'localhost', '/tmp')
       DRb.should_receive(:start_service).once
       server.set_file_transfer('/tmp')
       server.start
@@ -79,7 +79,7 @@ describe DRbQS::Server do
 
     it "should set DRbQS::FileTransfer by DRbQS::Server#set_file_transfer with optional arguments" do
       server = DRbQS::Server.new
-      DRbQS::Transfer.should_receive(:new).with('hello', 'example.com', '/tmp')
+      DRbQS::Transfer::SFTP.should_receive(:new).with('hello', 'example.com', '/tmp')
       DRb.should_receive(:start_service).once
       server.set_file_transfer('/tmp', :user => 'hello', :host => 'example.com')
       server.start
