@@ -34,8 +34,8 @@ module DRbQS
   autoload :ExecuteNode, 'drbqs/execute_node'
 
   module Transfer
-    autoload :SFTP, 'drbqs/ssh/transfer'
-    autoload :Local, 'drbqs/ssh/transfer'
+    autoload :SFTP, 'drbqs/transfer/transfer'
+    autoload :Local, 'drbqs/transfer/transfer'
   end
 
   ROOT_DEFAULT_PORT = 13500
