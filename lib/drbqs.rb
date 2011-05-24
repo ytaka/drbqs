@@ -27,7 +27,6 @@ module DRbQS
   autoload :CommandTask, 'drbqs/task'
   autoload :CommandExecute, 'drbqs/task'
   autoload :TaskSet, 'drbqs/task'
-  autoload :FileTransfer, 'drbqs/ssh/transfer'
   autoload :Utils, 'drbqs/utils'
   autoload :ExecuteNode, 'drbqs/execute_node'
 
@@ -35,6 +34,8 @@ module DRbQS
     autoload :Shell, 'drbqs/ssh/shell'
     autoload :Host, 'drbqs/ssh/host'
   end
+
+  autoload :FileTransfer, 'drbqs/transfer/transfer'
 
   module Transfer
     autoload :SFTP, 'drbqs/transfer/transfer'
