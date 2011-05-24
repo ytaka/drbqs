@@ -87,12 +87,12 @@ module DRbQS
     end
 
     def execute_over_ssh(dest, opts, command)
-      ssh = DRbQS::SSHShell.new(dest, opts)
+      ssh = DRbQS::SSH::Shell.new(dest, opts)
       ssh.start(command)
     end
 
     def get_ssh_environment(dest, opts)
-      ssh = DRbQS::SSHShell.new(dest, opts)
+      ssh = DRbQS::SSH::Shell.new(dest, opts)
       ssh.get_environment
     end
   end

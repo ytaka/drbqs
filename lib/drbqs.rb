@@ -24,14 +24,17 @@ module DRbQS
   autoload :TaskGenerator, 'drbqs/task_generator'
   autoload :Manage, 'drbqs/manage'
   autoload :Config, 'drbqs/config'
-  autoload :SSHShell, 'drbqs/ssh/shell'
-  autoload :SSHHost, 'drbqs/ssh/host'
   autoload :CommandTask, 'drbqs/task'
   autoload :CommandExecute, 'drbqs/task'
   autoload :TaskSet, 'drbqs/task'
   autoload :FileTransfer, 'drbqs/ssh/transfer'
   autoload :Utils, 'drbqs/utils'
   autoload :ExecuteNode, 'drbqs/execute_node'
+
+  module SSH
+    autoload :Shell, 'drbqs/ssh/shell'
+    autoload :Host, 'drbqs/ssh/host'
+  end
 
   module Transfer
     autoload :SFTP, 'drbqs/transfer/transfer'
