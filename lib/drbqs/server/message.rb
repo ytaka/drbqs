@@ -1,4 +1,4 @@
-require 'drbqs/node_list'
+require 'drbqs/server/node_list'
 
 module DRbQS
   class MessageServer

@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
-require 'drbqs/message.rb'
+require 'drbqs/server/message.rb'
 
 describe DRbQS::MessageServer do
   before(:all) do

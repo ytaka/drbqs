@@ -1,7 +1,7 @@
-require 'drbqs/message'
-require 'drbqs/queue'
-require 'drbqs/acl_file'
-require 'drbqs/server_hook'
+require 'drbqs/server/message'
+require 'drbqs/server/queue'
+require 'drbqs/server/acl_file'
+require 'drbqs/server/server_hook'
 
 module DRbQS
   class CheckAlive

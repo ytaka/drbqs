@@ -1,4 +1,4 @@
-require 'drbqs/history'
+require 'drbqs/server/history'
 
 module DRbQS
   class NodeList

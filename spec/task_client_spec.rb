@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
-require 'drbqs/task_client'
+require 'drbqs/node/task_client'
 
 describe DRbQS::TaskClient do
   before(:all) do

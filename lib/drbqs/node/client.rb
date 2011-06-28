@@ -1,5 +1,5 @@
-require 'drbqs/connection'
-require 'drbqs/task_client'
+require 'drbqs/node/connection'
+require 'drbqs/node/task_client'
 
 module DRbQS
 

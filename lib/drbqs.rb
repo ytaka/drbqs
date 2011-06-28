@@ -19,7 +19,7 @@ end
 
 module DRbQS
   autoload :Server, 'drbqs/server'
-  autoload :Client, 'drbqs/client'
+  autoload :Client, 'drbqs/node/client'
   autoload :Task, 'drbqs/task'
   autoload :TaskGenerator, 'drbqs/task_generator'
   autoload :Manage, 'drbqs/manage'
