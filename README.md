@@ -12,7 +12,7 @@ and connect the nodes to the server.
 The behavior of nodes requests tasks, gets tasks from a server, processes the tasks,
 and sends results of the tasks to the server.
 The nodes work repeatedly until they get exit signal from server.
-The server prepares tasks and checks that nodes are alive.
+The server prepares tasks and signals to check that nodes are alive.
 If the server does not communicate with the nodes unexpectedly,
 the server deletes the nodes from node list and
 requeues their calculating tasks.
@@ -37,7 +37,7 @@ And we use net-ssh and net-ssh-shell to execute servers and nodes over ssh.
 We prepare a class to send tasks over network,
 which has data and a method to deal with tasks.
 
-We make sum.rb as the following.
+For example, we make sum.rb as the following.
 
     class Sum
       def initialize(start_num, end_num)
@@ -92,7 +92,8 @@ when task queue is empty.
 
 ### Task generator
 
-Arguments of DRbQS::TaskGenerator.new define instance variables.
+Arguments of DRbQS::TaskGenerator.new define instance variables,
+which is implemented by Fiber and is executed by server's requests.
 
     task_generator = DRbQS::TaskGenerator.new(:abc => 'ABC', :def => 123, :data => [1, 2, 3])
 
@@ -104,7 +105,7 @@ The above example defines the following instance variables.
 
 Then, DRbQS::TaskGenerator#set method defines generation of tasks.
 The block of the method is evaluated in the context of task_generator.
-For the above example we can use @abc, @def, and @data.
+We can use @abc, @def, and @data on the above example.
 
     task_generator.set do
       @data.each do |i|
@@ -112,8 +113,8 @@ For the above example we can use @abc, @def, and @data.
       end
     end
 
-DRbQS::TaskGenerator#create_add_task creates a task
-and the task is returned by DRbQS::TaskGenerator#new_tasks.
+DRbQS::TaskGenerator#create_add_task set a task
+and DRbQS::TaskGenerator#new_tasks actually creates the task.
 The arguments of DRbQS::TaskGenerator#create_add_task is
 the same as DRbQS::Task.new.
 
@@ -122,18 +123,19 @@ we set the generator by DRbQS::Server#add_task_generator.
 
 ### Start node and connect server
 
-Because nodes needs class Sum,
+Because nodes need class Sum,
 the nodes load sum.rb when they starts.
-Then, we type in terminal.
+Then, we use '-l' option for command 'drbqs-node'.
+That is, we type in terminal.
 
     drbqs-node druby://localhost:13500/ -l sum.rb
 
-To use two cpu cores we execute two processes by the following.
+We execute two processes to use two cpu cores.
 
     drbqs-node 2 druby://localhost:13500/ -l sum.rb
 
 Then, if it succeeds, the calculation starts.
-If it finishes, the server and node ends.
+If it finishes, the server and node end.
 
 ## Contributing to drbqs
  
