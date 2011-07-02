@@ -12,6 +12,7 @@ group :development do
   gem "jeweler", ">= 1.6.2"
   gem "rcov", ">= 0"
   gem "filename", ">= 0.1.0"
+  gem "user_config", ">= 0.0.1"
   gem "net-ssh", ">= 2.1.4"
   gem "net-ssh-shell", ">= 0.2.0"
   gem "net-sftp", ">= 2.0.5"

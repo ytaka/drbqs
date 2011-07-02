@@ -1,4 +1,5 @@
 require 'singleton'
+require 'user_config'
 
 module DRbQS
 
@@ -9,11 +10,18 @@ module DRbQS
   SHELL_FILE_DIRECTORY = 'shell'
   SHELL_BASHRC = 'bashrc'
 
-  class Config
+  class Config < UserConfig
+    DRBQS_CONFIG_DIRECTORY = '.drbqs'
 
-    @@data = {
-      :dir => ENV['HOME'] + '/.drbqs/',
-    }
+    @@home_directory = nil
+
+    def self.set_home_directory(path)
+      @@home_directory = File.expand_path(path)
+    end
+
+    def self.get_home_directory
+      @@home_directory
+    end
 
     ACL_SAMPLE =<<SAMPLE
 deny all
@@ -37,62 +45,35 @@ HISTSIZE=10000
 HISTFILESIZE=20000
 SAMPLE
 
-    class << self
-      def get_path(name)
-        File.join(@@data[:dir], name)
-      end
-      private :get_path
+    def initialize
+      super(DRBQS_CONFIG_DIRECTORY, :home => @@home_directory)
+    end
 
-      def set_directory(dir)
-        @@data[:dir] = dir
+    def save_sample
+      self.open(ACL_SAMPLE_PATH, 'w') do |f|
+        f.print ACL_SAMPLE
       end
-
-      def get_host_file_directory
-        get_path(HOST_FILE_DIRECTORY)
+      self.open(File.join(HOST_FILE_DIRECTORY, HOST_FILE_SAMPLE_PATH), 'w') do |f|
+        f.print HOST_YAML_SAMPLE
       end
-
-      def get_shell_file_directory
-        get_path(SHELL_FILE_DIRECTORY)
-      end
-
-      def make_directory(dir)
-        unless File.exist?(dir)
-          FileUtils.mkdir_p(dir)
-        end
-      end
-      private :make_directory
-
-      def check_directory_create
-        unless File.exist?(@@data[:dir])
-          FileUtils.mkdir_p(@@data[:dir])
-          FileUtils.chmod(0700, @@data[:dir])
-        end
-        [get_host_file_directory, get_shell_file_directory].each do |dir|
-          make_directory(dir)
-        end
-      end
-
-      def output_to_file(path, content)
-        unless File.exist?(path)
-          open(path, 'w') { |f| f.print content }
-        end
-      end
-      private :output_to_file
-
-      def save_sample
-        output_to_file(get_path(ACL_SAMPLE_PATH), ACL_SAMPLE)
-        output_to_file("#{get_host_file_directory}/#{HOST_FILE_SAMPLE_PATH}", HOST_YAML_SAMPLE)
-        output_to_file("#{get_shell_file_directory}/#{SHELL_BASHRC}", BASHRC_SAMPLE)
-      end
-
-      def get_acl_file
-        path = File.join(@@data[:dir], ACL_DEFAULT_PATH)
-        if File.exist?(path)
-          return path
-        end
-        return nil
+      self.open(File.join(SHELL_FILE_DIRECTORY, SHELL_BASHRC), 'w') do |f|
+        f.print BASHRC_SAMPLE
       end
     end
+
+    # Return path of ACL file if '.drbqs/acl.txt' exists.
+    def get_acl_file
+      self.exist?(ACL_DEFAULT_PATH)
+    end
+
+    def get_host_file_directory
+      file_path(HOST_FILE_DIRECTORY)
+    end
+
+    def get_shell_file_directory
+      file_path(SHELL_FILE_DIRECTORY)
+    end
+
   end
 
 end
