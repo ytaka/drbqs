@@ -14,8 +14,7 @@ HELP
 
 options = {
   :log_file => STDOUT,
-  :command_type => :server_start,
-  :acl => DRbQS::Config.get_acl_file
+  :command_type => :server_start
 }
 
 test_opts = {}
@@ -93,6 +92,10 @@ end
 
 WAIT_SERVER_TIME = 0.3
 NODE_INTERVAL_TIME = 1
+
+unless options[:acl]
+  options[:acl] = DRbQS::Config.new.get_acl_file
+end
 
 DRbQS.parse_option(server_argv)
 case options[:command_type]

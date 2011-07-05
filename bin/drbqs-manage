@@ -24,7 +24,7 @@ argv, command_args = DRbQS::Manage.split_arguments(ARGV)
 options = {}
 if /^ssh/ =~ command
   check_argument_size(argv, :>=, 2)
-  ssh_host = DRbQS::SSHHost.new
+  ssh_host = DRbQS::SSH::Host.new(DRbQS::Config.new.get_host_file_directory)
   path, options = ssh_host.get_options(argv[1])
   $stdout.puts "Use configuration: #{path}" if path
   argv[1] = options[:dest] if options[:dest]

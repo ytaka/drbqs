@@ -4,8 +4,8 @@ require 'drbqs/config'
 module DRbQS
   module SSH
     class Host
-      def initialize
-        @dir = DRbQS::Config.get_host_file_directory
+      def initialize(dir)
+        @dir = dir
         @host_files = (Dir.glob("#{@dir}/*.yaml") + Dir.glob("#{@dir}/*.yml")).map { |s| File.basename(s) }
       end
 

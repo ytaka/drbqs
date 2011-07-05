@@ -54,9 +54,8 @@ module DRbQS
       end
     end
 
-    def create_config
-      Config.check_directory_create
-      Config.save_sample
+    def create_config(home_directory = nil)
+      DRbQS::Config.new.save_sample(home_directory)
     end
 
     def command_client(access_uri)

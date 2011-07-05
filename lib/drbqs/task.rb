@@ -62,7 +62,7 @@ module DRbQS
       end
       exit_status = $?.exitstatus
       if @transfer
-        if Array === @transfer
+        if @transfer.respond_to?(:each)
           @transfer.each { |path| DRbQS::FileTransfer.enqueue(path, @compress) }
         else
           DRbQS::FileTransfer.enqueue(@transfer, @compress)
@@ -75,7 +75,7 @@ module DRbQS
   class CommandTask < Task
     # &hook takes a server instance and exit number of command.
     def initialize(cmd, opts = {}, &hook)
-      super(CommandExecute.new(cmd, {}), :exec, &hook)
+      super(CommandExecute.new(cmd, opts), :exec, &hook)
     end
   end
 
