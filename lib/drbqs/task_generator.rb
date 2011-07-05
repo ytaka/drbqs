@@ -68,6 +68,8 @@ module DRbQS
       end
     end
 
+    # Initialize fider to create tasks.
+    # This method must be called in thread to create tasks.
     def init
       @fiber_init.call if @fiber_init
     end

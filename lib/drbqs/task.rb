@@ -40,6 +40,7 @@ module DRbQS
     end
   end
 
+  # Execute a command and transfer files if needed.
   class CommandExecute
 
     # :transfer    String or Array
@@ -72,13 +73,16 @@ module DRbQS
     end
   end
 
+  # Class to define tasks such that we execute a command.
   class CommandTask < Task
+
     # &hook takes a server instance and exit number of command.
     def initialize(cmd, opts = {}, &hook)
       super(CommandExecute.new(cmd, opts), :exec, &hook)
     end
   end
 
+  # Class to group a number of objects to process tasks.
   class TaskContainer
     def initialize(task_ary)
       @data = task_ary.map.with_index do |task, i|
@@ -104,6 +108,8 @@ module DRbQS
     end
   end
 
+  # Task to group a number of tasks,
+  # which uses TaskContainer and manages hooks of the tasks.
   class TaskSet < Task
     def initialize(task_ary)
       @original_hook = task_ary.map do |task|
