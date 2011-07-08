@@ -3,19 +3,12 @@ require 'drb'
 require 'drb/acl'
 require 'rinda/tuplespace'
 require 'rinda/rinda'
+require 'logger'
+require 'fileutils'
+
+require 'filename'
 
 require 'drbqs/server_define'
-
-autoload :Logger, 'logger'
-autoload :FileUtils, 'fileutils'
-
-gem 'filename'
-autoload :FileName, 'filename'
-
-gem 'net-sftp'
-module Net
-  autoload :SFTP, 'net/sftp'
-end
 
 module DRbQS
   autoload :Server, 'drbqs/server'
