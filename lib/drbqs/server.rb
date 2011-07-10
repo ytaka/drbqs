@@ -159,6 +159,7 @@ module DRbQS
           @task_generator.delete_at(0)
           @logger.info("Generator creates all tasks and then has been deleted.") if @logger
           if @task_generator.size > 0
+            first_task_generator_init
             add_tasks_from_generator
           end
         end
@@ -255,13 +256,13 @@ module DRbQS
     end
     private :check_message
 
-    def task_generator_init
-      @task_generator.each { |tgen| tgen.init }
+    def first_task_generator_init
+      @task_generator[0].init if @task_generator[0]
     end
-    private :task_generator_init
+    private :first_task_generator_init
 
     def wait
-      task_generator_init
+      first_task_generator_init
       loop do
         check_message
         check_connection
@@ -290,7 +291,7 @@ module DRbQS
     private :finish_profile
 
     def test_exec(opts = {})
-      task_generator_init
+      first_task_generator_init
       dummy_client = DRbQS::Client.new(nil, :log_file => $stdout, :log_level => opts[:log_level])
       dummy_task_client = DRbQS::TaskClient.new(nil, @ts[:queue], nil)
       if @ts[:transfer]
@@ -319,9 +320,9 @@ module DRbQS
     end
 
     def test_task_generator(opts = {})
-      task_generator_init
       @task_generator.each_with_index do |t, i|
         puts "Test task generator [#{i}]"
+        t.init
         set_num, task_num = t.debug_all_tasks(opts)
         puts "Create: task sets #{set_num}, all tasks #{task_num}"
       end

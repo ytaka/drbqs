@@ -6,15 +6,19 @@ require_relative 'test/test1.rb'
 describe DRbQS do
   before(:all) do
     @tasks = []
-    @task_generator = DRbQS::TaskGenerator.new(:iterate => 3)
-    @task_generator.set do
-      @iterate.times do |i|
-        create_add_task(Test1.new, :echo, [i])
+    @task_generators = [DRbQS::TaskGenerator.new(:iterate => 3), DRbQS::TaskGenerator.new(:iterate => 4)]
+    @task_generators.each do |tg|
+      tg.set do
+        @iterate.times do |i|
+          create_add_task(Test1.new, :echo, [i])
+        end
       end
     end
     @process_id = fork do
       server = DRbQS::Server.new(:port => 13501, :finish_exit => true)
-      server.add_task_generator(@task_generator)
+      @task_generators.each do |tg|
+        server.add_task_generator(tg)
+      end
       server.set_signal_trap
       server.start
       server.wait
