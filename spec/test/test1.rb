@@ -20,3 +20,20 @@ class Test2
     true
   end
 end
+
+class Test3
+  def temp_file
+    dir = DRbQS::Temporary.directory
+    file1 = File.join(dir, 'hello')
+    open(file1, 'w') do |f|
+      f.puts 'hello world'
+    end
+    file2 = DRbQS::Temporary.file
+    open(file2, 'w') do |f|
+      f.puts 'temporary'
+    end
+    puts File.read(file1)
+    puts File.read(file2)
+    true
+  end
+end

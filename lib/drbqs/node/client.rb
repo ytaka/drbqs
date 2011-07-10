@@ -1,5 +1,6 @@
 require 'drbqs/node/connection'
 require 'drbqs/node/task_client'
+require 'drbqs/node/temporary'
 
 module DRbQS
 
@@ -37,6 +38,7 @@ module DRbQS
     def execute_task(marshal_obj, method_sym, args)
       result = DRbQS::Task.execute_task(marshal_obj, method_sym, args)
       transfer_file
+      DRbQS::Temporary.delete
       result
     end
     private :execute_task
@@ -130,6 +132,7 @@ module DRbQS
         begin
           loop do
             unless communicate_with_server
+              DRbQS::Temporary.delete_all
               break
             end
             sleep(WAIT_NEW_TASK)
