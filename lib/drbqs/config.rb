@@ -20,7 +20,7 @@ module DRbQS
     end
 
     def self.get_home_directory
-      @@home_directory
+      @@home_directory || ENV['HOME']
     end
 
     ACL_SAMPLE =<<SAMPLE
