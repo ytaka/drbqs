@@ -2,7 +2,7 @@ require 'net/sftp'
 
 module DRbQS
 
-  module Transfer
+  module TransferClient
 
     # Transfer files to directory on DRbQS server.
     # In this class we use scp command.

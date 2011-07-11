@@ -30,7 +30,7 @@ module DRbQS
 
   autoload :FileTransfer, 'drbqs/transfer/transfer'
 
-  module Transfer
+  module TransferClient
     autoload :SFTP, 'drbqs/transfer/transfer'
     autoload :Local, 'drbqs/transfer/transfer'
   end

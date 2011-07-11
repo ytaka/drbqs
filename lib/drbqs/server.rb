@@ -231,7 +231,7 @@ module DRbQS
     def set_file_transfer(directory, opts = {})
       user = opts[:user] || @transfer_setting[:user] || ENV['USER']
       host = opts[:host] || @transfer_setting[:host] || 'localhost'
-      @ts[:transfer] = DRbQS::Transfer::SFTP.new(user, host, directory)
+      @ts[:transfer] = DRbQS::TransferClient::SFTP.new(user, host, directory)
       @logger.info("File transfer") { @ts[:transfer].information } if @logger
     end
 
@@ -295,7 +295,7 @@ module DRbQS
       dummy_client = DRbQS::Client.new(nil, :log_file => $stdout, :log_level => opts[:log_level])
       dummy_task_client = DRbQS::TaskClient.new(nil, @ts[:queue], nil)
       if @ts[:transfer]
-        dummy_client.instance_variable_set(:@transfer, DRbQS::Transfer::Local.new(@ts[:transfer].directory))
+        dummy_client.instance_variable_set(:@transfer, DRbQS::TransferClient::Local.new(@ts[:transfer].directory))
       end
       num = 0
       start_profile if opts[:profile]
