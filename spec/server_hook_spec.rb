@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
-require 'drbqs/server_hook'
+require 'drbqs/server/server_hook'
 
 describe DRbQS::ServerHook do
   subject { DRbQS::ServerHook.new }
