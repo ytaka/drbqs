@@ -64,6 +64,11 @@ module DRbQS
 
     # If opts[:compress] is true then the file of +path+ is compressed before tranfering.
     def self.enqueue(path, opts = {})
+      if opts[:rename]
+        new_path = FileName.create(File.join(File.dirname(path), opts[:rename]), :directory => :parent)
+        FileUtils.mv(path, new_path)
+        path = new_path
+      end
       if opts[:compress]
         if File.directory?(path)
           gz_path = "#{path.sub(/\/$/, '')}.tar.gz"
