@@ -64,9 +64,9 @@ module DRbQS
       exit_status = $?.exitstatus
       if @transfer
         if @transfer.respond_to?(:each)
-          @transfer.each { |path| DRbQS::FileTransfer.enqueue(path, @compress) }
+          @transfer.each { |path| DRbQS::FileTransfer.enqueue(path, :compress => @compress) }
         else
-          DRbQS::FileTransfer.enqueue(@transfer, @compress)
+          DRbQS::FileTransfer.enqueue(@transfer, :compress => @compress)
         end
       end
       exit_status

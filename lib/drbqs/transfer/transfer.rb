@@ -10,9 +10,6 @@ module DRbQS
     class SFTP
       attr_reader :user, :host, :directory
 
-      SCP_RETRY = 3
-      SCP_RETRY_INTERVAL = 10
-
       def initialize(user, host, directory)
         @user = user
         @host = host
@@ -65,8 +62,9 @@ module DRbQS
   module FileTransfer
     @@files = Queue.new
 
-    def self.enqueue(path, compress = false)
-      if compress
+    # If opts[:compress] is true then the file of +path+ is compressed before tranfering.
+    def self.enqueue(path, opts = {})
+      if opts[:compress]
         if File.directory?(path)
           gz_path = "#{path.sub(/\/$/, '')}.tar.gz"
           cmd = "tar czf #{gz_path} -C #{File.dirname(path)} #{File.basename(path)} > /dev/null 2>&1"
@@ -89,7 +87,7 @@ module DRbQS
     end
 
     def self.compress_enqueue(path)
-      self.enqueue(path, true)
+      self.enqueue(path, :compress => true)
     end
 
     def self.dequeue
