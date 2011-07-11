@@ -28,12 +28,8 @@ module DRbQS
     autoload :Host, 'drbqs/ssh/host'
   end
 
-  autoload :FileTransfer, 'drbqs/transfer/transfer'
-
-  module TransferClient
-    autoload :SFTP, 'drbqs/transfer/transfer'
-    autoload :Local, 'drbqs/transfer/transfer'
-  end
+  autoload :FileTransfer, 'drbqs/transfer/file_transfer'
+  autoload :TransferClient, 'drbqs/transfer/transfer_client'
 
   ROOT_DEFAULT_PORT = 13500
 
