@@ -44,6 +44,7 @@ task :default => :spec
 require 'yard'
 YARD::Rake::YardocTask.new
 
+desc "Update version of drbqs.rb"
 task "version:constant" do
   dir = File.dirname(__FILE__)
   path = File.join(dir, 'lib/drbqs.rb')
@@ -51,5 +52,13 @@ task "version:constant" do
   version = File.read(File.join(dir, 'VERSION'))
   open(path, 'w') do |f|
     f.print data.sub(/^  VERSION = '.*'$/, "  VERSION = '#{version}'")
+  end
+end
+
+desc "Remove temporary home directory for specs."
+task "clean:temporary" do
+  dir = File.join(File.dirname(__FILE__), 'spec', 'home_for_spec')
+  if File.exist?(dir)
+    FileUtils.rm_r(dir)
   end
 end

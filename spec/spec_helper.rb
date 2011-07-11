@@ -11,6 +11,10 @@ RSpec.configure do |config|
   
 end
 
+HOME_FOR_SPEC = File.join(File.dirname(__FILE__), 'home_for_spec')
+
+DRbQS::Config.set_home_directory(HOME_FOR_SPEC)
+
 def drbqs_test_tuple_space(uri)
   ts = {
     :message => Rinda::TupleSpace.new,
