@@ -20,6 +20,7 @@ module DRbQS
       @task_client = nil
       @process_continue = opts[:continue]
       @signal_queue = Queue.new
+      @config = DRbQS::Config.new
     end
 
     def transfer_file
@@ -43,6 +44,11 @@ module DRbQS
     end
     private :execute_task
 
+    def node_data
+      { :uri => @access_uri }
+    end
+    private :node_data
+
     def connect
       obj = DRbObject.new_with_uri(@access_uri)
       @connection = ConnectionClient.new(obj[:message], @logger)
@@ -52,6 +58,7 @@ module DRbQS
       if ary = @connection.get_initialization
         execute_task(*ary)
       end
+      @config.list.node.save(Process.pid, node_data)
     end
 
     def dump_not_send_result_to_file
@@ -133,6 +140,7 @@ module DRbQS
           loop do
             unless communicate_with_server
               DRbQS::Temporary.delete_all
+              @config.list.node.delete(Process.pid)
               break
             end
             sleep(WAIT_NEW_TASK)

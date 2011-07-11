@@ -2,8 +2,7 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe DRbQS::Config do
   before(:all) do
-    @home = File.join(File.dirname(__FILE__), 'test_config')
-    DRbQS::Config.set_home_directory(@home)
+    FileUtils.mkdir_p(HOME_FOR_SPEC)
   end
 
   subject do
@@ -12,14 +11,14 @@ describe DRbQS::Config do
 
   it "should create configuration directory." do
     subject
-    File.exist?(File.join(@home, '.drbqs')).should be_true
+    File.exist?(File.join(HOME_FOR_SPEC, '.drbqs')).should be_true
   end
 
   it "should save samples" do
     subject.save_sample
-    subject.list_in_directory('.').should include('acl.txt.sample')
-    subject.list_in_directory('host').should include('host.yaml.sample')
-    subject.list_in_directory('shell').should include('bashrc')
+    subject.directory.list_in_directory('.').should include('acl.txt.sample')
+    subject.directory.list_in_directory('host').should include('host.yaml.sample')
+    subject.directory.list_in_directory('shell').should include('bashrc')
   end
 
   it "should return nil" do
@@ -27,12 +26,12 @@ describe DRbQS::Config do
   end
 
   it "should return path of ACL file" do
-    subject.open('acl.txt', 'w') do |f|
+    subject.directory.open('acl.txt', 'w') do |f|
     end
-    subject.get_acl_file.should == File.join(subject.directory, 'acl.txt')
+    subject.get_acl_file.should == File.join(subject.directory_path, 'acl.txt')
   end
 
   after(:all) do
-    FileUtils.rm_r(@home)
+    FileUtils.rm_r(HOME_FOR_SPEC)
   end
 end

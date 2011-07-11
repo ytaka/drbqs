@@ -89,6 +89,7 @@ module DRbQS
       set_signal_trap if opts[:signal_trap]
       @finalization_task = nil
       @transfer_setting = get_transfer_setting(opts[:scp_host], opts[:scp_user], opts[:file_directory])
+      @config = DRbQS::Config.new
     end
 
     def transfer_directory
@@ -122,12 +123,18 @@ module DRbQS
     end
     private :hook_init
 
+    def server_data
+      { :pid => Process.pid }
+    end
+    private :server_data
+
     def start
       if @transfer_setting[:set] && @transfer_setting[:directory] && !@ts[:transfer]
         set_file_transfer(@transfer_setting[:directory])
       end
       DRb.install_acl(@acl) if @acl
       DRb.start_service(@uri, @ts)
+      @config.list.server.save(@uri, server_data)
       @logger.info("Start DRb service") { @uri } if @logger
     end
 
@@ -219,6 +226,7 @@ module DRbQS
         check_connection(true)
       end
       @logger.info("History of tasks") { "\n" + @queue.all_logs } if @logger
+      @config.list.server.delete(@uri)
       Kernel.exit
     end
 

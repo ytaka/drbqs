@@ -1,0 +1,106 @@
+require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
+
+require 'drbqs/config/process_list'
+
+describe DRbQS::ProcessList::Server do
+  before(:all) do
+    @dir = File.join(File.dirname(__FILE__), 'tmp_process_list/server')
+    FileUtils.mkdir_p(@dir)
+  end
+
+  subject do
+    DRbQS::ProcessList::Server.new(@dir)
+  end
+
+  it "should save data" do
+    uri = 'druby://:13000'
+    h = { :pid => 1111 }
+    subject.save(uri, h)
+    subject.get(uri).should == h
+  end
+
+  it "should return list of server." do
+    uri = 'druby://:13001'
+    h = { :pid => 1234 }
+    subject.save(uri, h)
+    list = subject.list
+    list.should be_an_instance_of Hash
+    list[uri].should == h
+  end
+
+  it "should delete." do
+    uri = 'druby://:13002'
+    h = { :pid => 2222 }
+    subject.save(uri, h)
+    subject.delete(uri)
+    subject.get(uri).should be_nil
+  end
+
+  after(:all) do
+    FileUtils.rm_r(@dir)
+  end
+
+end
+
+describe DRbQS::ProcessList::Node do
+  before(:all) do
+    @dir = File.join(File.dirname(__FILE__), 'tmp_process_list/node')
+    FileUtils.mkdir_p(@dir)
+  end
+
+  subject do
+    DRbQS::ProcessList::Node.new(@dir)
+  end
+
+  it "should save data" do
+    pid = 10000
+    h = { :uri => 'druby://:13000' }
+    subject.save(pid, h)
+    subject.get(pid).should == h
+  end
+
+  it "should return list of server." do
+    pid = 10001
+    h = { :uri => 'druby://:13001' }
+    subject.save(pid, h)
+    list = subject.list
+    list.should be_an_instance_of Hash
+    list[pid].should == h
+  end
+
+  it "should delete." do
+    pid = 10002
+    h = { :uri => 'druby://:13002' }
+    subject.save(pid, h)
+    subject.delete(pid)
+    subject.get(pid).should be_nil
+  end
+
+  after(:all) do
+    FileUtils.rm_r(@dir)
+  end
+
+end
+
+describe DRbQS::ProcessList do
+  before(:all) do
+    @dir = File.join(File.dirname(__FILE__), 'tmp_process_list')
+    FileUtils.mkdir_p(@dir)
+  end
+
+  subject do
+    DRbQS::ProcessList.new(@dir)
+  end
+
+  it "should create directory." do
+    subject
+    File.exist?(File.join(@dir, 'process')).should be_true
+    File.exist?(File.join(@dir, 'process/server')).should be_true
+    File.exist?(File.join(@dir, 'process/node')).should be_true
+  end
+
+  after(:all) do
+    FileUtils.rm_r(@dir)
+  end
+
+end

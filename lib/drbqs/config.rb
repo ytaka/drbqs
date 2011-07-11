@@ -1,5 +1,5 @@
-require 'singleton'
 require 'user_config'
+require 'drbqs/config/process_list'
 
 module DRbQS
 
@@ -10,7 +10,10 @@ module DRbQS
   SHELL_FILE_DIRECTORY = 'shell'
   SHELL_BASHRC = 'bashrc'
 
-  class Config < UserConfig
+  class ConfigDirectory < UserConfig
+  end
+
+  class Config
     DRBQS_CONFIG_DIRECTORY = '.drbqs'
 
     @@home_directory = nil
@@ -45,33 +48,40 @@ HISTSIZE=10000
 HISTFILESIZE=20000
 SAMPLE
 
+    attr_reader :directory, :list
+
     def initialize
-      super(DRBQS_CONFIG_DIRECTORY, :home => @@home_directory)
+      @directory = DRbQS::ConfigDirectory.new(DRBQS_CONFIG_DIRECTORY, :home => @@home_directory)
+      @list = DRbQS::ProcessList.new(File.join(@@home_directory, DRBQS_CONFIG_DIRECTORY))
+    end
+
+    def directory_path
+      @directory.directory
     end
 
     def save_sample
-      self.open(ACL_SAMPLE_PATH, 'w') do |f|
+      @directory.open(ACL_SAMPLE_PATH, 'w') do |f|
         f.print ACL_SAMPLE
       end
-      self.open(File.join(HOST_FILE_DIRECTORY, HOST_FILE_SAMPLE_PATH), 'w') do |f|
+      @directory.open(File.join(HOST_FILE_DIRECTORY, HOST_FILE_SAMPLE_PATH), 'w') do |f|
         f.print HOST_YAML_SAMPLE
       end
-      self.open(File.join(SHELL_FILE_DIRECTORY, SHELL_BASHRC), 'w') do |f|
+      @directory.open(File.join(SHELL_FILE_DIRECTORY, SHELL_BASHRC), 'w') do |f|
         f.print BASHRC_SAMPLE
       end
     end
 
     # Return path of ACL file if '.drbqs/acl.txt' exists.
     def get_acl_file
-      self.exist?(ACL_DEFAULT_PATH)
+      @directory.exist?(ACL_DEFAULT_PATH)
     end
 
     def get_host_file_directory
-      file_path(HOST_FILE_DIRECTORY)
+      @directory.file_path(HOST_FILE_DIRECTORY)
     end
 
     def get_shell_file_directory
-      file_path(SHELL_FILE_DIRECTORY)
+      @directory.file_path(SHELL_FILE_DIRECTORY)
     end
 
   end
