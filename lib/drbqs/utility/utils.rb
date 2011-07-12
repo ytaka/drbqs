@@ -14,6 +14,15 @@ module DRbQS
       return nil
     end
     module_function :create_logger
+
+    STRINGS_FOR_KEY = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a
+
+    def self.random_key(size = 20)
+      n = STRINGS_FOR_KEY.size
+      Array.new(size) do
+        STRINGS_FOR_KEY[rand(n)]
+      end.join
+    end
   end
 
 end
