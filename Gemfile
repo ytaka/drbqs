@@ -16,4 +16,5 @@ group :development do
   gem "net-ssh", ">= 2.1.4"
   gem "net-ssh-shell", ">= 0.2.0"
   gem "net-sftp", ">= 2.0.5"
+  gem "sys-proctable"
 end

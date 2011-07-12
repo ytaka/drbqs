@@ -21,10 +21,12 @@ Jeweler::Tasks.new do |gem|
   gem.authors = ["Takayuki YAMAGUCHI"]
   # Include your dependencies below. Runtime dependencies are required when using your gem,
   # and development dependencies are only needed for development (ie running rake tasks, tests, etc)
+  gem.add_runtime_dependency 'filename', '>= 0.1.0'
+  gem.add_runtime_dependency "user_config", ">= 0.0.2"
   gem.add_runtime_dependency 'net-ssh', '>= 2.1.3'
   gem.add_runtime_dependency 'net-ssh-shell', '>= 0.1.0'
-  gem.add_runtime_dependency 'filename', '>= 0.0.5'
-  gem.add_development_dependency 'rspec', '>= 2.5.0'
+  gem.add_runtime_dependency "net-sftp", ">= 2.0.5"
+  gem.add_runtime_dependency "sys-proctable"
 end
 Jeweler::RubygemsDotOrgTasks.new
 
