@@ -1,9 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'drbqs'
-require 'optparse'
-
-Version = DRbQS::VERSION
+require 'drbqs/command_line'
 
 help_message =<<HELP
 Usage: #{File.basename(__FILE__)} <command> [arguments ...]
@@ -12,18 +9,12 @@ Manage DRbQS server by sending messages.
 
 HELP
 
-def check_argument_size(argv, check_method, n)
-  unless argv.size.__send__(check_method, n)
-    raise "Invalid arguments number. Please refer '#{File.basename(__FILE__)} -h'."
-  end
-end
-
 command = ARGV[0]
-argv, command_args = DRbQS::Manage.split_arguments(ARGV)
+argv, command_args = DRbQS::CommandLineArgument.split_arguments(ARGV)
 
 options = {}
 if /^ssh/ =~ command
-  check_argument_size(argv, :>=, 2)
+  DRbQS::CommandLineArgument.check_argument_size(argv, :>=, 2)
   ssh_host = DRbQS::SSH::Host.new(DRbQS::Config.new.get_host_file_directory)
   path, options = ssh_host.get_options(argv[1])
   $stdout.puts "Use configuration: #{path}" if path
@@ -76,22 +67,22 @@ manage = DRbQS::Manage.new
 
 case command
 when 'exit-signal'
-  check_argument_size(argv, :==, 2)
+  DRbQS::CommandLineArgument.check_argument_size(argv, :==, 2)
   uri = argv[1]
   manage.send_exit_signal(uri)
 when 'exit-after-task'
-  check_argument_size(argv, :==, 3)
+  DRbQS::CommandLineArgument.check_argument_size(argv, :==, 3)
   uri = argv[1]
   node_id = argv[2].to_i
   manage.send_node_exit_after_task(uri, node_id)
 when 'status'
-  check_argument_size(argv, :==, 2)
+  DRbQS::CommandLineArgument.check_argument_size(argv, :==, 2)
   uri = argv[1]
   if status = manage.get_status(uri)
     $stdout.puts status
   end
 when 'initialize'
-  check_argument_size(argv, :==, 1)
+  DRbQS::CommandLineArgument.check_argument_size(argv, :==, 1)
   manage.create_config
 when 'ssh'
   dest = argv[1]

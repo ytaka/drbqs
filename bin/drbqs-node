@@ -1,9 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'drbqs'
-require 'optparse'
-
-Version = DRbQS::VERSION
+require 'drbqs/command_line'
 
 help_message =<<HELP
 Usage: #{File.basename(__FILE__)} [<uri>] [<process_number>] [options ...]

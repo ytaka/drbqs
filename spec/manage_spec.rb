@@ -11,13 +11,6 @@ describe DRbQS::Manage do
     @manage = DRbQS::Manage.new
   end
 
-  it "should split arguments" do
-    ary = ['abc', 'def', '--', '123', '45', '6']
-    a1, a2 = DRbQS::Manage.split_arguments(ary)
-    a1.should == ['abc', 'def']
-    a2.should == ['123', '45', '6']
-  end
-
   it "should send exit signal" do
     lambda do
       @manage.send_exit_signal(@uri)

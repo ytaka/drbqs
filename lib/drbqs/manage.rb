@@ -46,14 +46,6 @@ module DRbQS
   end
 
   class Manage
-    def self.split_arguments(argv, split = '--')
-      if n = argv.index(split)
-        [argv[0..(n - 1)], argv[(n + 1)..-1]]
-      else
-        [argv, []]
-      end
-    end
-
     def create_config(home_directory = nil)
       DRbQS::Config.new.save_sample(home_directory)
     end

@@ -1,9 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'drbqs'
-require 'optparse'
-
-Version = DRbQS::VERSION
+require 'drbqs/command_line'
 
 help_message =<<HELP
 Usage: #{File.basename(__FILE__)} <definition.rb> [other files ...] [options ...]
@@ -20,7 +17,7 @@ options = {
 test_opts = {}
 execute_node_number = nil
 
-command_argv, server_argv = DRbQS::Manage.split_arguments(ARGV)
+command_argv, server_argv = DRbQS::CommandLineArgument.split_arguments(ARGV)
 
 begin
   OptionParser.new(help_message) do |opt|
