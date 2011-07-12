@@ -51,8 +51,9 @@ SAMPLE
     attr_reader :directory, :list
 
     def initialize
-      @directory = DRbQS::ConfigDirectory.new(DRBQS_CONFIG_DIRECTORY, :home => @@home_directory)
-      @list = DRbQS::ProcessList.new(File.join(@@home_directory, DRBQS_CONFIG_DIRECTORY))
+      home = self.class.get_home_directory
+      @directory = DRbQS::ConfigDirectory.new(DRBQS_CONFIG_DIRECTORY, :home => home)
+      @list = DRbQS::ProcessList.new(File.join(home, DRBQS_CONFIG_DIRECTORY))
     end
 
     def directory_path
