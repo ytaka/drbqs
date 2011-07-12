@@ -24,29 +24,19 @@ module DRbQS
     end
 
     def transfer_file
-      if @transfer
-        files = []
-        until FileTransfer.empty?
-          files << FileTransfer.dequeue
-        end
-        if files.size > 0
-          transfered = false
-          if server_on_same_host?
-            begin
-              if @transfer.local.transfer(files)
-                transfered = true
-              end
-            rescue
+      if files = FileTransfer.dequeue_all
+        if @transfer
+          begin
+            @transfer.transfer(files, server_on_same_host?)
+          rescue => err
+            @logger.error("Fail to transfer files.") do
+              "Can not send file: #{files.join(", ")}\n#{err.to_s}\n#{err.backtrace.join("\n")}"
             end
+            raise
           end
-          if !transfered
-            unless @transfer.sftp.transfer(files)
-              raise "Can not send file: #{files.join(", ")}"
-            end
-          end
+        else
+          raise "Server does not set transfer settings."
         end
-      else
-        raise "Server does not set transfer settings."
       end
     end
     private :transfer_file

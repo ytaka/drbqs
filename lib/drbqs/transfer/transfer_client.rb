@@ -4,15 +4,8 @@ module DRbQS
 
   class TransferClient
 
-    # Transfer files to directory on DRbQS server.
-    # In this class we use scp command.
-    # Note that after we transfer files we delete the files.
-    class SFTP
-      attr_reader :user, :host, :directory
-
-      def initialize(user, host, directory)
-        @user = user
-        @host = host
+    class ClientBase
+      def initialize(directory)
         @directory = File.expand_path(directory)
       end
 
@@ -20,6 +13,18 @@ module DRbQS
         File.join(@directory, File.basename(path))
       end
       private :upload_name
+    end
+
+    # Transfer files to directory on DRbQS server over sftp.
+    # Note that after we transfer files we delete the original files.
+    class SFTP < DRbQS::TransferClient::ClientBase
+      attr_reader :user, :host, :directory
+
+      def initialize(user, host, directory)
+        super(directory)
+        @user = user
+        @host = host
+      end
 
       # Transfer and delete +files+.
       def transfer(files)
@@ -29,32 +34,23 @@ module DRbQS
             FileUtils.rm_r(path)
           end
         end
-        true
+      rescue => err
+        raise err.class, "user=#{@user}, host=#{@host}, directory=#{@directory}; #{err.to_s}", err.backtrace 
       end
     end
 
-    class Local
-      def initialize(directory)
-        @directory = File.expand_path(directory)
-      end
-
-      def upload_name(path)
-        File.join(@directory, File.basename(path))
-      end
-      private :upload_name
-
+    class Local < DRbQS::TransferClient::ClientBase
       def transfer(files)
         files.each do |path|
           FileUtils.mv(path, upload_name(path))
         end
-        true
       end
     end
 
     attr_reader :directory, :local, :sftp
 
     def initialize(dir)
-      @directory = dir
+      @directory = File.expand_path(dir)
       @local = DRbQS::TransferClient::Local.new(@directory)
       @sftp = nil
     end
@@ -71,6 +67,23 @@ module DRbQS
       info = "directory: #{@directory}"
       info << ", sftp: #{@sftp.user}@#{@sftp.host}" if @sftp
       info
+    end
+
+    def transfer(files, on_same_host = nil)
+      transfered = false
+      if on_same_host
+        begin
+          @local.transfer(files)
+          transfered = true
+        rescue
+        end
+      end
+      if !transfered
+        unless @sftp
+          raise "Can not transfer files."
+        end
+        @sftp.transfer(files)
+      end
     end
   end
 

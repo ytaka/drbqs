@@ -45,6 +45,14 @@ module DRbQS
       @@files.empty?
     end
 
+    def self.dequeue_all
+      files = []
+      until self.empty?
+        files << self.dequeue
+      end
+      files.empty? ? nil : files
+    end
+
     def self.decompress(server, filename)
       dir = server.transfer_directory
       path = File.join(dir, filename)
