@@ -15,13 +15,11 @@ module DRbQS
   autoload :Client, 'drbqs/node/client'
   autoload :Task, 'drbqs/task'
   autoload :TaskGenerator, 'drbqs/task_generator'
-  autoload :Manage, 'drbqs/manage'
   autoload :Config, 'drbqs/config'
   autoload :CommandTask, 'drbqs/task'
   autoload :CommandExecute, 'drbqs/task'
   autoload :TaskSet, 'drbqs/task'
-  autoload :Utils, 'drbqs/utils'
-  autoload :ExecuteNode, 'drbqs/execute_node'
+  autoload :Utils, 'drbqs/utility/utils'
 
   module SSH
     autoload :Shell, 'drbqs/ssh/shell'

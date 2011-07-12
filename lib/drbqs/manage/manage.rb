@@ -87,6 +87,10 @@ module DRbQS
       end while !get_status(uri)
       true
     end
+
+    def list_process
+      config = DRbQS::Config.new
+      { :server => config.list.server.list, :node => config.list.node.list }
     end
 
     def execute_over_ssh(dest, opts, command)

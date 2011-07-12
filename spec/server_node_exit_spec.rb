@@ -1,6 +1,7 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 require_relative '../lib/drbqs.rb'
+require_relative '../lib/drbqs/manage/execute_node'
 require_relative 'test/test1.rb'
 
 describe DRbQS::Server do
