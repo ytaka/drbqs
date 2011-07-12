@@ -42,6 +42,21 @@ describe DRbQS::ProcessList::Server do
     subject.get('druby://example.com:13003').should == h
   end
 
+  it "should have server of key." do
+    subject.save('druby://:13004',  { :key => 'key1' })
+    subject.server_of_key_exist?('druby://example.com:13004', 'key1').should be_true
+  end
+
+  it "should not have server of key." do
+    subject.save('druby://:13005',  { :key => 'key2' })
+    subject.server_of_key_exist?('druby://example.com:13005', 'invalid_key').should be_false
+  end
+
+  it "should not have server." do
+    subject.delete('druby://:13005')
+    subject.server_of_key_exist?('druby://example.com:13006', 'key').should be_false
+  end
+
   after(:all) do
     FileUtils.rm_r(@dir)
   end

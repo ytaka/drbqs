@@ -24,14 +24,29 @@ module DRbQS
     end
 
     def transfer_file
-      files = []
-      until FileTransfer.empty?
-        files << FileTransfer.dequeue
-      end
-      if files.size > 0
-        unless @transfer.transfer(files)
-          raise "Can not send file: #{files.join(", ")}"
+      if @transfer
+        files = []
+        until FileTransfer.empty?
+          files << FileTransfer.dequeue
         end
+        if files.size > 0
+          transfered = false
+          if server_on_same_host?
+            begin
+              if @transfer.local.transfer(files)
+                transfered = true
+              end
+            rescue
+            end
+          end
+          if !transfered
+            unless @transfer.sftp.transfer(files)
+              raise "Can not send file: #{files.join(", ")}"
+            end
+          end
+        end
+      else
+        raise "Server does not set transfer settings."
       end
     end
     private :transfer_file
@@ -51,6 +66,7 @@ module DRbQS
 
     def connect
       obj = DRbObject.new_with_uri(@access_uri)
+      @server_key = obj[:key]
       @connection = ConnectionClient.new(obj[:message], @logger)
       node_id = @connection.get_id
       @task_client = TaskClient.new(node_id, obj[:queue], obj[:result], @logger)
@@ -59,6 +75,10 @@ module DRbQS
         execute_task(*ary)
       end
       @config.list.node.save(Process.pid, node_data)
+    end
+
+    def server_on_same_host?
+      @config.list.server.server_of_key_exist?(@access_uri, @server_key)
     end
 
     def dump_not_send_result_to_file

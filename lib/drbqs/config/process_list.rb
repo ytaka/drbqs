@@ -55,6 +55,13 @@ module DRbQS
         end
       end
       private :entries
+
+      def server_of_key_exist?(uri, key)
+        if data = get(uri)
+          return data[:key] == key
+        end
+        false
+      end
     end
 
     class Server < ListDirectory

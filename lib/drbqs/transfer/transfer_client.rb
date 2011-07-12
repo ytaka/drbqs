@@ -2,7 +2,7 @@ require 'net/sftp'
 
 module DRbQS
 
-  module TransferClient
+  class TransferClient
 
     # Transfer files to directory on DRbQS server.
     # In this class we use scp command.
@@ -14,7 +14,6 @@ module DRbQS
         @user = user
         @host = host
         @directory = File.expand_path(directory)
-        FileUtils.mkdir_p(@directory)
       end
 
       def upload_name(path)
@@ -32,17 +31,17 @@ module DRbQS
         end
         true
       end
-
-      def information
-        "#{@user}@#{@host} #{@directory}"
-      end
     end
 
     class Local
       def initialize(directory)
         @directory = File.expand_path(directory)
-        FileUtils.mkdir_p(@directory)
       end
+
+      def upload_name(path)
+        File.join(@directory, File.basename(path))
+      end
+      private :upload_name
 
       def transfer(files)
         files.each do |path|
@@ -50,10 +49,28 @@ module DRbQS
         end
         true
       end
+    end
 
-      def information
-        @directory
-      end
+    attr_reader :directory, :local, :sftp
+
+    def initialize(dir)
+      @directory = dir
+      @local = DRbQS::TransferClient::Local.new(@directory)
+      @sftp = nil
+    end
+
+    def make_directory
+      FileUtils.mkdir_p(@directory)
+    end
+
+    def set_sftp(user, host)
+      @sftp = DRbQS::TransferClient::SFTP.new(user, host, @directory)
+    end
+
+    def information
+      info = "directory: #{@directory}"
+      info << ", sftp: #{@sftp.user}@#{@sftp.host}" if @sftp
+      info
     end
   end
 

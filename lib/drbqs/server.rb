@@ -74,10 +74,12 @@ module DRbQS
     def initialize(opts = {})
       @uri = DRbQS::Server.get_uri(opts)
       @acl = acl_init(opts[:acl])
+      @key = DRbQS::Utils.random_key + sprintf("_%d", Time.now.to_i)
       @ts = {
         :message => Rinda::TupleSpace.new,
         :queue => Rinda::TupleSpace.new,
         :result => Rinda::TupleSpace.new,
+        :key => @key,
         :transfer => nil
       }
       @logger = DRbQS::Utils.create_logger(opts[:log_file], opts[:log_level])
@@ -124,7 +126,7 @@ module DRbQS
     private :hook_init
 
     def server_data
-      { :pid => Process.pid }
+      { :pid => Process.pid, :key => @key }
     end
     private :server_data
 
@@ -237,10 +239,13 @@ module DRbQS
     end
 
     def set_file_transfer(directory, opts = {})
+      transfer_client = DRbQS::TransferClient.new(directory)
+      transfer_client.make_directory
       user = opts[:user] || @transfer_setting[:user] || ENV['USER']
       host = opts[:host] || @transfer_setting[:host] || 'localhost'
-      @ts[:transfer] = DRbQS::TransferClient::SFTP.new(user, host, directory)
-      @logger.info("File transfer") { @ts[:transfer].information } if @logger
+      transfer_client.set_sftp(user, host)
+      @ts[:transfer] = transfer_client
+      @logger.info("File transfer") { transfer_client.information } if @logger
     end
 
     def check_message
