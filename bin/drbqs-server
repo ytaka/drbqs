@@ -102,21 +102,22 @@ when /^test/
   DRbQS.test_server(options, type, s[1..-1], test_opts)
 else
   if execute_node_number
-    fork do
+    server_pid = fork do
       DRbQS.start_server(options)
     end
     uri = DRbQS::Server.get_uri(options)
     manage = DRbQS::Manage.new
-    begin
-      sleep(WAIT_SERVER_TIME)
-    end while !manage.get_status(uri)
-    node_log_file = nil
-    unless IO === options[:log_file]
-      node_log_file = FileName.create(options[:log_file], :add => :always, :position => :middle, :delimiter => '', :format => "_node_%02d")
+    if manage.wait_server_process(server_pid, uri)
+      node_log_file = nil
+      unless IO === options[:log_file]
+        node_log_file = FileName.create(options[:log_file], :add => :always, :position => :middle, :delimiter => '', :format => "_node_%02d")
+      end
+      exec_node = DRbQS::ExecuteNode.new(uri, node_log_file, options[:log_level])
+      exec_node.execute(execute_node_number, NODE_INTERVAL_TIME)
+      exec_node.wait
+    else
+      $stderr.puts "Server has been terminated."
     end
-    exec_node = DRbQS::ExecuteNode.new(uri, node_log_file, options[:log_level])
-    exec_node.execute(execute_node_number, NODE_INTERVAL_TIME)
-    exec_node.wait
   else
     DRbQS.start_server(options)
   end

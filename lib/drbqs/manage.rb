@@ -1,4 +1,5 @@
 require 'socket'
+require 'sys/proctable'
 
 module DRbQS
 
@@ -75,6 +76,17 @@ module DRbQS
       if client = command_client(access_uri)
         client.get_status
       end
+    end
+
+    def wait_server_process(pid, uri)
+      begin
+        sleep(WAIT_SERVER_TIME)
+        unless Sys::ProcTable.ps(pid)
+          return nil
+        end
+      end while !get_status(uri)
+      true
+    end
     end
 
     def execute_over_ssh(dest, opts, command)
