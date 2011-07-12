@@ -3,7 +3,7 @@ require 'socket'
 module DRbQS
   # The class of connection to s.erver.
   class ConnectionClient
-    def initialize(message, logger = nil)
+    def initialize(message, logger = DRbQS::LoggerDummy.new)
       @message = message
       @logger = logger
       @id_number = nil
@@ -20,7 +20,7 @@ module DRbQS
       unless @id_number
         @message.write([:server, :connect, @id_string])
         @id_number = @message.take([@id_string, Fixnum])[1]
-        @logger.info("Get node id: #{@id_number}") if @logger
+        @logger.info("Get node id: #{@id_number}")
       end
       @id_number
     end
@@ -46,11 +46,11 @@ module DRbQS
     def respond_signal
       begin
         node_id, sym = @message.take([@id_number, Symbol], 0)
-        @logger.info("Get signal: #{sym.inspect}") if @logger
+        @logger.info("Get signal: #{sym.inspect}")
         case sym
         when :alive_p
           @message.write([:server, :alive, @id_number])
-          @logger.info("Send alive signal of node id #{@id_number}") if @logger
+          @logger.info("Send alive signal of node id #{@id_number}")
         when :exit, :finalize, :exit_after_task
           return sym
         else

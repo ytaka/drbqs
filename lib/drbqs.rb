@@ -20,6 +20,7 @@ module DRbQS
   autoload :CommandExecute, 'drbqs/task'
   autoload :TaskSet, 'drbqs/task'
   autoload :Utils, 'drbqs/utility/utils'
+  autoload :LoggerDummy, 'drbqs/utility/utils'
 
   module SSH
     autoload :Shell, 'drbqs/ssh/shell'

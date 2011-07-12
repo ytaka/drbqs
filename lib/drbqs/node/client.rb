@@ -80,9 +80,7 @@ module DRbQS
     private :dump_not_send_result_to_file
 
     def output_error(err, mes)
-      if @logger
-        @logger.error("#{mes}: #{err.to_s}") { "\n" + err.backtrace.join("\n") }
-      end
+      @logger.error("#{mes}: #{err.to_s}") { "\n" + err.backtrace.join("\n") }
     end
     private :output_error
 

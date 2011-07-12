@@ -2,7 +2,7 @@ module DRbQS
   class TaskClient
     attr_reader :node_id, :calculating_task
 
-    def initialize(node_id, queue, result, logger = nil)
+    def initialize(node_id, queue, result, logger = DRbQS::LoggerDummy.new)
       @node_id = node_id
       @queue = queue
       @result = result
@@ -55,7 +55,7 @@ module DRbQS
       if !@calculating_task && !@exit_after_task
         if ary = get_task
           task_id, obj, method_sym, args = ary
-          @logger.info("Send accept signal: node #{@node_id} caluclating #{task_id}") if @logger
+          @logger.info("Send accept signal: node #{@node_id} caluclating #{task_id}")
           @result.write([:accept, task_id, @node_id])
           queue_task(task_id, [obj, method_sym, args])
         end
@@ -66,7 +66,7 @@ module DRbQS
     def send_result
       if !result_empty?
         result = dequeue_result
-        @logger.info("Send result: #{@calculating_task}") { result.inspect } if @logger
+        @logger.info("Send result: #{@calculating_task}") { result.inspect }
         @result.write([:result, @calculating_task, @node_id, result])
         @calculating_task = nil
       end

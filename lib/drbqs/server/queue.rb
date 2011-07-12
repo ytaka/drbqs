@@ -7,7 +7,7 @@ module DRbQS
 
     attr_reader :calculating, :history
 
-    def initialize(queue, result, logger = nil)
+    def initialize(queue, result, logger = DRbQS::LoggerDummy.new)
       @queue = queue
       @result = result
       @task_id = 0
@@ -26,7 +26,7 @@ module DRbQS
     # Return task ID (for debug).
     def add(task)
       @task_id += 1
-      @logger.info("New task: #{@task_id}") if @logger
+      @logger.info("New task: #{@task_id}")
       @cache[@task_id] = task
       queue_task(@task_id)
       @history.set(@task_id, :add)
@@ -41,10 +41,10 @@ module DRbQS
           count += 1
           @calculating[node_id] << task_id
           @history.set(task_id, :calculate, node_id)
-          @logger.info("Accept: task #{task_id} by node #{node_id}.") if @logger
+          @logger.info("Accept: task #{task_id} by node #{node_id}.")
         end
       rescue Rinda::RequestExpiredError
-        @logger.debug("Accept: #{count} signals.") if @logger
+        @logger.debug("Accept: #{count} signals.")
       end
       count
     end
@@ -55,7 +55,7 @@ module DRbQS
           task_id_ary.each do |task_id|
             queue_task(task_id)
             @history.set(task_id, :requeue)
-            @logger.info("Requeue: task #{task_id}.") if @logger
+            @logger.info("Requeue: task #{task_id}.")
           end
           @calculating.delete(node_id)
         end
@@ -64,10 +64,10 @@ module DRbQS
 
     def delete_task_id(node_id, task_id)
       unless @calculating[node_id].delete(task_id)
-        @logger.error("Task #{task_id} does not exist in list of calculating tasks.") if @logger
+        @logger.error("Task #{task_id} does not exist in list of calculating tasks.")
       end
       if ary = @calculating.find { |k, v| v.include?(task_id) }
-        @logger.error("Node #{ary[0]} is calculating task #{task_id}, too.") if @logger
+        @logger.error("Node #{ary[0]} is calculating task #{task_id}, too.")
       end
     end
     private :delete_task_id
@@ -79,7 +79,7 @@ module DRbQS
           hook.call(main_server, result)
         end
       else
-        @logger.error("Task #{task_id} is not cached.") if @logger
+        @logger.error("Task #{task_id} is not cached.")
       end
     end
 
@@ -91,12 +91,12 @@ module DRbQS
           sym, task_id, node_id, result = @result.take([:result, Fixnum, Fixnum, nil], 0)
           count += 1
           @history.set(task_id, :result, node_id)
-          @logger.info("Get: result of #{task_id} from node #{node_id}.") if @logger
+          @logger.info("Get: result of #{task_id} from node #{node_id}.")
           delete_task_id(node_id, task_id)
           exec_task_hook(main_server, task_id, result)
         end
       rescue Rinda::RequestExpiredError
-        @logger.debug("Get: #{count} results.") if @logger
+        @logger.debug("Get: #{count} results.")
       end
       count
     end

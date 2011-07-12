@@ -4,7 +4,7 @@ module DRbQS
   class MessageServer
     include HistoryUtils
 
-    def initialize(message, logger = nil)
+    def initialize(message, logger = DRbQS::LoggerDummy.new)
       @message = message
       @node_list = NodeList.new
       @logger = logger
@@ -20,27 +20,27 @@ module DRbQS
     end
 
     def manage_message(mes, arg)
-      @logger.info("Get message") { [mes, arg] } if @logger
+      @logger.info("Get message") { [mes, arg] }
       case mes
       when :connect
         a = [arg, @node_list.get_new_id(arg)]
-        @logger.info("New node") { a } if @logger
+        @logger.info("New node") { a }
         @message.write(a)
       when :alive
         @node_list.set_alive(arg)
       when :exit_server
-        @logger.info("Get exit message from #{arg.to_s}") if @logger
+        @logger.info("Get exit message from #{arg.to_s}")
       when :exit_after_task
-        @logger.info("Get exit message for node #{arg.to_s} after current task") if @logger
+        @logger.info("Get exit message for node #{arg.to_s} after current task")
         return [mes, arg]
       when :request_status
-        @logger.info("Get status request from #{arg.to_s}") if @logger
+        @logger.info("Get status request from #{arg.to_s}")
       when :node_error
         @node_list.delete(arg[0])
-        @logger.info("Node Error (#{arg[0]})") { arg[1] } if @logger
+        @logger.info("Node Error (#{arg[0]})") { arg[1] }
         return [mes, arg[0]]
       else
-        @logger.error("Invalid message from #{arg.to_s}") if @logger
+        @logger.error("Invalid message from #{arg.to_s}")
         return nil
       end
       [mes]

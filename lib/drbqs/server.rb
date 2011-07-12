@@ -137,12 +137,12 @@ module DRbQS
       DRb.install_acl(@acl) if @acl
       DRb.start_service(@uri, @ts)
       @config.list.server.save(@uri, server_data)
-      @logger.info("Start DRb service") { @uri } if @logger
+      @logger.info("Start DRb service") { @uri }
     end
 
     def check_connection(force = nil)
       if force || @check_alive.significant_interval?
-        @logger.info("Check connections.") if @logger
+        @logger.info("Check connections.")
         deleted_node_ids = @message.check_connection
         @queue.requeue_for_deleted_node_id(deleted_node_ids)
         @check_alive.set_checking
@@ -163,10 +163,10 @@ module DRbQS
       if @task_generator.size > 0 && @queue.empty?
         if tasks = @task_generator[0].new_tasks
           tasks.each { |t| @queue.add(t) }
-          @logger.info("Generator add #{tasks.size} tasks.") if @logger
+          @logger.info("Generator add #{tasks.size} tasks.")
         else
           @task_generator.delete_at(0)
-          @logger.info("Generator creates all tasks and then has been deleted.") if @logger
+          @logger.info("Generator creates all tasks and then has been deleted.")
           if @task_generator.size > 0
             first_task_generator_init
             add_tasks_from_generator
@@ -196,14 +196,14 @@ module DRbQS
     end
 
     def exec_finish_hook
-      @logger.info("Execute finish hook.") if @logger
+      @logger.info("Execute finish hook.")
       @hook.exec(:finish, self)
     end
     private :exec_finish_hook
     
     def exec_hook
       if @queue.empty?
-        @logger.info("Execute empty queue hook.") if @logger
+        @logger.info("Execute empty queue hook.")
         @hook.exec(:empty_queue, self)
       end
       if !generator_waiting? || @queue.finished?
@@ -227,7 +227,7 @@ module DRbQS
         sleep(wait_time)
         check_connection(true)
       end
-      @logger.info("History of tasks") { "\n" + @queue.all_logs } if @logger
+      @logger.info("History of tasks") { "\n" + @queue.all_logs }
       @config.list.server.delete(@uri)
       Kernel.exit
     end
@@ -245,7 +245,7 @@ module DRbQS
       host = opts[:host] || @transfer_setting[:host] || 'localhost'
       transfer_client.set_sftp(user, host)
       @ts[:transfer] = transfer_client
-      @logger.info("File transfer") { transfer_client.information } if @logger
+      @logger.info("File transfer") { transfer_client.information }
     end
 
     def check_message
@@ -281,7 +281,7 @@ module DRbQS
         check_connection
         count_results = @queue.get_result(self)
         exec_hook
-        @logger.debug("Calculating tasks: #{@queue.calculating_task_number}") if @logger
+        @logger.debug("Calculating tasks: #{@queue.calculating_task_number}")
         if count_results <= 1
           sleep(WAIT_TIME_NEW_RESULT)
         end

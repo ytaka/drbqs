@@ -1,17 +1,30 @@
 module DRbQS
+  class LoggerDummy
+    def info(*args)
+    end
+
+    def warn(*args)
+    end
+
+    def error(*args)
+    end
+
+    def debug(*args)
+    end
+  end
+
   module Utils
     def create_logger(log_file, log_level)
-      if log_file
-        if IO === log_file
-          log_output = log_file
-        else
-          log_output = FileName.create(log_file, :position => :middle, :directory => :parent, :type => :number)
-        end
-        logger = Logger.new(log_output)
-        logger.level = log_level || Logger::ERROR
-        return logger
+      if IO === log_file
+        log_output = log_file
+      elsif log_file
+        log_output = FileName.create(log_file, :position => :middle, :directory => :parent, :type => :number)
+      else
+        log_output = STDOUT
       end
-      return nil
+      logger = Logger.new(log_output)
+      logger.level = log_level || Logger::ERROR
+      logger
     end
     module_function :create_logger
 
