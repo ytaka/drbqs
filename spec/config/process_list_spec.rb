@@ -36,6 +36,12 @@ describe DRbQS::ProcessList::Server do
     subject.get(uri).should be_nil
   end
 
+  it "should get from uri." do
+    h = { :pid => 1111 }
+    subject.save('druby://:13003', h)
+    subject.get('druby://example.com:13003').should == h
+  end
+
   after(:all) do
     FileUtils.rm_r(@dir)
   end
