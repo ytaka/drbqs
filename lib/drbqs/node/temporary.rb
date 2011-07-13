@@ -3,11 +3,13 @@ module DRbQS
     @@root = nil
     @@filename = nil
 
+    # Return FileName object to generate names of temporary files on DRbQS nodes.
     def self.filename
       unless @@filename
-        @@root = sprintf("/tmp/drbqs_%d_%d", Process.pid, rand(10000))
+        pid = Process.pid
+        @@root = sprintf("/tmp/drbqs_%d_%d", pid, rand(10000))
         FileUtils.mkdir_p(@@root)
-        @@filename = FileName.new(File.join(@@root, 'temp'))
+        @@filename = FileName.new(File.join(@@root, sprintf("temp_%d_%d", pid, rand(10000))))
       end
       @@filename
     end
@@ -39,6 +41,7 @@ module DRbQS
       end
     end
 
+    # Return root of temporary directory.
     def self.root
       @@root
     end
