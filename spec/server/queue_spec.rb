@@ -1,6 +1,7 @@
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 require 'drbqs/server/queue'
+require 'drbqs/task/task'
 
 describe DRbQS::QueueServer do
   before(:all) do

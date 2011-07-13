@@ -1,6 +1,6 @@
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-require 'drbqs/task_generator'
+require 'drbqs/task/task'
 
 describe DRbQS::TaskGenerator do
   def check_task_ary(tasks, num, cl = DRbQS::Task)

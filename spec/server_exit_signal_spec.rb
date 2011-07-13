@@ -1,6 +1,7 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 require_relative 'test/test1.rb'
+require 'drbqs/task/task'
 
 describe DRbQS do
   before(:all) do

@@ -1,10 +1,10 @@
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-require 'drbqs/ssh/shell'
+require 'drbqs/manage/ssh_shell'
 
-describe DRbQS::SSH::Shell do
+describe DRbQS::Manage::SSHShell do
   it "should split destination" do
-    ssh = DRbQS::SSH::Shell.new('user@hostname')
+    ssh = DRbQS::Manage::SSHShell.new('user@hostname')
     ssh.user.should == 'user'
     ssh.host.should == 'hostname'
     ssh.port.should be_nil
@@ -12,7 +12,7 @@ describe DRbQS::SSH::Shell do
   end
 
   it "should split destination including directory" do
-    ssh = DRbQS::SSH::Shell.new('user@hostname:22', :dir => '/path/to/directory')
+    ssh = DRbQS::Manage::SSHShell.new('user@hostname:22', :dir => '/path/to/directory')
     ssh.user.should == 'user'
     ssh.host.should == 'hostname'
     ssh.port.should == 22
@@ -21,19 +21,19 @@ describe DRbQS::SSH::Shell do
 
   it "should raise error: not include '@'" do
     lambda do
-      DRbQS::SSH::Shell.new('userhostname')
+      DRbQS::Manage::SSHShell.new('userhostname')
     end.should raise_error
   end
 
   it "should raise error: empty user name" do
     lambda do
-      DRbQS::SSH::Shell.new('@hostname')
+      DRbQS::Manage::SSHShell.new('@hostname')
     end.should raise_error
   end
 
   it "should raise error: empty host name" do
     lambda do
-      DRbQS::SSH::Shell.new('user:22')
+      DRbQS::Manage::SSHShell.new('user:22')
     end.should raise_error
   end
 

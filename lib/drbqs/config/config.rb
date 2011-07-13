@@ -1,4 +1,5 @@
 require 'user_config'
+require 'drbqs/config/ssh_host'
 require 'drbqs/config/process_list'
 
 module DRbQS
@@ -10,10 +11,10 @@ module DRbQS
   SHELL_FILE_DIRECTORY = 'shell'
   SHELL_BASHRC = 'bashrc'
 
-  class ConfigDirectory < UserConfig
-  end
-
   class Config
+    class Directory < UserConfig
+    end
+
     DRBQS_CONFIG_DIRECTORY = '.drbqs'
 
     @@home_directory = nil
@@ -48,12 +49,13 @@ HISTSIZE=10000
 HISTFILESIZE=20000
 SAMPLE
 
-    attr_reader :directory, :list
+    attr_reader :directory, :list, :ssh_host
 
     def initialize
       home = self.class.get_home_directory
-      @directory = DRbQS::ConfigDirectory.new(DRBQS_CONFIG_DIRECTORY, :home => home)
+      @directory = DRbQS::Config::Directory.new(DRBQS_CONFIG_DIRECTORY, :home => home)
       @list = DRbQS::ProcessList.new(File.join(home, DRBQS_CONFIG_DIRECTORY))
+      @ssh_host = DRbQS::Config::SSHHost.new(@directory.file_path(HOST_FILE_DIRECTORY))
     end
 
     def directory_path
@@ -75,10 +77,6 @@ SAMPLE
     # Return path of ACL file if '.drbqs/acl.txt' exists.
     def get_acl_file
       @directory.exist?(ACL_DEFAULT_PATH)
-    end
-
-    def get_host_file_directory
-      @directory.file_path(HOST_FILE_DIRECTORY)
     end
 
     def get_shell_file_directory

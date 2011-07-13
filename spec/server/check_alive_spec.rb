@@ -1,6 +1,6 @@
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-require 'drbqs/server'
+require 'drbqs/server/check_alive'
 
 describe DRbQS::CheckAlive do
   it "should raise error with not a number" do

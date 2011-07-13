@@ -3,11 +3,11 @@ require 'net/ssh/shell'
 
 module DRbQS
 
-  module SSH
+  class Manage
     # Requirements:
     #   bash
     #   nohup
-    class Shell
+    class SSHShell
       class GetInvalidExitStatus < StandardError
       end
 

@@ -1,9 +1,8 @@
 require 'yaml'
-require 'drbqs/config'
 
 module DRbQS
-  module SSH
-    class Host
+  class Config
+    class SSHHost
       def initialize(dir)
         @dir = dir
         @host_files = (Dir.glob("#{@dir}/*.yaml") + Dir.glob("#{@dir}/*.yml")).map { |s| File.basename(s) }

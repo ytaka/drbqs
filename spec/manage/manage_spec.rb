@@ -1,7 +1,7 @@
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 require 'drbqs/server/message.rb'
-require_relative 'test/test1.rb'
+require_relative '../test/test1.rb'
 
 describe DRbQS::Manage do
   before(:all) do

@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
-require_relative '../lib/drbqs.rb'
+require 'drbqs/task/task'
 require_relative 'test/test1.rb'
 
 describe DRbQS do

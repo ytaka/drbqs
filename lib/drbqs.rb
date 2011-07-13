@@ -9,26 +9,12 @@ require 'fileutils'
 require 'filename'
 
 require 'drbqs/server_define'
+require 'drbqs/utility/utils'
 
 module DRbQS
-  autoload :Server, 'drbqs/server'
+  autoload :Server, 'drbqs/server/server'
   autoload :Client, 'drbqs/node/client'
-  autoload :Task, 'drbqs/task'
-  autoload :TaskGenerator, 'drbqs/task_generator'
-  autoload :Config, 'drbqs/config'
-  autoload :CommandTask, 'drbqs/task'
-  autoload :CommandExecute, 'drbqs/task'
-  autoload :TaskSet, 'drbqs/task'
-  autoload :Utils, 'drbqs/utility/utils'
-  autoload :LoggerDummy, 'drbqs/utility/utils'
-
-  module SSH
-    autoload :Shell, 'drbqs/ssh/shell'
-    autoload :Host, 'drbqs/ssh/host'
-  end
-
-  autoload :FileTransfer, 'drbqs/transfer/file_transfer'
-  autoload :TransferClient, 'drbqs/transfer/transfer_client'
+  autoload :Config, 'drbqs/config/config'
 
   ROOT_DEFAULT_PORT = 13500
 

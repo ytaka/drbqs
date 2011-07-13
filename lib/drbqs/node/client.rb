@@ -1,3 +1,5 @@
+require 'drbqs/task/task'
+require 'drbqs/transfer/transfer_client'
 require 'drbqs/node/connection'
 require 'drbqs/node/task_client'
 require 'drbqs/node/temporary'
@@ -24,7 +26,7 @@ module DRbQS
     end
 
     def transfer_file
-      if files = FileTransfer.dequeue_all
+      if files = DRbQS::FileTransfer.dequeue_all
         if @transfer
           begin
             @transfer.transfer(files, server_on_same_host?)

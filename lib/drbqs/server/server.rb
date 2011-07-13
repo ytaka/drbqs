@@ -1,28 +1,12 @@
+require 'drbqs/task/task'
+require 'drbqs/transfer/transfer_client'
+require 'drbqs/server/check_alive'
 require 'drbqs/server/message'
 require 'drbqs/server/queue'
 require 'drbqs/server/acl_file'
 require 'drbqs/server/server_hook'
 
 module DRbQS
-  class CheckAlive
-    DEFAULT_INTERVAL_TIME = 300
-
-    def initialize(interval)
-      @interval = interval || DEFAULT_INTERVAL_TIME
-      if !(Numeric === @interval) || @interval < 0
-        raise ArgumentError, "Invalid interval time."
-      end
-      @last = Time.now
-    end
-
-    def significant_interval?
-      (Time.now - @last) >= @interval
-    end
-
-    def set_checking
-      @last = Time.now
-    end
-  end
 
   # When we set both empty_queue_hook and task_generator,
   # empty_queue_hook is prior to task_generator.
