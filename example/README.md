@@ -4,8 +4,8 @@
 
 We execute server by the following command:
 
-    ruby drbqs-server-test.rb sum/server_def.rb
+    ../bin/drbqs-server sum/server_def.rb
 
 For nodes we type the following command:
 
-    ruby drbqs-client-test.rb -l sum/sum.rb --log-stdout
+    ../bin/drbqs-node -l sum/sum.rb --log-stdout
