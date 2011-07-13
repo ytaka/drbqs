@@ -23,7 +23,7 @@ after the server accepts them from nodes.
 The tasks are made from objects, an instance method of them, and its arguments.
 Because we use Marshal.dump and Marshal.load for communication of a server and nodes,
 the objects and the arguments must be marshalized.
-And also we tell the server and the nodes the definision of class of the objects and the arguments.
+And also we tell the server and the nodes the definition of class of the objects and the arguments.
 
 ## Requirements
 
@@ -130,12 +130,51 @@ That is, we type in terminal.
 
     drbqs-node druby://localhost:13500/ -l sum.rb
 
-We execute two processes to use two cpu cores.
+We execute two processes to use two CPU cores.
 
     drbqs-node 2 druby://localhost:13500/ -l sum.rb
 
 Then, if it succeeds, the calculation starts.
 If it finishes, the server and node end.
+
+## Provided task
+
+### DRbQS::Task
+
+DRbQS::Task is the basic class to define tasks of DRbQS,
+whose objects are consisted of a object having method to process a task
+and hook for returned result.
+Basically, we define objects of DRbQS::Task and
+give the objects to a server.
+
+### DRbQS::TaskSet
+
+DRbQS::TaskSet is a child class of DRbQS::Task and consists of group a number of tasks.
+Objects of the class are generated when we set the option :collect to DRbQS::TaskGenerator#set
+and therefore we are unaware of the objects of DRbQS::TaskSet
+in many cases.
+
+### DRbQS::CommandTask
+
+DRbQS::CommandTask is a class to create tasks to execute some command.
+
+## Temporary file
+
+We can use temporary directories and files on nodes.
+In methods to calculate tasks,
+DRbQS::Temporary.file returns a name of temporary file and
+DRbQS::Temporary.directory returns a name of temporary directory.
+These temporary files and directories are deleted
+after the task is completed.
+
+## File transfer
+
+When a task is finished on a node,
+we can transfer files from a server to a client.
+To be more precise, we enqueue a file by DRbQS::FileTransfer.enqueue
+in methods to calculate tasks and
+files in the queue are automatically transferred.
+Then, original files on nodes are deleted after transferring.
 
 ## Contributing to drbqs
  
