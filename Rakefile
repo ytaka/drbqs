@@ -30,18 +30,29 @@ Jeweler::Tasks.new do |gem|
 end
 Jeweler::RubygemsDotOrgTasks.new
 
-require 'rspec/core'
-require 'rspec/core/rake_task'
-RSpec::Core::RakeTask.new(:spec) do |spec|
-  spec.pattern = FileList['spec/**/*_spec.rb']
+desc "Run all specs"
+task 'spec:all' => ['spec:unit', 'spec:integration']
+
+desc "Run specs of unit test"
+task 'spec:unit' do
+  filelist = FileList['spec/**/*_spec.rb'].delete_if do |path|
+    /integration_test/ =~ path
+  end
+  filelist.each do |path|
+    sh "rspec #{path}"
+  end
+  Rake::Task['clean:temporary'].execute
 end
 
-RSpec::Core::RakeTask.new(:rcov) do |spec|
-  spec.pattern = 'spec/**/*_spec.rb'
-  spec.rcov = true
+desc "Run specs of integration test"
+task 'spec:integration' do
+  FileList['spec/integration_test/**/*_spec.rb'].sort.each do |path|
+    sh "rspec #{path}"
+  end
+  Rake::Task['clean:temporary'].execute
 end
 
-task :default => :spec
+task :default => 'spec:all'
 
 require 'yard'
 YARD::Rake::YardocTask.new
