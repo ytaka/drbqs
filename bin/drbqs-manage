@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+$LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
 require 'drbqs/command_line'
 
 help_message =<<HELP
@@ -84,6 +85,23 @@ when 'status'
 when 'initialize'
   DRbQS::CommandLineArgument.check_argument_size(argv, :==, 1)
   manage.create_config
+when 'process'
+  DRbQS::CommandLineArgument.check_argument_size(argv, :==, 1)
+  list = manage.list_process
+  $stdout.puts "Server"
+  list[:server].each do |uri, data|
+    $stdout.puts "#{uri}"
+    data.each do |k, v|
+      $stdout.puts sprintf("  %-10s  %s", k, v)
+    end
+  end
+  $stdout.puts "\nNode"
+  list[:node].each do |pid, data|
+    $stdout.puts "#{pid}"
+    data.each do |k, v|
+      $stdout.puts sprintf("  %-10s  %s", k, v)
+    end
+  end
 when 'ssh'
   dest = argv[1]
   manage.execute_over_ssh(dest, options, command_args)
