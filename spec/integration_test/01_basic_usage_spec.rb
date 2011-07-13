@@ -1,31 +1,14 @@
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 require 'drbqs/task/task'
-require_relative 'test/test1.rb'
+require_relative 'task_obj_definition.rb'
 
 describe DRbQS do
   before(:all) do
-    @tasks = []
-    @task_generators = [DRbQS::TaskGenerator.new(:iterate => 3), DRbQS::TaskGenerator.new(:iterate => 4)]
-    @task_generators.each do |tg|
-      tg.set do
-        @iterate.times do |i|
-          create_add_task(Test1.new, :echo, [i])
-        end
-      end
+    @tasks = 5.times.map do |i|
+      DRbQS::Task.new(Test1.new, :echo, [i])
     end
-    @process_id = fork do
-      server = DRbQS::Server.new(:port => 13501, :finish_exit => true)
-      @task_generators.each do |tg|
-        server.add_task_generator(tg)
-      end
-      server.set_signal_trap
-      server.start
-      server.wait
-    end
-    sleep(1)
-
-    @uri = 'druby://:13501'
+    @process_id, @uri = drbqs_fork_server(13501, @tasks)
     @client = DRbQS::Client.new(@uri, :log_file => $stdout, :continue => true)
   end
 
@@ -51,9 +34,15 @@ describe DRbQS do
   end
 
   it "should calculate" do
+    task_client = @client.instance_eval { @task_client }
+    # *** Too late ***
+    # task_client.should_receive(:add_new_task).at_least(:once)
+    # task_client.should_receive(:transit).exactly(5).times
+    # task_client.should_receive(:send_result).exactly(5).times
     lambda do
       @client.calculate
     end.should_not raise_error
+    Test1.get_execute_echo_number.should == @tasks.size
   end
 
   after(:all) do
