@@ -4,77 +4,108 @@ require 'drbqs/server/node_list'
 
 describe DRbQS::NodeList do
   before(:all) do
-    @node_list = DRbQS::NodeList.new
-    @id_strings = 10.times.map { |i| sprintf("%05d", i) }
-    @id_list = []
+    @count = 0
   end
 
-  it "should be empty." do
-    @node_list.empty?.should be_true
+  subject do
+    DRbQS::NodeList.new
   end
 
-  it "should get ids that are not duplicated." do
-    @id_strings.each do |str|
-      @id_list << @node_list.get_new_id(str)
+  def create_id_string
+    sprintf("ID_%05d", (@count += 1))
+  end
+
+  context "when checking nodes" do
+    it "should be empty." do
+      subject.empty?.should be_true
     end
-    @id_list.uniq!
-    @id_list.all? { |i| Integer === i }.should be_true
-    @id_list.size.should == @id_strings.size
-    @node_list.each do |id_num, id_str|
-      @id_strings.include?(id_str).should be_true
-      @id_list.include?(id_num).should be_true
-    end
-  end
 
-  it "should return true for existence of node id" do
-    @id_list.each do |id_num, id_str|
-      @node_list.exist?(id_num).should be_true
+    it "should not be empty." do
+      subject.get_new_id(create_id_string)
+      subject.empty?.should_not be_true
     end
-  end
 
-  it "should not return true for nonexistent node id" do
-    [1000, 2000, 3000].each do |id|
-      @node_list.exist?(id).should_not be_true
+    it "should return true for existence of node id" do
+      id = subject.get_new_id(create_id_string)
+      subject.exist?(id).should be_true
+    end
+
+    it "should not return true for nonexistent node id" do
+      subject.exist?(-100).should_not be_true
     end
   end
 
-  it "should delete all ids" do
-    @node_list.empty?.should_not be_true
-    @node_list.set_check_connection
-    ids = @node_list.delete_not_alive
-    ids.sort.should == @id_list.sort
-    @node_list.empty?.should be_true
-    @id_list.clear
+  context "when managing nodes" do
+    it "should get ids that are not duplicated." do
+      id_strings = 10.times.map do |i|
+        create_id_string
+      end.uniq
+      id_nums = id_strings.map do |str|
+        subject.get_new_id(str)
+      end
+      id_nums.should have(id_strings.size).items
+    end
+
+    it "should yield each nodes." do
+      id_data = 10.times.map do |i|
+        id_str = create_id_string
+        [id_str, subject.get_new_id(id_str)]
+      end
+      subject.each do |id_num, id_str|
+        id_data.assoc(id_str)[1].should == id_num
+      end
+    end
+
+    it "should delete a node" do
+      id = subject.get_new_id(create_id_string)
+      subject.delete(id)
+      subject.exist?(id).should_not be_true
+    end
   end
 
-  it "should set alive flag" do
-    alive_id_num = [3, 4, 5]
-    @id_strings.each do |str|
-      @id_list << @node_list.get_new_id(str)
+  context "when setting alive checkings" do
+    it "should delete all ids" do
+      5.times do |i|
+        subject.get_new_id(create_id_string)
+      end
+      subject.set_check_connection
+      subject.delete_not_alive
+      subject.empty?.should be_true
     end
-    @node_list.set_check_connection
-    alive_id_num.each do |i|
-      @node_list.set_alive(@id_list[i])
-    end
-    @node_list.delete_not_alive
-    alive_ids = alive_id_num.map { |i| @id_list[i] }
-    @node_list.each do |id_num, id_str|
-      alive_ids.include?(id_num).should be_true
+
+    it "should set alive flag" do
+      delete_ids = 3.times.map do |i|
+        subject.get_new_id(create_id_string)
+      end
+      alive_ids = 3.times.map do |i|
+        subject.get_new_id(create_id_string)
+      end
+      subject.set_check_connection
+      alive_ids.each do |id|
+        subject.set_alive(id)
+      end
+      subject.delete_not_alive
+      alive_ids.all? do |id|
+        subject.exist?(id)
+      end.should be_true
+      delete_ids.all? do |id|
+        !subject.exist?(id)
+      end.should be_true
     end
   end
 
-  it "should add to history" do
-    node_list = DRbQS::NodeList.new
-    node_list.history.should_receive(:set).with(1, :connect, 'hello')
-    node_list.get_new_id('hello')
-  end
+  context "when managing history" do
+    it "should add to history" do
+      subject.history.should_receive(:set).with(1, :connect, 'hello')
+      subject.get_new_id('hello')
+    end
 
-  it "should set disconnection to history" do
-    node_list = DRbQS::NodeList.new
-    node_list.get_new_id('hello')
-    node_list.set_check_connection
-    node_list.history.should_receive(:set).with(1, :disconnect)
-    node_list.delete_not_alive
+    it "should set disconnection to history" do
+      subject.get_new_id('hello')
+      subject.set_check_connection
+      subject.history.should_receive(:set).with(1, :disconnect)
+      subject.delete_not_alive
+    end
   end
 
 end

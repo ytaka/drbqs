@@ -2,7 +2,7 @@ require 'drbqs/server/node_list'
 
 module DRbQS
   class MessageServer
-    include HistoryUtils
+    include DRbQS::Utils
 
     def initialize(message, logger = DRbQS::LoggerDummy.new)
       @message = message
@@ -92,10 +92,10 @@ module DRbQS
         connect = events[0]
         s << sprintf("%4d %s\t", node_id, connect[2])
         if disconnect = events[1]
-          s << "disconnected: (#{time_to_string(connect[0])} - #{time_to_string(disconnect[0])})\n"
+          s << "disconnected: (#{time_to_history_string(connect[0])} - #{time_to_history_string(disconnect[0])})\n"
         else
-          task_ids = calculating_task_id[node_id]
-          s << "task: #{task_ids.map { |num| num.to_s }.join(', ')} (#{time_to_string(connect[0])})\n"
+          task_ids = calculating_task_id[node_id].to_a
+          s << "task: #{task_ids.map { |num| num.to_s }.join(', ')} (#{time_to_history_string(connect[0])})\n"
         end
       end
       begin
@@ -103,6 +103,10 @@ module DRbQS
       rescue Rinda::RequestExpiredError
       end
       @message.write([:status, s])
+    end
+
+    def get_all_nodes
+      @node_list.list.dup
     end
 
     def node_not_exist?

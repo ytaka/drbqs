@@ -28,14 +28,20 @@ module DRbQS
     end
     module_function :create_logger
 
+    def time_to_history_string(t)
+      t.strftime("%Y-%m-%d %H:%M:%S")
+    end
+    module_function :time_to_history_string
+
     STRINGS_FOR_KEY = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a
 
-    def self.random_key(size = 20)
+    def random_key(size = 20)
       n = STRINGS_FOR_KEY.size
       Array.new(size) do
         STRINGS_FOR_KEY[rand(n)]
       end.join
     end
+    module_function :random_key
   end
 
 end

@@ -55,6 +55,10 @@ describe DRbQS::History do
       events = @history.events(3)
       check_event(events[0], :ghi)
     end
+
+    it "should return strings of log" do
+      @history.log_strings.should be_an_instance_of String
+    end
   end
 
   context "when executing a method" do

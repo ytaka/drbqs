@@ -16,16 +16,20 @@ describe DRbQS::CheckAlive do
   end
 
   it "should return true" do
-    check = DRbQS::CheckAlive.new(0.1)
-    sleep(0.3)
+    check = DRbQS::CheckAlive.new(0.01)
+    sleep(0.03)
     check.significant_interval?.should be_true
-    check.set_checking
-    sleep(0.01)
-    check.significant_interval?.should be_false
   end
 
   it "should return false" do
     check = DRbQS::CheckAlive.new(100)
+    check.significant_interval?.should be_false
+  end
+
+  it "should set checking" do
+    check = DRbQS::CheckAlive.new(0.1)
+    sleep(0.2)
+    check.set_checking
     check.significant_interval?.should be_false
   end
 end

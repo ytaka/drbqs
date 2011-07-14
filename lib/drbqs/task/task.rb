@@ -37,6 +37,15 @@ module DRbQS
         @args == other.instance_variable_get(:@args)
     end
 
+    def exec_hook(server, result)
+      if @hook
+        @hook.call(server, result)
+        true
+      else
+        nil
+      end
+    end
+
     def self.execute_task(marshal_obj, method_sym, args)
       obj = Marshal.load(marshal_obj)
       obj.__send__(method_sym, *args)

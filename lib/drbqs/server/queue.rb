@@ -3,8 +3,6 @@ require 'drbqs/server/history'
 module DRbQS
 
   class QueueServer
-    include HistoryUtils
-
     attr_reader :calculating, :history
 
     def initialize(queue, result, logger = DRbQS::LoggerDummy.new)
@@ -74,12 +72,13 @@ module DRbQS
 
     def exec_task_hook(main_server, task_id, result)
       if task = @cache.delete(task_id)
-        if hook = task.hook
+        if task.exec_hook(main_server, result)
           @history.set(task_id, :hook)
-          hook.call(main_server, result)
         end
+        true
       else
         @logger.error("Task #{task_id} is not cached.")
+        false
       end
     end
 
@@ -105,7 +104,8 @@ module DRbQS
       @calculating.inject(0) { |s, key_val| s + key_val[1].size }
     end
 
-    # If queue is empty, return true. Otherwise, false.
+    # If queue is empty, that is, there is no tasks to calculate next,
+    # this method returns true. Otherwise, false.
     # Even if there are calculating tasks,
     # the method can return true.
     def empty?
@@ -119,19 +119,7 @@ module DRbQS
     end
 
     def all_logs
-      s = ''
-      @history.each do |task_id, events|
-        s << "Task #{task_id}\n"
-        events.each do |ev|
-          case ev[1]
-          when :add, :requeue, :hook
-            s << "  #{time_to_string(ev[0])}\t#{ev[1]}\n"
-          when :calculate, :result
-            s << "  #{time_to_string(ev[0])}\t#{ev[1]} (node #{ev[2]})\n"
-          end
-        end
-      end
-      s
+      @history.log_strings
     end
   end
 

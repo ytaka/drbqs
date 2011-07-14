@@ -2,7 +2,7 @@ require 'drbqs/server/history'
 
 module DRbQS
   class NodeList
-    attr_reader :history
+    attr_reader :history, :list
 
     def initialize
       @id = 0
