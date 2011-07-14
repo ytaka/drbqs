@@ -1,5 +1,5 @@
 require 'drbqs/task/task'
-require 'drbqs/transfer/transfer_client'
+require 'drbqs/utility/transfer/transfer_client'
 require 'drbqs/node/connection'
 require 'drbqs/node/task_client'
 require 'drbqs/utility/temporary'

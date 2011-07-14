@@ -1,4 +1,4 @@
-require 'drbqs/transfer/file_transfer'
+require 'drbqs/utility/transfer/file_transfer'
 require 'drbqs/task/task_generator'
 
 module DRbQS

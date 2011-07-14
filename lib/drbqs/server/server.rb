@@ -1,5 +1,5 @@
 require 'drbqs/task/task'
-require 'drbqs/transfer/transfer_client'
+require 'drbqs/utility/transfer/transfer_client'
 require 'drbqs/server/check_alive'
 require 'drbqs/server/message'
 require 'drbqs/server/queue'
