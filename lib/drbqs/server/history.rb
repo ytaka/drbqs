@@ -1,45 +1,49 @@
 module DRbQS
-  class History
-    include DRbQS::Utils
+  class Server
 
-    def initialize
-      @data = Hash.new { |h, k| h[k] = Array.new }
-    end
+    # This class is used in DRbQS::Server::NodeList and DRbQS::Server::Queue to save some histories.
+    class History
+      include DRbQS::Utils
 
-    def set(id, *args)
-      @data[id] << args.unshift(Time.now)
-    end
+      def initialize
+        @data = Hash.new { |h, k| h[k] = Array.new }
+      end
 
-    def size
-      @data.size
-    end
+      def set(id, *args)
+        @data[id] << args.unshift(Time.now)
+      end
 
-    def events(id)
-      @data[id]
-    end
+      def size
+        @data.size
+      end
 
-    def number_of_events(id)
-      @data[id].size
-    end
+      def events(id)
+        @data[id]
+      end
 
-    def each(&block)
-      @data.each(&block)
-    end
+      def number_of_events(id)
+        @data[id].size
+      end
 
-    def log_strings
-      s = ''
-      each do |task_id, events|
-        s << "Task #{task_id}\n"
-        events.each do |ev|
-          case ev[1]
-          when :add, :requeue, :hook
-            s << "  #{time_to_history_string(ev[0])}\t#{ev[1]}\n"
-          when :calculate, :result
-            s << "  #{time_to_history_string(ev[0])}\t#{ev[1]} (node #{ev[2]})\n"
+      def each(&block)
+        @data.each(&block)
+      end
+
+      def log_strings
+        s = ''
+        each do |task_id, events|
+          s << "Task #{task_id}\n"
+          events.each do |ev|
+            case ev[1]
+            when :add, :requeue, :hook
+              s << "  #{time_to_history_string(ev[0])}\t#{ev[1]}\n"
+            when :calculate, :result
+              s << "  #{time_to_history_string(ev[0])}\t#{ev[1]} (node #{ev[2]})\n"
+            end
           end
         end
+        s
       end
-      s
     end
   end
 end

@@ -3,13 +3,13 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 require 'drbqs/server/queue'
 require 'drbqs/task/task'
 
-describe DRbQS::QueueServer do
+describe DRbQS::Server::Queue do
   def object_init
     @ts = {
       :queue => Rinda::TupleSpace.new,
       :result => Rinda::TupleSpace.new
     }
-    @queue_server = DRbQS::QueueServer.new(@ts[:queue], @ts[:result])
+    @queue_server = DRbQS::Server::Queue.new(@ts[:queue], @ts[:result])
     @server_dummy = nil
   end
 

@@ -2,7 +2,7 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 require 'drbqs/server/history'
 
-describe DRbQS::History do
+describe DRbQS::Server::History do
 
   def check_event(event, *vals)
     event[0].should be_an_instance_of Time
@@ -13,7 +13,7 @@ describe DRbQS::History do
 
   context "when setting events" do
     before(:all) do
-      @history = DRbQS::History.new
+      @history = DRbQS::Server::History.new
       @history.set(1, :abc)
       @history.set(1, :def)
       @history.set(2, 'ABC', 'DEF')
@@ -62,7 +62,7 @@ describe DRbQS::History do
   end
 
   context "when executing a method" do
-    subject { DRbQS::History.new }
+    subject { DRbQS::Server::History.new }
 
     it "should add new event" do
       id = 1

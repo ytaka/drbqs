@@ -4,7 +4,7 @@ describe DRbQS::Server do
   context "when we initialize DRbQS::Server" do
     it "should initialize an ACL object by ACLFile.load" do
       path = File.dirname(__FILE__) + '/data/acl.txt'
-      DRbQS::ACLFile.should_receive(:load).with(path)
+      DRbQS::Server::ACLFile.should_receive(:load).with(path)
       DRbQS::Server.new(:acl => path, :log_file => nil)
     end
 

@@ -2,13 +2,13 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 require 'drbqs/server/node_list'
 
-describe DRbQS::NodeList do
+describe DRbQS::Server::NodeList do
   before(:all) do
     @count = 0
   end
 
   subject do
-    DRbQS::NodeList.new
+    DRbQS::Server::NodeList.new
   end
 
   def create_id_string

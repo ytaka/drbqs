@@ -21,6 +21,14 @@ describe DRbQS::FileTransfer do
     @tmp = FileName.create('/tmp/drbqs_test', :directory => :self)
   end
 
+  it "should be empty." do
+    DRbQS::FileTransfer.empty?.should be_true
+  end
+
+  it "should return nil when file queue is empty" do
+    DRbQS::FileTransfer.dequeue_all.should be_nil
+  end
+
   it "should enqueue path." do
     path = create_file('file1.txt', 'file1')
     DRbQS::FileTransfer.enqueue(path)
@@ -58,6 +66,17 @@ describe DRbQS::FileTransfer do
     DRbQS::FileTransfer.enqueue(path, :rename => rename, :compress => true)
     DRbQS::FileTransfer.dequeue.should == new_path
     File.exist?(new_path).should be_true
+  end
+
+  it "should return array of files" do
+    files = [create_file('file6.txt', 'file6'),
+             create_file('file8.txt', 'file8'),
+             create_file('file8.txt', 'file8')]
+    files.each do |path|
+      DRbQS::FileTransfer.enqueue(path)
+    end
+    DRbQS::FileTransfer.dequeue_all.should == files
+    DRbQS::FileTransfer.empty?.should be_true
   end
 
   it "should enqueue path of directory." do

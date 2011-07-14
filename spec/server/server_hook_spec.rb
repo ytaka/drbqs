@@ -2,23 +2,29 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 require 'drbqs/server/server_hook'
 
-describe DRbQS::ServerHook do
-  subject { DRbQS::ServerHook.new }
+describe DRbQS::Server::Hook do
+  subject { DRbQS::Server::Hook.new }
 
-  it "should add hook" do
-    subject.add(:finish) do |server|
+  it "should add a hook with automatic creation of name." do
+    n = subject.number_of_hook(:finish)
+    name = subject.add(:finish) do |server|
       3 + 4
-    end.should match(/^finish\d+/)
+    end
+    name.should match(/^finish\d+/)
+    subject.number_of_hook(:finish).should == (n + 1)
   end
 
-  it "should add hook with name" do
+  it "should add a hook with name." do
+    n = subject.number_of_hook(:finish)
     name = 'hello'
-    subject.add(:finish, name) do |server|
+    name_new = subject.add(:finish, name) do |server|
       3 + 4
-    end.should == name
+    end
+    name_new.should == name
+    subject.number_of_hook(:finish).should == (n + 1)
   end
 
-  it "should raise error" do
+  it "should raise error for invalid number of block arguments." do
     lambda do
       subject.add(:finish) do |a, b|
         a + b
@@ -26,29 +32,29 @@ describe DRbQS::ServerHook do
     end.should raise_error
   end
 
-  it "should delete hook" do
+  it "should delete a hook." do
     name = subject.add(:finish) do |server|
       3 + 4
     end
-    subject.hook_names(:finish).should have(1).items
+    subject.number_of_hook(:finish).should == 1
     subject.hook_names(:finish).should include(name)
     subject.delete(:finish, name)
     subject.hook_names(:finish).should be_empty
   end
 
-  it "should delete all hooks" do
+  it "should delete all hooks." do
     name = subject.add(:finish) do |server|
       3 + 4
     end
     name = subject.add(:finish) do |server|
       5 + 6
     end
-    subject.hook_names(:finish).should have(2).items
+    subject.number_of_hook(:finish).should == 2
     subject.delete(:finish)
     subject.hook_names(:finish).should be_empty
   end
 
-  it "should execute hooks" do
+  it "should execute hooks." do
     exec_flag = {}
     subject.add(:finish) do |server|
       exec_flag[:first] = true
@@ -61,7 +67,7 @@ describe DRbQS::ServerHook do
     exec_flag[:second].should be_true
   end
 
-  it "should execute finish_exit" do
+  it "should execute finish_exit that is special proc." do
     execute = nil
     subject.set_finish_exit do
       execute = true

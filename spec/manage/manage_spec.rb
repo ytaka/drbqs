@@ -7,7 +7,7 @@ describe DRbQS::Manage do
   before(:all) do
     @uri = "druby://:13600"
     @ts = drbqs_test_tuple_space(@uri)
-    @message = DRbQS::MessageServer.new(@ts[:message])
+    @message = DRbQS::Server::Message.new(@ts[:message])
     @manage = DRbQS::Manage.new
   end
 
@@ -30,5 +30,13 @@ describe DRbQS::Manage do
     dummy_status = "status data"
     @ts[:message].write([:status, dummy_status])
     @manage.get_status(@uri).should == dummy_status
+  end
+
+  it "should execute over ssh" do
+    command = "ls /"
+    ssh_shell = mock
+    DRbQS::Manage::SSHShell.stub(:new).and_return(ssh_shell)
+    ssh_shell.should_receive(:start).with(command)
+    @manage.execute_over_ssh("user@localhost", {}, command)
   end
 end

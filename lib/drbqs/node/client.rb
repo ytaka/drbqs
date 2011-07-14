@@ -37,7 +37,7 @@ module DRbQS
             raise
           end
         else
-          raise "Server does not set transfer settings."
+          raise "Server does not set transfer settings. Can not send file: #{files.join(", ")}"
         end
       end
     end

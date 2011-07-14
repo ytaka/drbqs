@@ -67,9 +67,9 @@ module DRbQS
         :transfer => nil
       }
       @logger = DRbQS::Utils.create_logger(opts[:log_file], opts[:log_level])
-      @message = MessageServer.new(@ts[:message], @logger)
-      @queue= QueueServer.new(@ts[:queue], @ts[:result], @logger)
-      @check_alive = CheckAlive.new(opts[:check_alive])
+      @message = DRbQS::Server::Message.new(@ts[:message], @logger)
+      @queue= DRbQS::Server::Queue.new(@ts[:queue], @ts[:result], @logger)
+      @check_alive = DRbQS::Server::CheckAlive.new(opts[:check_alive])
       @task_generator = []
       hook_init(opts[:finish_exit])
       set_signal_trap if opts[:signal_trap]
@@ -96,7 +96,7 @@ module DRbQS
       when Array
         ACL.new(acl_arg)
       when String
-        ACLFile.load(acl_arg)
+        DRbQS::Server::ACLFile.load(acl_arg)
       else
         nil
       end
@@ -104,7 +104,7 @@ module DRbQS
     private :acl_init
 
     def hook_init(finish_exit)
-      @hook = DRbQS::ServerHook.new
+      @hook = DRbQS::Server::Hook.new
       @hook.set_finish_exit { self.exit } if finish_exit
     end
     private :hook_init

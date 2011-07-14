@@ -3,10 +3,10 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 require 'drbqs/server/message.rb'
 require 'drbqs/task/task'
 
-describe DRbQS::MessageServer do
+describe DRbQS::Server::Message do
   before(:all) do
     @message = Rinda::TupleSpace.new
-    @message_server = DRbQS::MessageServer.new(@message)
+    @message_server = DRbQS::Server::Message.new(@message)
     @node_list = @message_server.instance_variable_get(:@node_list)
   end
 
