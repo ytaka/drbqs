@@ -7,13 +7,13 @@ describe DRbQS do
   before(:all) do
     @tasks = [DRbQS::Task.new(Test3.new, :temp_file)]
     @process_id, @uri = drbqs_fork_server(13503, @tasks)
-    @client = DRbQS::Client.new(@uri, :log_file => $stdout, :continue => true)
+    @node = DRbQS::Node.new(@uri, :log_file => $stdout, :continue => true)
   end
 
   it "should initialize @task_client" do
     lambda do
-      @client.connect
-      @client.calculate
+      @node.connect
+      @node.calculate
     end.should_not raise_error
   end
 

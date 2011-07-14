@@ -23,19 +23,19 @@ describe DRbQS::LoggerDummy do
 end
 
 
-describe DRbQS::Utils do
+describe DRbQS::Misc do
   it "should create logger." do
-    logger = DRbQS::Utils.create_logger(File.join(HOME_FOR_SPEC, 'tmp.log'), Logger::INFO)
+    logger = DRbQS::Misc.create_logger(File.join(HOME_FOR_SPEC, 'tmp.log'), Logger::INFO)
     logger.should be_an_instance_of(Logger)
   end
 
   it "should return time string for history." do
-    DRbQS::Utils.time_to_history_string(Time.now).should be_an_instance_of String
+    DRbQS::Misc.time_to_history_string(Time.now).should be_an_instance_of String
   end
 
   it "should return ramdom key" do
-    a = DRbQS::Utils.random_key
-    b = DRbQS::Utils.random_key
+    a = DRbQS::Misc.random_key
+    b = DRbQS::Misc.random_key
     a.should be_an_instance_of String
     b.should be_an_instance_of String
     a.should_not == b

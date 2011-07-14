@@ -11,7 +11,7 @@ describe DRbQS::Server do
     path = "/tmp/drbqs"
     @process_id, @uri = drbqs_fork_server(path, @tasks)
     @manage = DRbQS::Manage.new
-    @client = DRbQS::Client.new(@uri, :log_file => $stdout, :continue => true)
+    @node = DRbQS::Node.new(@uri, :log_file => $stdout, :continue => true)
   end
 
   it "should send signal and get status" do
@@ -19,9 +19,9 @@ describe DRbQS::Server do
   end
 
   it "should calculate task" do
-    @client.connect
+    @node.connect
     lambda do
-      @client.calculate
+      @node.calculate
     end.should_not raise_error
   end
 

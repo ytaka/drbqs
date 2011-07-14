@@ -58,7 +58,7 @@ module DRbQS
     def initialize(opts = {})
       @uri = DRbQS::Server.get_uri(opts)
       @acl = acl_init(opts[:acl])
-      @key = DRbQS::Utils.random_key + sprintf("_%d", Time.now.to_i)
+      @key = DRbQS::Misc.random_key + sprintf("_%d", Time.now.to_i)
       @ts = {
         :message => Rinda::TupleSpace.new,
         :queue => Rinda::TupleSpace.new,
@@ -66,7 +66,7 @@ module DRbQS
         :key => @key,
         :transfer => nil
       }
-      @logger = DRbQS::Utils.create_logger(opts[:log_file], opts[:log_level])
+      @logger = DRbQS::Misc.create_logger(opts[:log_file], opts[:log_level])
       @message = DRbQS::Server::Message.new(@ts[:message], @logger)
       @queue= DRbQS::Server::Queue.new(@ts[:queue], @ts[:result], @logger)
       @check_alive = DRbQS::Server::CheckAlive.new(opts[:check_alive])
@@ -289,10 +289,10 @@ module DRbQS
 
     def test_exec(opts = {})
       first_task_generator_init
-      dummy_client = DRbQS::Client.new(nil, :log_file => $stdout, :log_level => opts[:log_level])
-      dummy_task_client = DRbQS::TaskClient.new(nil, @ts[:queue], nil)
+      dummy_node = DRbQS::Node.new(nil, :log_file => $stdout, :log_level => opts[:log_level])
+      dummy_task_client = DRbQS::Node::TaskClient.new(nil, @ts[:queue], nil)
       if @ts[:transfer]
-        dummy_client.instance_variable_set(:@transfer, DRbQS::TransferClient::Local.new(@ts[:transfer].directory))
+        dummy_node.instance_variable_set(:@transfer, DRbQS::TransferClient::Local.new(@ts[:transfer].directory))
       end
       num = 0
       start_profile if opts[:profile]
@@ -300,7 +300,7 @@ module DRbQS
         exec_hook
         if ary = dummy_task_client.get_task
           task_id, marshal_obj, method_sym, args = ary
-          result = dummy_client.instance_eval { execute_task(marshal_obj, method_sym, args) }
+          result = dummy_node.instance_eval { execute_task(marshal_obj, method_sym, args) }
           @queue.exec_task_hook(self, task_id, result)
         end
         num += 1
@@ -311,7 +311,7 @@ module DRbQS
       finish_profile if opts[:profile]
       if @finalization_task
         args = @finalization_task.drb_args(nil)[1..-1]
-        dummy_client.instance_eval { execute_task(*args) }
+        dummy_node.instance_eval { execute_task(*args) }
       end
       exec_finish_hook
     end

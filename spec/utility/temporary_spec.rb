@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-require 'drbqs/node/temporary'
+require 'drbqs/utility/temporary'
 
 describe DRbQS::Temporary do
   before(:all) do

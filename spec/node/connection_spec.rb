@@ -2,10 +2,10 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 require 'drbqs/node/connection.rb'
 
-describe DRbQS::ConnectionClient do
+describe DRbQS::Node::Connection do
   before(:all) do
     @message = Rinda::TupleSpace.new
-    @connection = DRbQS::ConnectionClient.new(@message)
+    @connection = DRbQS::Node::Connection.new(@message)
     @node_id = 23
     id_string = @connection.instance_variable_get(:@id_string)
     @message.write([id_string, @node_id])

@@ -26,9 +26,9 @@ module DRbQS
 
     def create_process
       @pid << fork do
-        client = DRbQS::Client.new(@uri, :log_level => @log_level, :log_file => get_log_file)
-        client.connect
-        client.calculate
+        node = DRbQS::Node.new(@uri, :log_level => @log_level, :log_file => get_log_file)
+        node.connect
+        node.calculate
       end
     end
     private :create_process

@@ -3,7 +3,7 @@ require 'drbqs/server/node_list'
 module DRbQS
   class Server
     class Message
-      include DRbQS::Utils
+      include DRbQS::Misc
 
       def initialize(message, logger = DRbQS::LoggerDummy.new)
         @message = message

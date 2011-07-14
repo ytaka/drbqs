@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 $LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
-require 'drbqs/command_line'
+require 'drbqs/utility/command_line'
 
 help_message =<<HELP
 Usage: #{File.basename(__FILE__)} <definition.rb> [other files ...] [options ...]

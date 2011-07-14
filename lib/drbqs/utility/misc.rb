@@ -13,7 +13,7 @@ module DRbQS
     end
   end
 
-  module Utils
+  module Misc
     def create_logger(log_file, log_level)
       if IO === log_file
         log_output = log_file

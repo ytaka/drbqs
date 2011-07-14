@@ -3,7 +3,7 @@ module DRbQS
 
     # This class is used in DRbQS::Server::NodeList and DRbQS::Server::Queue to save some histories.
     class History
-      include DRbQS::Utils
+      include DRbQS::Misc
 
       def initialize
         @data = Hash.new { |h, k| h[k] = Array.new }

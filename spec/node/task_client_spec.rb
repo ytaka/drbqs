@@ -2,12 +2,12 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 require 'drbqs/node/task_client'
 
-describe DRbQS::TaskClient do
+describe DRbQS::Node::TaskClient do
   before(:all) do
     @node_id = 4
     @ts_queue = Rinda::TupleSpace.new
     @ts_result = Rinda::TupleSpace.new
-    @task_client = DRbQS::TaskClient.new(@node_id, @ts_queue, @ts_result)
+    @task_client = DRbQS::Node::TaskClient.new(@node_id, @ts_queue, @ts_result)
     @task_example = [[1, 2, 3], :size, []]
     @task_id = 10
   end

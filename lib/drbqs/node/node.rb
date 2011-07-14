@@ -2,11 +2,11 @@ require 'drbqs/task/task'
 require 'drbqs/transfer/transfer_client'
 require 'drbqs/node/connection'
 require 'drbqs/node/task_client'
-require 'drbqs/node/temporary'
+require 'drbqs/utility/temporary'
 
 module DRbQS
 
-  class Client
+  class Node
 
     WAIT_NEW_TASK = 1
     PRIORITY_RESPOND = 10
@@ -17,7 +17,7 @@ module DRbQS
     # :continue
     def initialize(access_uri, opts = {})
       @access_uri = access_uri
-      @logger = DRbQS::Utils.create_logger(opts[:log_file] || DEFAULT_LOG_FILE, opts[:log_level])
+      @logger = DRbQS::Misc.create_logger(opts[:log_file] || DEFAULT_LOG_FILE, opts[:log_level])
       @connection = nil
       @task_client = nil
       @process_continue = opts[:continue]
@@ -59,9 +59,9 @@ module DRbQS
     def connect
       obj = DRbObject.new_with_uri(@access_uri)
       @server_key = obj[:key]
-      @connection = ConnectionClient.new(obj[:message], @logger)
+      @connection = Node::Connection.new(obj[:message], @logger)
       node_id = @connection.get_id
-      @task_client = TaskClient.new(node_id, obj[:queue], obj[:result], @logger)
+      @task_client = Node::TaskClient.new(node_id, obj[:queue], obj[:result], @logger)
       @transfer = obj[:transfer]
       if ary = @connection.get_initialization
         execute_task(*ary)

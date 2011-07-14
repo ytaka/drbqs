@@ -8,12 +8,12 @@ require 'fileutils'
 
 require 'filename'
 
-require 'drbqs/server_define'
-require 'drbqs/utility/utils'
+require 'drbqs/utility/server_define'
+require 'drbqs/utility/misc'
 
 module DRbQS
   autoload :Server, 'drbqs/server/server'
-  autoload :Client, 'drbqs/node/client'
+  autoload :Node, 'drbqs/node/node'
   autoload :Config, 'drbqs/config/config'
 
   ROOT_DEFAULT_PORT = 13500
