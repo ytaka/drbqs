@@ -1,5 +1,6 @@
 require 'socket'
 require 'sys/proctable'
+require 'drbqs/manage/ssh_shell'
 
 module DRbQS
 
