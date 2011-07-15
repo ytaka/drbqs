@@ -1,5 +1,5 @@
 require 'drbqs/task/task'
-require 'drbqs/utility/transfer/transfer_client'
+require 'drbqs/server/transfer_setting'
 require 'drbqs/server/check_alive'
 require 'drbqs/server/message'
 require 'drbqs/server/queue'
@@ -11,21 +11,6 @@ module DRbQS
   # When we set both empty_queue_hook and task_generator,
   # empty_queue_hook is prior to task_generator.
   class Server
-    def self.get_uri(opts = {})
-      if opts[:port] || !opts[:unix]
-        port = opts[:port] || ROOT_DEFAULT_PORT
-        "druby://:#{port}"
-      else
-        path = File.expand_path(opts[:unix])
-        if !File.directory?(File.dirname(path))
-          raise ArgumentError, "Directory #{File.dirname(path)} does not exist."
-        elsif File.exist?(path)
-          raise ArgumentError, "File #{path} already exists."
-        end
-        "drbunix:#{path}"
-      end
-    end
-
     WAIT_TIME_NODE_EXIT = 3
     WAIT_TIME_NODE_FINALIZE = 10
     WAIT_TIME_NEW_RESULT = 1
@@ -56,7 +41,7 @@ module DRbQS
     # :file_directory
     #   Set the setting of file directory.
     def initialize(opts = {})
-      @uri = DRbQS::Server.get_uri(opts)
+      @uri = DRbQS::Misc.create_uri(opts)
       @acl = acl_init(opts[:acl])
       @key = DRbQS::Misc.random_key + sprintf("_%d", Time.now.to_i)
       @ts = {
@@ -74,22 +59,13 @@ module DRbQS
       hook_init(opts[:finish_exit])
       set_signal_trap if opts[:signal_trap]
       @finalization_task = nil
-      @transfer_setting = get_transfer_setting(opts[:scp_host], opts[:scp_user], opts[:file_directory])
+      @transfer_setting = DRbQS::Server::TransferSetting.new(opts[:scp_host], opts[:scp_user], opts[:file_directory])
       @config = DRbQS::Config.new
     end
 
     def transfer_directory
       @ts[:transfer] && @ts[:transfer].directory
     end
-
-    def get_transfer_setting(host, user, directory)
-      setting = { :directory => directory, :user => user, :host => host, :set => true }
-      if host || user || directory
-        setting[:set] = true
-      end
-      setting
-    end
-    private :get_transfer_setting
 
     def acl_init(acl_arg)
       case acl_arg
@@ -115,9 +91,7 @@ module DRbQS
     private :server_data
 
     def start
-      if @transfer_setting[:set] && @transfer_setting[:directory] && !@ts[:transfer]
-        set_file_transfer(@transfer_setting[:directory])
-      end
+      set_file_transfer(nil)
       DRb.install_acl(@acl) if @acl
       DRb.start_service(@uri, @ts)
       @config.list.server.save(@uri, server_data)
@@ -223,13 +197,10 @@ module DRbQS
     end
 
     def set_file_transfer(directory, opts = {})
-      transfer_client = DRbQS::TransferClient.new(directory)
-      transfer_client.make_directory
-      user = opts[:user] || @transfer_setting[:user] || ENV['USER']
-      host = opts[:host] || @transfer_setting[:host] || 'localhost'
-      transfer_client.set_sftp(user, host)
-      @ts[:transfer] = transfer_client
-      @logger.info("File transfer") { transfer_client.information }
+      if transfer = @transfer_setting.create(directory, opts)
+        @ts[:transfer] = transfer
+        @logger.info("File transfer") { transfer.information }
+      end
     end
 
     def check_message
