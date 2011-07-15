@@ -14,6 +14,21 @@ module DRbQS
   end
 
   module Misc
+    def self.create_uri(opts = {})
+      if opts[:port] || !opts[:unix]
+        port = opts[:port] || ROOT_DEFAULT_PORT
+        "druby://:#{port}"
+      else
+        path = File.expand_path(opts[:unix])
+        if !File.directory?(File.dirname(path))
+          raise ArgumentError, "Directory #{File.dirname(path)} does not exist."
+        elsif File.exist?(path)
+          raise ArgumentError, "File #{path} already exists."
+        end
+        "drbunix:#{path}"
+      end
+    end
+
     def create_logger(log_file, log_level)
       if IO === log_file
         log_output = log_file
