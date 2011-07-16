@@ -12,6 +12,7 @@ Manage DRbQS server by sending messages.
        #{File.basename(__FILE__)} signal <uri> node-exit-after-task <node_number>
        #{File.basename(__FILE__)} status <uri>
        #{File.basename(__FILE__)} process
+       #{File.basename(__FILE__)} process clear
        #{File.basename(__FILE__)} initialize
 
 HELP
@@ -37,61 +38,4 @@ MES
   exit(2)
 end
 
-command = ARGV.shift
-argv = ARGV
-manage = DRbQS::Manage.new
-
-case command
-when 'initialize'
-  DRbQS::CommandLineArgument.check_argument_size(argv, :>=, 0, :<=, 1)
-  manage.set_home_directory(argv[0])
-  manage.create_config
-  exit(0)
-when 'process'
-  DRbQS::CommandLineArgument.check_argument_size(argv, :>=, 0, :<=, 1)
-  if argv[0] == 'clear'
-    manage.clear_process
-    exit(0)
-  end
-  list = manage.list_process
-  $stdout.puts "Server"
-  list[:server].each do |uri, data|
-    $stdout.puts "#{uri}"
-    data.each do |k, v|
-      $stdout.puts sprintf("  %-10s  %s", k, v)
-    end
-  end
-  $stdout.puts "\nNode"
-  list[:node].each do |pid, data|
-    $stdout.puts "#{pid}"
-    data.each do |k, v|
-      $stdout.puts sprintf("  %-10s  %s", k, v)
-    end
-  end
-  exit(0)
-else
-  manage.set_uri(argv[0])
-  case command
-  when 'signal'
-    signal = argv[1]
-    case signal
-    when 'server-exit'
-      DRbQS::CommandLineArgument.check_argument_size(argv, :==, 2)
-      manage.send_exit_signal
-      exit(0)
-    when 'node-exit-after-task'
-      DRbQS::CommandLineArgument.check_argument_size(argv, :==, 3)
-      node_id = argv[2].to_i
-      manage.send_node_exit_after_task(node_id)
-      exit(0)
-    end
-  when 'status'
-    DRbQS::CommandLineArgument.check_argument_size(argv, :==, 1)
-    if status = manage.get_status
-      $stdout.puts status
-    end
-    exit(0)
-  end
-end
-$stderr.puts "Invalid command: #{command}"
-exit(1)
+DRbQS::CommandManage.exec(ARGV)
