@@ -1,60 +1,59 @@
 require 'socket'
 require 'sys/proctable'
-require 'drbqs/manage/ssh_shell'
+require 'drbqs/manage/ssh_execute'
 
 module DRbQS
+  class Manage
+    class SendCommand
+      MAX_WAIT_TIME = 10
 
-  class SendCommand
-    MAX_WAIT_TIME = 10
+      def initialize(message)
+        @message = message
+      end
 
-    def initialize(message)
-      @message = message
-    end
+      def get_hostname
+        "Command of #{Socket.gethostname}"
+      end
+      private :get_hostname
 
-    def get_hostname
-      "Command of #{Socket.gethostname}"
-    end
-    private :get_hostname
+      def send_signal_to_server(signal, arg)
+        @message.write([:server, signal, arg])
+      end
+      private :send_signal_to_server
 
-    def send_signal_to_server(signal, arg)
-      @message.write([:server, signal, arg])
-    end
-    private :send_signal_to_server
+      def send_exit_signal
+        send_signal_to_server(:exit_server, get_hostname)
+      end
 
-    def send_exit_signal
-      send_signal_to_server(:exit_server, get_hostname)
-    end
+      def send_node_exit_after_task(node_id)
+        send_signal_to_server(:exit_after_task, node_id)
+      end
 
-    def send_node_exit_after_task(node_id)
-      send_signal_to_server(:exit_after_task, node_id)
-    end
-
-    def get_status
-      send_signal_to_server(:request_status, get_hostname)
-      i = 0
-      loop do
-        begin
-          mes = @message.take([:status, String], 0)
-          return mes[1]
-        rescue Rinda::RequestExpiredError
-          i += 1
-          if i > MAX_WAIT_TIME
-            return nil
+      def get_status
+        send_signal_to_server(:request_status, get_hostname)
+        i = 0
+        loop do
+          begin
+            mes = @message.take([:status, String], 0)
+            return mes[1]
+          rescue Rinda::RequestExpiredError
+            i += 1
+            if i > MAX_WAIT_TIME
+              return nil
+            end
+            sleep(1)
           end
-          sleep(1)
         end
       end
     end
-  end
 
-  class Manage
     def create_config(home_directory = nil)
       DRbQS::Config.new.save_sample(home_directory)
     end
 
     def command_client(access_uri)
       obj = DRbObject.new_with_uri(access_uri)
-      DRbQS::SendCommand.new(obj[:message])
+      DRbQS::Manage::SendCommand.new(obj[:message])
     rescue DRb::DRbConnError
       $stderr.puts "Can not access #{access_uri}"
       nil

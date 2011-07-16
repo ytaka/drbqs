@@ -8,6 +8,8 @@ module DRbQS
     #   bash
     #   nohup
     class SSHShell
+      class InvalidDestination < StandardError
+      end
       class GetInvalidExitStatus < StandardError
       end
 
@@ -24,7 +26,7 @@ module DRbQS
       def initialize(dest, opts = {})
         @user, @host, @port = split_destination(dest)
         if !(@host && @user)
-          raise "Invalid destination of ssh server."
+          raise InvalidDestination, "Invalid destination of ssh server."
         end
         @shell = opts[:shell] || 'bash'
         @rvm = opts[:rvm]

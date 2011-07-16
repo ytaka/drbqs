@@ -6,47 +6,17 @@ require 'drbqs/utility/command_line'
 help_message =<<HELP
 Usage: #{File.basename(__FILE__)} <command> [arguments ...]
 Manage DRbQS server by sending messages.
-<command> is 'exit-signal', 'exit-after-task', 'initialize', or 'ssh'.
+<command> is 'exit-signal', 'exit-after-task', or 'initialize'.
 
 HELP
 
 command = ARGV[0]
-argv, command_args = DRbQS::CommandLineArgument.split_arguments(ARGV)
-
-options = {}
-if /^ssh/ =~ command
-  DRbQS::CommandLineArgument.check_argument_size(argv, :>=, 2)
-  ssh_host = DRbQS::Config.new.ssh_host
-  path, options = ssh_host.get_options(argv[1])
-  $stdout.puts "Use configuration: #{path}" if path
-  argv[1] = options[:dest] if options[:dest]
-end
+argv = ARGV
 
 begin
   OptionParser.new(help_message) do |opt|
     opt.on('--debug', 'Set $DEBUG true.') do |v|
       $DEBUG = true
-    end
-    opt.on('--dir DIR', String, 'Set the base directory over ssh.') do |v|
-      options[:dir] = v
-    end
-    opt.on('--shell STR', String, 'Set the shell over ssh') do |v|
-      options[:shell] = v
-    end
-    opt.on('--rvm STR', String, 'Ruby version to use on RVM over ssh.') do |v|
-      options[:rvm] = v
-    end
-    opt.on('--rvm-init PATH', String, 'Path of script to initialize RVM over ssh.') do |v|
-      options[:rvm_init] = v
-    end
-    opt.on('--output PATH', String, 'File path that stdout and stderr are output to over ssh.') do |v|
-      options[:output] = v
-    end
-    opt.on('--nice NUM', Integer, 'Set the value for nice command.') do |v|
-      options[:nice] = v
-    end
-    opt.on('--nohup', 'Use nohup command.') do |v|
-      options[:nohup] = true
     end
     opt.parse!(argv)
   end
@@ -102,9 +72,6 @@ when 'process'
       $stdout.puts sprintf("  %-10s  %s", k, v)
     end
   end
-when 'ssh'
-  dest = argv[1]
-  manage.execute_over_ssh(dest, options, command_args)
 else
   raise "Invalid command: #{command}"
 end
