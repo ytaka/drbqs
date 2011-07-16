@@ -6,19 +6,22 @@ require 'drbqs/utility/command_line'
 help_message =<<HELP
 Usage: #{File.basename(__FILE__)} <command> [arguments ...]
 Manage DRbQS server by sending messages.
-<command> is 'exit-signal', 'exit-after-task', or 'initialize'.
+<command> is 'signal', 'status', 'process', or 'initialize'.
+
+       #{File.basename(__FILE__)} signal <uri> server-exit
+       #{File.basename(__FILE__)} signal <uri> node-exit-after-task <node_number>
+       #{File.basename(__FILE__)} status <uri>
+       #{File.basename(__FILE__)} process
+       #{File.basename(__FILE__)} initialize
 
 HELP
-
-command = ARGV[0]
-argv = ARGV
 
 begin
   OptionParser.new(help_message) do |opt|
     opt.on('--debug', 'Set $DEBUG true.') do |v|
       $DEBUG = true
     end
-    opt.parse!(argv)
+    opt.parse!(ARGV)
   end
 rescue OptionParser::InvalidOption
   $stderr.print <<MES
@@ -34,29 +37,18 @@ MES
   exit(2)
 end
 
+command = ARGV.shift
+argv = ARGV
 manage = DRbQS::Manage.new
 
 case command
-when 'exit-signal'
-  DRbQS::CommandLineArgument.check_argument_size(argv, :==, 2)
-  uri = argv[1]
-  manage.send_exit_signal(uri)
-when 'exit-after-task'
-  DRbQS::CommandLineArgument.check_argument_size(argv, :==, 3)
-  uri = argv[1]
-  node_id = argv[2].to_i
-  manage.send_node_exit_after_task(uri, node_id)
-when 'status'
-  DRbQS::CommandLineArgument.check_argument_size(argv, :==, 2)
-  uri = argv[1]
-  if status = manage.get_status(uri)
-    $stdout.puts status
-  end
 when 'initialize'
-  DRbQS::CommandLineArgument.check_argument_size(argv, :==, 1)
+  DRbQS::CommandLineArgument.check_argument_size(argv, :>=, 0, :<=, 1)
+  manage.set_home_directory(argv[0])
   manage.create_config
+  exit(0)
 when 'process'
-  DRbQS::CommandLineArgument.check_argument_size(argv, :==, 1)
+  DRbQS::CommandLineArgument.check_argument_size(argv, :==, 0)
   list = manage.list_process
   $stdout.puts "Server"
   list[:server].each do |uri, data|
@@ -72,6 +64,30 @@ when 'process'
       $stdout.puts sprintf("  %-10s  %s", k, v)
     end
   end
+  exit(0)
 else
-  raise "Invalid command: #{command}"
+  manage.set_uri(argv[0])
+  case command
+  when 'signal'
+    signal = argv[1]
+    case signal
+    when 'server-exit'
+      DRbQS::CommandLineArgument.check_argument_size(argv, :==, 2)
+      manage.send_exit_signal
+      exit(0)
+    when 'node-exit-after-task'
+      DRbQS::CommandLineArgument.check_argument_size(argv, :==, 3)
+      node_id = argv[2].to_i
+      manage.send_node_exit_after_task(node_id)
+      exit(0)
+    end
+  when 'status'
+    DRbQS::CommandLineArgument.check_argument_size(argv, :==, 1)
+    if status = manage.get_status
+      $stdout.puts status
+    end
+    exit(0)
+  end
 end
+$stderr.puts "Invalid command: #{command}"
+exit(1)

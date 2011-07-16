@@ -10,7 +10,7 @@ describe DRbQS::Server do
       DRbQS::Task.new(Test2.new, :echo_wait, [@wait])
     end
     @server_process_id, @uri = drbqs_fork_server(13501, @tasks, :continue => true)
-    @manage = DRbQS::Manage.new
+    @manage = DRbQS::Manage.new(:uri => @uri)
   end
 
   it "should send node exit" do
@@ -18,7 +18,7 @@ describe DRbQS::Server do
     execute_node.execute(1)
     client_process_id = execute_node.pid[0]
     sleep(@wait)
-    @manage.send_node_exit_after_task(@uri, 1)
+    @manage.send_node_exit_after_task(1)
     th = Process.detach(client_process_id)
     max_wait_time = @wait * 3
     max_wait_time.times do |i|
@@ -33,7 +33,7 @@ describe DRbQS::Server do
   end
 
   after(:all) do
-    @manage.send_exit_signal(@uri)
+    @manage.send_exit_signal
     lambda do
       drbqs_wait_kill_server(@server_process_id)
     end.should_not raise_error

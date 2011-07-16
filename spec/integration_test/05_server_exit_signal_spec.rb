@@ -9,12 +9,12 @@ describe DRbQS do
       DRbQS::Task.new(Test1.new, :echo, [i])
     end
     @process_id, @uri = drbqs_fork_server(13501, @tasks)
-    @manage = DRbQS::Manage.new
+    @manage = DRbQS::Manage.new(:uri => @uri)
   end
 
   it "should send exit signal" do
     lambda do
-      @manage.send_exit_signal(@uri)
+      @manage.send_exit_signal
     end.should_not raise_error
     lambda do
       drbqs_wait_kill_server(@process_id)

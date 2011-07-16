@@ -1,106 +1,90 @@
 require 'socket'
 require 'sys/proctable'
 require 'drbqs/manage/ssh_execute'
+require 'drbqs/manage/send_signal'
 
 module DRbQS
   class Manage
-    class SendCommand
-      MAX_WAIT_TIME = 10
+    class NotSetURI < StandardError
+    end
 
-      def initialize(message)
-        @message = message
-      end
+    # +opts+ has keys :home and :uri.
+    def initialize(opts = {})
+      @opts = opts
+      @config = nil
+      @signal_sender = nil
+    end
 
-      def get_hostname
-        "Command of #{Socket.gethostname}"
-      end
-      private :get_hostname
+    def set_uri(uri)
+      @opts[:uri] = uri
+    end
 
-      def send_signal_to_server(signal, arg)
-        @message.write([:server, signal, arg])
-      end
-      private :send_signal_to_server
+    def set_home_directory(dir)
+      @opts[:home] = dir
+    end
 
-      def send_exit_signal
-        send_signal_to_server(:exit_server, get_hostname)
-      end
-
-      def send_node_exit_after_task(node_id)
-        send_signal_to_server(:exit_after_task, node_id)
-      end
-
-      def get_status
-        send_signal_to_server(:request_status, get_hostname)
-        i = 0
-        loop do
-          begin
-            mes = @message.take([:status, String], 0)
-            return mes[1]
-          rescue Rinda::RequestExpiredError
-            i += 1
-            if i > MAX_WAIT_TIME
-              return nil
-            end
-            sleep(1)
-          end
+    def config
+      unless @config
+        if @opts[:home]
+          DRbQS::Config.set_home_directory(@opts[:home])
         end
+        @config = DRbQS::Config.new
+      end
+      @config
+    end
+    private :config
+
+    def signal_sender
+      unless @signal_sender
+        unless @opts[:uri]
+          raise DRbQS::Manage::NotSetURI, "The uri has not set yet."
+        end
+        obj = DRbObject.new_with_uri(@opts[:uri])
+        @signal_sender = DRbQS::Manage::SendSignal.new(obj[:message])
+      end
+      @signal_sender
+    end
+    private :signal_sender
+
+    def create_config
+      config.save_sample
+    end
+
+    def send_exit_signal
+      signal_sender.send_exit_signal
+    end
+
+    def send_node_exit_after_task(node_id)
+      signal_sender.send_node_exit_after_task(node_id)
+    end
+
+    def get_status
+      signal_sender.get_status
+    end
+
+    def server_respond?
+      begin
+        get_status
+        true
+      rescue DRbQS::Manage::NotSetURI
+        raise
+      rescue
+        nil
       end
     end
 
-    def create_config(home_directory = nil)
-      DRbQS::Config.new.save_sample(home_directory)
-    end
-
-    def command_client(access_uri)
-      obj = DRbObject.new_with_uri(access_uri)
-      DRbQS::Manage::SendCommand.new(obj[:message])
-    rescue DRb::DRbConnError
-      $stderr.puts "Can not access #{access_uri}"
-      nil
-    end
-    private :command_client
-
-    def send_exit_signal(access_uri)
-      if client = command_client(access_uri)
-        client.send_exit_signal
-      end
-    end
-
-    def send_node_exit_after_task(access_uri, node_id)
-      if client = command_client(access_uri)
-        client.send_node_exit_after_task(node_id)
-      end
-    end
-
-    def get_status(access_uri)
-      if client = command_client(access_uri)
-        client.get_status
-      end
-    end
-
-    def wait_server_process(pid, uri)
+    def wait_server_process(pid)
       begin
         sleep(WAIT_SERVER_TIME)
         unless Sys::ProcTable.ps(pid)
           return nil
         end
-      end while !get_status(uri)
+      end while !server_respond?
       true
     end
 
     def list_process
-      config = DRbQS::Config.new
       { :server => config.list.server.list, :node => config.list.node.list }
-    end
-
-    def execute_over_ssh(dest, opts, command)
-      ssh = DRbQS::Manage::SSHShell.new(dest, opts)
-      ssh.start(command)
-    end
-
-    def get_ssh_environment(dest, opts)
-      ssh = DRbQS::Manage::SSHShell.new(dest, opts)
-      ssh.get_environment
     end
   end
 end
