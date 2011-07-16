@@ -1,14 +1,16 @@
 require 'socket'
 
 module DRbQS
-  # The class of connection to s.erver.
   class Node
+    # The class of connection to server.
     class Connection
+      attr_reader :id, :node_number
+
       def initialize(message, logger = DRbQS::LoggerDummy.new)
         @message = message
         @logger = logger
-        @id_number = nil
-        @id_string = create_id_string
+        @node_number = nil
+        @id = create_id_string
       end
 
       def create_id_string
@@ -17,13 +19,13 @@ module DRbQS
       end
       private :create_id_string
 
-      def get_id
-        unless @id_number
-          @message.write([:server, :connect, @id_string])
-          @id_number = @message.take([@id_string, Fixnum])[1]
-          @logger.info("Get node id: #{@id_number}")
+      def node_number
+        unless @node_number
+          @message.write([:server, :connect, @id])
+          @node_number = @message.take([@id, Fixnum])[1]
+          @logger.info("Get node id: #{@node_number}")
         end
-        @id_number
+        @node_number
       end
 
       def get_special_task(label)
@@ -46,12 +48,12 @@ module DRbQS
 
       def respond_signal
         begin
-          node_id, sym = @message.take([@id_number, Symbol], 0)
+          node_id, sym = @message.take([@node_number, Symbol], 0)
           @logger.info("Get signal: #{sym.inspect}")
           case sym
           when :alive_p
-            @message.write([:server, :alive, @id_number])
-            @logger.info("Send alive signal of node id #{@id_number}")
+            @message.write([:server, :alive, @node_number])
+            @logger.info("Send alive signal of node id #{@node_number}")
           when :exit, :finalize, :exit_after_task
             return sym
           else
@@ -62,7 +64,7 @@ module DRbQS
       end
 
       def send_node_error(error_message)
-        @message.write([:server, :node_error, [@id_number, error_message]])
+        @message.write([:server, :node_error, [@node_number, error_message]])
       end
     end
   end

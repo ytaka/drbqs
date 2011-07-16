@@ -60,8 +60,7 @@ module DRbQS
       obj = DRbObject.new_with_uri(@access_uri)
       @server_key = obj[:key]
       @connection = Node::Connection.new(obj[:message], @logger)
-      node_id = @connection.get_id
-      @task_client = Node::TaskClient.new(node_id, obj[:queue], obj[:result], @logger)
+      @task_client = Node::TaskClient.new(@connection.node_number, obj[:queue], obj[:result], @logger)
       @transfer = obj[:transfer]
       if ary = @connection.get_initialization
         execute_task(*ary)

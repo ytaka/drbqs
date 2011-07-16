@@ -1,5 +1,3 @@
-require 'yaml'
-
 module DRbQS
   class ProcessList
     PROCESS_ROOT_DIRECTORY = 'process'

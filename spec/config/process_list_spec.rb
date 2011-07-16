@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-require 'drbqs/config/process_list'
+require 'drbqs/config/config'
 
 describe DRbQS::ProcessList::Server do
   before(:all) do
