@@ -48,7 +48,11 @@ when 'initialize'
   manage.create_config
   exit(0)
 when 'process'
-  DRbQS::CommandLineArgument.check_argument_size(argv, :==, 0)
+  DRbQS::CommandLineArgument.check_argument_size(argv, :>=, 0, :<=, 1)
+  if argv[0] == 'clear'
+    manage.clear_process
+    exit(0)
+  end
   list = manage.list_process
   $stdout.puts "Server"
   list[:server].each do |uri, data|

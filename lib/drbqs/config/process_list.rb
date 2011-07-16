@@ -111,6 +111,18 @@ module DRbQS
       def delete(uri)
         delete_file(uri_to_file(uri))
       end
+
+      def clear_process_not_exist
+        list.each do |uri, data|
+          if Sys::ProcTable.ps(data[:pid])
+            unless DRbQS::Manage.new(:uri => uri).server_respond?
+              delete(uri)
+            end
+          else
+            delete(uri)
+          end
+        end
+      end
     end
 
     class Node < ListDirectory
@@ -147,6 +159,26 @@ module DRbQS
       def delete(pid)
         delete_file(pid_to_file(pid))
       end
+
+      def clear_process_not_exist
+        server = Hash.new do |h, k|
+          h[k] = Array.new
+        end
+        list.each do |pid, data|
+          if Sys::ProcTable.ps(pid)
+            server[data[:uri]] << pid
+          else
+            delete(pid)
+          end
+        end
+        server.each do |server_uri, pid_ary|
+          unless DRbQS::Manage.new(:uri => server_uri).server_respond?
+            pid_ary.each do |pid|
+              delete(pid)
+            end
+          end
+        end
+      end
     end
 
     attr_reader :root, :server, :node
@@ -155,6 +187,11 @@ module DRbQS
       @root = File.expand_path(File.join(home, PROCESS_ROOT_DIRECTORY))
       @server = DRbQS::ProcessList::Server.new(File.join(@root, SERVER_DIRECTORY))
       @node = DRbQS::ProcessList::Node.new(File.join(@root, NODE_DIRECTORY))
+    end
+
+    def clear_process_not_exist
+      @server.clear_process_not_exist
+      @node.clear_process_not_exist
     end
   end
 end

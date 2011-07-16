@@ -57,6 +57,13 @@ describe DRbQS::ProcessList::Server do
     subject.server_of_key_exist?('druby://example.com:13006', 'key').should be_false
   end
 
+  it "should clear server data that does not exist." do
+    uri = 'druby://:13006'
+    subject.save(uri, { :pid => 1 })
+    subject.should_receive(:delete).at_least(:once)
+    subject.clear_process_not_exist
+  end
+
   after(:all) do
     FileUtils.rm_r(@dir)
   end
@@ -97,6 +104,14 @@ describe DRbQS::ProcessList::Node do
     subject.get(pid).should be_nil
   end
 
+  it "should clear node data that does not exist." do
+    pid = 10003
+    h = { :uri => 'druby://:13003' }
+    subject.save(pid, h)
+    subject.should_receive(:delete).at_least(:once)
+    subject.clear_process_not_exist
+  end
+
   after(:all) do
     FileUtils.rm_r(@dir)
   end
@@ -118,6 +133,12 @@ describe DRbQS::ProcessList do
     File.exist?(File.join(@dir, 'process')).should be_true
     File.exist?(File.join(@dir, 'process/server')).should be_true
     File.exist?(File.join(@dir, 'process/node')).should be_true
+  end
+
+  it "should execute clear data of which process does not exist." do
+    subject.node.should_receive(:clear_process_not_exist)
+    subject.server.should_receive(:clear_process_not_exist)
+    subject.clear_process_not_exist
   end
 
   after(:all) do

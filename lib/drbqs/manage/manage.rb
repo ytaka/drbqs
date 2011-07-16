@@ -86,5 +86,9 @@ module DRbQS
     def list_process
       { :server => config.list.server.list, :node => config.list.node.list }
     end
+
+    def clear_process
+      config.list.clear_process_not_exist
+    end
   end
 end
