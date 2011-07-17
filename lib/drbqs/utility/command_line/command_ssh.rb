@@ -2,17 +2,17 @@ module DRbQS
   class CommandSSH < CommandBase
     HELP_MESSAGE =<<HELP
 Usage: #{@@command_name} <command> [arguments ...]
-Execute command over SSH.
-<command> is 'list', 'show', 'execute', or 'environment'
+  Execute command over SSH.
+  <command> is 'list', 'show', 'execute', or 'environment'
 
-       #{@@command_name} list
-       #{@@command_name} show name
-       #{@@command_name} environment <destination>
-       #{@@command_name} execute <destination>
+  #{@@command_name} list
+  #{@@command_name} show name
+  #{@@command_name} environment <destination>
+  #{@@command_name} execute <destination>
 
 HELP
 
-    def parse_options(argv)
+    def parse_option(argv)
       options = {}
       argv, command_args = split_arguments(argv)
 

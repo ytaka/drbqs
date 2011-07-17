@@ -2,7 +2,7 @@ module DRbQS
 
   class ServerDefinition
     HELP_MESSAGE =<<HELP
-[Server specific options]
+* Server specific options
   These options are separated by '--' from command options.
 
 HELP
@@ -40,6 +40,17 @@ HELP
       @argv = opt_argv  
     end
 
+    def option_help_message
+      if @option_parse
+        OptionParser.new(HELP_MESSAGE) do |opt|
+          @option_parse.call(opt, @opts)
+          return opt.to_s
+        end
+      else
+        nil
+      end
+    end
+
     def create_server(options)
       server = DRbQS::Server.new(@default_server_opts.merge(options))
       @server_create.call(server, @argv, @opts)
@@ -74,7 +85,7 @@ HELP
   @@server_def = ServerDefinition.new
 
   class << self
-    [:define_server, :option_parser, :parse_option,
+    [:define_server, :option_parser, :parse_option, :option_help_message,
      :start_server, :test_server].each do |m|
       define_method(m, &@@server_def.method(m))
     end

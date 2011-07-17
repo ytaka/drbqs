@@ -2,8 +2,8 @@ module DRbQS
   class CommandManage < CommandBase
     HELP_MESSAGE =<<HELP
 Usage: #{@@command_name} <command> [arguments ...]
-Manage DRbQS server by sending messages.
-<command> is 'signal', 'status', 'process', or 'initialize'.
+  Manage DRbQS server by sending messages.
+  <command> is 'signal', 'status', 'process', or 'initialize'.
 
   #{@@command_name} signal <uri> server-exit
   #{@@command_name} signal <uri> node-exit-after-task <node_number>
@@ -14,7 +14,7 @@ Manage DRbQS server by sending messages.
 
 HELP
 
-    def parse_options(argv)
+    def parse_option(argv)
       begin
         OptionParser.new(HELP_MESSAGE) do |opt|
           opt.on('--debug', 'Set $DEBUG true.') do |v|

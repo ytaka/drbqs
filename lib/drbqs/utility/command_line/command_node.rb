@@ -2,14 +2,14 @@ module DRbQS
   class CommandManage < CommandBase
     HELP_MESSAGE =<<HELP
 Usage: #{@@command_name} [<uri>] [<process_number>] [options ...]
-Start DRbQS nodes connecting to <uri>.
+  Start DRbQS nodes connecting to <uri>.
 
 HELP
 
     LOG_PREFIX_DEFAULT = 'drbqs_node'
     LOG_LEVEL_DEFAULT = Logger::ERROR
 
-    def parse_options(argv)
+    def parse_option(argv)
       options = {
         :log_prefix => LOG_PREFIX_DEFAULT,
         :log_level => LOG_LEVEL_DEFAULT,
@@ -29,7 +29,8 @@ HELP
             if /^(fatal)|(error)|(warn)|(info)|(debug)$/i =~ v
               options[:log_level] = eval("Logger::#{v.upcase}")
             else
-              raise "Invalid log level."
+              $stderr.print "error: Invalid log level.\n\n" << HELP_MESSAGE
+              exit_invalid_option
             end
           end
           opt.on('--log-stdout', 'Use stdout for outputting logs. This option cancels --log-prefix.') do |v|

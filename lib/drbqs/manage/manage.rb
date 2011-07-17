@@ -7,6 +7,8 @@ module DRbQS
     class NotSetURI < StandardError
     end
 
+    WAIT_SERVER_TIME = 0.3
+
     # +opts+ has keys :home and :uri.
     def initialize(opts = {})
       @opts = opts

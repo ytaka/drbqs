@@ -5,68 +5,71 @@ module DRbQS
     HELP_MESSAGE =<<HELP
 Usage: #{@@command_name} <definition.rb> [other files ...] [options ...]
        #{@@command_name} <definition.rb> [other files ...] [options ...] -- [server options ...]
-Start DRbQS server of definition files.
+  Start DRbQS server of definition files.
 
 HELP
 
-    WAIT_SERVER_TIME = 0.3
     NODE_INTERVAL_TIME = 1
 
-    def parse_options(argv)
-      options = {
+    def parse_option(argv)
+      @options = {
         :log_file => STDOUT
       }
-      command_type = :server_start
+      @command_type = :server_start
 
       test_opts = {}
-      execute_node_number = nil
-
-      command_argv, server_argv = split_arguments(argv)
+      @execute_node_number = nil
+      @command_argv, @server_argv = split_arguments(argv)
 
       begin
         OptionParser.new(HELP_MESSAGE) do |opt|
           opt.on('-p PORT', '--port', Integer, 'Set the port number of server.') do |v|
-            options[:port] = v
+            @options[:port] = v
           end
           opt.on('-u PATH', '--unix', String, 'Set the path of unix domain socket.') do |v|
-            options[:unix] = v
+            @options[:unix] = v
           end
           opt.on('--acl FILE', String, 'Set a file to define ACL.') do |v|
-            options[:acl] = v
+            @options[:acl] = v
           end
           opt.on('--log-file STR', String, "Set the path of log file. If this options is not set, use STDOUT.") do |v|
-            options[:log_file] = v
+            @options[:log_file] = v
           end
           opt.on('--log-level LEVEL', String,
                  "Set the log level. The value accepts 'fatal', 'error', 'warn', 'info', and 'debug'. The default is 'error'.") do |v|
             if /^(fatal)|(error)|(warn)|(info)|(debug)$/i =~ v
-              options[:log_level] = eval("Logger::#{v.upcase}")
+              @options[:log_level] = eval("Logger::#{v.upcase}")
             else
-              raise "Invalid log level."
+              $stderr.print "error: Invalid log level.\n\n" << HELP_MESSAGE
+              exit_invalid_option
             end
           end
           opt.on('--file-directory DIR', String, 'Set the file archive directory.') do |v|
-            options[:file_directory] = v
+            @options[:file_directory] = v
           end
           opt.on('--scp-user USER', String, 'Set the user of scp destination.') do |v|
-            options[:scp_user] = v
+            @options[:scp_user] = v
           end
           opt.on('--scp-host HOST', String, 'Set the host of scp destination.') do |v|
-            options[:scp_host] = v
+            @options[:scp_host] = v
           end
           opt.on('--profile', 'Use profile for test exec.') do |v|
-            test_opts[:profile] = true
+            @test_opts[:profile] = true
           end
           opt.on('--debug', 'Set $DEBUG true.') do |v|
             $DEBUG = true
           end
           opt.on('--test STR', String, 'Execute test.') do |v|
-            command_type = "test_#{v}"
+            @command_type = "test_#{v}"
           end
           opt.on('--execute-node NUM', Integer, 'Execute nodes.') do |v|
-            execute_node_number = v
+            @execute_node_number = v
           end
-          opt.parse!(command_argv)
+          opt.on('-h', '--help', 'Show help.') do |v|
+            $stdout.print opt
+            @command_type = :help
+          end
+          opt.parse!(@command_argv)
         end
       rescue OptionParser::InvalidOption
         $stderr.print "error: Invalid Option\n\n" << HELP_MESSAGE
@@ -75,13 +78,6 @@ HELP
         $stderr.print "error: Invalid Argument\n\n" << HELP_MESSAGE
         exit_invalid_option
       end
-
-      @command_type = command_type
-      @options = options
-      @test_opts = test_opts
-      @execute_node_number = execute_node_number
-      @command_argv = command_argv
-      @server_argv = server_argv
     end
 
     def command_test
@@ -111,12 +107,34 @@ HELP
         exec_node.execute(@execute_node_number, NODE_INTERVAL_TIME)
         exec_node.wait
       else
-        $stderr.puts "Server has been terminated."
+        $stderr.puts "error: Server has been terminated."
+        exit_unusually
       end
     end
     private :command_server_with_nodes
 
+    def command_server_help
+      begin
+        @command_argv.each do |path|
+          if File.exist?(path)
+            load path
+          end
+        end
+        if mes = DRbQS.option_help_message
+          $stdout.print "\n" << mes
+        end
+      rescue => err
+        $stderr.print "error: Load invalid file.\n#{err.to_s}\n#{err.backtrace.join("\n")}"
+        exit_invalid_option
+      end
+      exit_normally
+    end
+    private :command_server_help
+
     def exec
+      if @command_type == :help
+        command_server_help
+      end
       if @command_argv.size == 0 || !(@command_argv.all? { |path| File.exist?(path) })
         $stderr.print "error: There are nonexistent files.\n\n" << HELP_MESSAGE
         exit_unusually

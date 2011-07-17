@@ -6,7 +6,7 @@ describe DRbQS::ServerDefinition do
       @server_definition = DRbQS.class_variable_get(:@@server_def)
     end
 
-    it "should define server" do
+    it "should define server." do
       lambda do
         DRbQS.define_server do |server, argv, opts|
           server.add_hook(:finish) do |serv|
@@ -16,7 +16,7 @@ describe DRbQS::ServerDefinition do
       end.should change { @server_definition.instance_variable_get(:@default_server_opts) }.from(nil).to({})
     end
 
-    it "should set parser of options" do
+    it "should set parser of options." do
       lambda do
         DRbQS.option_parser do |opt, hash|
           opt.on('--test') do |v|
@@ -26,13 +26,17 @@ describe DRbQS::ServerDefinition do
       end.should change { @server_definition.instance_variable_get(:@option_parse) }.from(nil)
     end
 
-    it "should parse options" do
+    it "should parse options." do
       lambda do
         DRbQS.parse_option(['--test'])
       end.should change { @server_definition.instance_variable_get(:@argv) }.from(nil)
     end
 
-    it "should start server" do
+    it "should return help message." do
+      DRbQS.option_help_message.should be_an_instance_of String
+    end
+
+    it "should start server." do
       DRbQS::Server.should_receive(:new)
       begin
         # After DRbQS::Server.new returns nil, raise error

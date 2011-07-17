@@ -5,7 +5,7 @@ module DRbQS
 
     def self.exec(argv)
       obj = self.new
-      obj.parse_options(argv)
+      obj.parse_option(argv)
       obj.exec
     end
 
