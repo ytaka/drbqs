@@ -184,9 +184,10 @@ module DRbQS
     attr_reader :root, :server, :node
 
     def initialize(home)
+      hostname = Socket.gethostname
       @root = File.expand_path(File.join(home, PROCESS_ROOT_DIRECTORY))
-      @server = DRbQS::ProcessList::Server.new(File.join(@root, SERVER_DIRECTORY))
-      @node = DRbQS::ProcessList::Node.new(File.join(@root, NODE_DIRECTORY))
+      @server = DRbQS::ProcessList::Server.new(File.join(@root, SERVER_DIRECTORY, hostname))
+      @node = DRbQS::ProcessList::Node.new(File.join(@root, NODE_DIRECTORY, hostname))
     end
 
     def clear_process_not_exist

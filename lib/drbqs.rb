@@ -1,6 +1,7 @@
 require 'thread'
 require 'drb'
 require 'drb/acl'
+require 'socket'
 require 'rinda/tuplespace'
 require 'rinda/rinda'
 require 'logger'

@@ -130,9 +130,10 @@ describe DRbQS::ProcessList do
 
   it "should create directory." do
     subject
+    hostname = Socket.gethostname
     File.exist?(File.join(@dir, 'process')).should be_true
-    File.exist?(File.join(@dir, 'process/server')).should be_true
-    File.exist?(File.join(@dir, 'process/node')).should be_true
+    File.exist?(File.join(@dir, 'process', 'server', hostname)).should be_true
+    File.exist?(File.join(@dir, 'process', 'node', hostname)).should be_true
   end
 
   it "should execute clear data of which process does not exist." do
