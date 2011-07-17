@@ -14,7 +14,7 @@ module DRbQS
   end
 
   module Misc
-    def self.create_uri(opts = {})
+    def create_uri(opts = {})
       if opts[:port] || !opts[:unix]
         port = opts[:port] || ROOT_DEFAULT_PORT
         "druby://:#{port}"
@@ -28,6 +28,7 @@ module DRbQS
         "drbunix:#{path}"
       end
     end
+    module_function :create_uri
 
     def create_logger(log_file, log_level)
       if IO === log_file

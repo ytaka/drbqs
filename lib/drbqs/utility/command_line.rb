@@ -9,4 +9,7 @@ Version = DRbQS::VERSION
 
 module DRbQS
   autoload :CommandManage, 'drbqs/utility/command_line/command_manage'
+  autoload :CommandServer, 'drbqs/utility/command_line/command_server'
+  autoload :CommandNode, 'drbqs/utility/command_line/command_node'
+  autoload :CommandSSH, 'drbqs/utility/command_line/command_ssh'
 end

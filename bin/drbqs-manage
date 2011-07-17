@@ -3,39 +3,4 @@
 $LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
 require 'drbqs/utility/command_line'
 
-help_message =<<HELP
-Usage: #{File.basename(__FILE__)} <command> [arguments ...]
-Manage DRbQS server by sending messages.
-<command> is 'signal', 'status', 'process', or 'initialize'.
-
-       #{File.basename(__FILE__)} signal <uri> server-exit
-       #{File.basename(__FILE__)} signal <uri> node-exit-after-task <node_number>
-       #{File.basename(__FILE__)} status <uri>
-       #{File.basename(__FILE__)} process
-       #{File.basename(__FILE__)} process clear
-       #{File.basename(__FILE__)} initialize
-
-HELP
-
-begin
-  OptionParser.new(help_message) do |opt|
-    opt.on('--debug', 'Set $DEBUG true.') do |v|
-      $DEBUG = true
-    end
-    opt.parse!(ARGV)
-  end
-rescue OptionParser::InvalidOption
-  $stderr.print <<MES
-error: Invalid Option
-#{help_message}
-MES
-  exit(2)
-rescue OptionParser::InvalidArgument
-  $stderr.print <<MES
-error: Invalid Argument
-#{help_message}
-MES
-  exit(2)
-end
-
 DRbQS::CommandManage.exec(ARGV)

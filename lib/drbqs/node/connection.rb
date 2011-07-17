@@ -1,5 +1,3 @@
-require 'socket'
-
 module DRbQS
   class Node
     # The class of connection to server.

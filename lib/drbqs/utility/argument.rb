@@ -1,14 +1,15 @@
 module DRbQS
   module CommandLineArgument
-    def self.split_arguments(argv, split = '--')
+    def split_arguments(argv, split = '--')
       if n = argv.index(split)
         [argv[0..(n - 1)], argv[(n + 1)..-1]]
       else
         [argv, []]
       end
     end
+    module_function :split_arguments
 
-    def self.check_argument_size(argv, *args)
+    def check_argument_size(argv, *args)
       n = argv.size
       args.each_slice(2).each do |ary|
         if ary.size == 2
@@ -21,5 +22,6 @@ module DRbQS
       end
       true
     end
+    module_function :check_argument_size
   end
 end

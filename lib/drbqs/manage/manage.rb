@@ -1,4 +1,3 @@
-require 'socket'
 require 'sys/proctable'
 require 'drbqs/manage/ssh_execute'
 require 'drbqs/manage/send_signal'
