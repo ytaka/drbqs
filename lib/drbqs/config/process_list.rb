@@ -114,11 +114,7 @@ module DRbQS
 
       def clear_process_not_exist
         list.each do |uri, data|
-          if Sys::ProcTable.ps(data[:pid])
-            unless DRbQS::Manage.new(:uri => uri).server_respond?
-              delete(uri)
-            end
-          else
+          if !DRbQS::Misc.process_running_normally?(data[:pid]) || !DRbQS::Manage.new(:uri => uri).server_respond?
             delete(uri)
           end
         end
@@ -165,7 +161,7 @@ module DRbQS
           h[k] = Array.new
         end
         list.each do |pid, data|
-          if Sys::ProcTable.ps(pid)
+          if DRbQS::Misc.process_running_normally?(pid)
             server[data[:uri]] << pid
           else
             delete(pid)

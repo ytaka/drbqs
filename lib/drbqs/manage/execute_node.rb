@@ -41,7 +41,7 @@ module DRbQS
     end
 
     def wait
-      Process.waitall 
+      Process.waitall
     end
   end
 

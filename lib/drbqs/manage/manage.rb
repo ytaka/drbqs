@@ -1,4 +1,3 @@
-require 'sys/proctable'
 require 'drbqs/manage/ssh_execute'
 require 'drbqs/manage/send_signal'
 
@@ -8,6 +7,7 @@ module DRbQS
     end
 
     WAIT_SERVER_TIME = 0.3
+    WAIT_MAX_NUMBER = 200
 
     # +opts+ has keys :home and :uri.
     def initialize(opts = {})
@@ -75,10 +75,15 @@ module DRbQS
     end
 
     def wait_server_process(pid)
+      i = 0
       begin
         sleep(WAIT_SERVER_TIME)
-        unless Sys::ProcTable.ps(pid)
+        unless DRbQS::Misc.process_running_normally?(pid)
           return nil
+        end
+        i += 1
+        if i > WAIT_MAX_NUMBER
+          raise "Can not wait server process."
         end
       end while !server_respond?
       true

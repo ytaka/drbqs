@@ -1,3 +1,5 @@
+require 'sys/proctable'
+
 module DRbQS
   class LoggerDummy
     def info(*args)
@@ -58,6 +60,13 @@ module DRbQS
       end.join
     end
     module_function :random_key
+
+    # If process of +pid+ does not exist or its state is zombie then the method return false.
+    # If +pid+ is invalid then the method also returns false.
+    def process_running_normally?(pid)
+      Integer === pid && (ps_table = Sys::ProcTable.ps(pid)) && (ps_table.state != 'Z')
+    end
+    module_function :process_running_normally?
   end
 
 end

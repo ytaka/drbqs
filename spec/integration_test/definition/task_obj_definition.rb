@@ -37,3 +37,13 @@ class Test3
     true
   end
 end
+
+class TestSum
+  def calc(start_num, end_num, step)
+    sum = 0
+    start_num.step(end_num, step) do |i|
+      sum += i
+    end
+    sum
+  end
+end
