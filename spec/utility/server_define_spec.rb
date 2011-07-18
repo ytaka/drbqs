@@ -2,8 +2,8 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe DRbQS::ServerDefinition do
   context "when we call class methods" do
-    before(:all) do
-      @server_definition = DRbQS.class_variable_get(:@@server_def)
+    subject do
+      DRbQS.class_variable_get(:@@server_def)
     end
 
     it "should define server." do
@@ -13,7 +13,7 @@ describe DRbQS::ServerDefinition do
             serv.exit
           end
         end
-      end.should change { @server_definition.instance_variable_get(:@default_server_opts) }.from(nil).to({})
+      end.should change { subject.instance_variable_get(:@default_server_opts) }.from(nil).to({})
     end
 
     it "should set parser of options." do
@@ -23,17 +23,13 @@ describe DRbQS::ServerDefinition do
             hash[:test] = true
           end
         end
-      end.should change { @server_definition.instance_variable_get(:@option_parse) }.from(nil)
+      end.should change { subject.instance_variable_get(:@option_parse) }.from(nil)
     end
 
     it "should parse options." do
       lambda do
         DRbQS.parse_option(['--test'])
-      end.should change { @server_definition.instance_variable_get(:@argv) }.from(nil)
-    end
-
-    it "should return help message." do
-      DRbQS.option_help_message.should be_an_instance_of String
+      end.should change { subject.instance_variable_get(:@argv) }.from(nil)
     end
 
     it "should start server." do
@@ -43,6 +39,20 @@ describe DRbQS::ServerDefinition do
         DRbQS.start_server(:uri => 'druby://localhost:13500')
       rescue
       end
+    end
+
+    it "should return empty help message" do
+      DRbQS.clear_definition
+      DRbQS.option_help_message.should be_nil
+    end
+
+    it "should return help message." do
+      DRbQS.option_parser do |opt, hash|
+        opt.on('--test') do |v|
+          hash[:test] = true
+        end
+      end
+      DRbQS.option_help_message.should be_an_instance_of String
     end
   end
 

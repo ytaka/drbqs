@@ -8,11 +8,7 @@ module DRbQS
 HELP
 
     def initialize
-      @server_create = nil
-      @option_parse = nil
-      @opts = {}
-      @argv = nil
-      @default_server_opts = nil
+      clear_definition
     end
 
     def define_server(default_opts = {}, &block)
@@ -51,6 +47,14 @@ HELP
       end
     end
 
+    def clear_definition
+      @server_create = nil
+      @option_parse = nil
+      @opts = {}
+      @argv = nil
+      @default_server_opts = nil
+    end
+
     def create_server(options)
       server = DRbQS::Server.new(@default_server_opts.merge(options))
       @server_create.call(server, @argv, @opts)
@@ -82,10 +86,10 @@ HELP
     end
   end
 
-  @@server_def = ServerDefinition.new
+  @@server_def = DRbQS::ServerDefinition.new
 
   class << self
-    [:define_server, :option_parser, :parse_option, :option_help_message,
+    [:define_server, :option_parser, :parse_option, :option_help_message, :clear_definition,
      :start_server, :test_server].each do |m|
       define_method(m, &@@server_def.method(m))
     end
