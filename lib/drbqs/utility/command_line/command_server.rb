@@ -153,7 +153,7 @@ HELP
         if @execute_node_number
           command_server_with_nodes
         else
-          command_server
+          command_start_server
         end
       end
       exit_normally

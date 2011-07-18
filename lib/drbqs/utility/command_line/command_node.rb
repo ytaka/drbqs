@@ -1,5 +1,5 @@
 module DRbQS
-  class CommandManage < CommandBase
+  class CommandNode < CommandBase
     HELP_MESSAGE =<<HELP
 Usage: #{@@command_name} [<uri>] [<process_number>] [options ...]
   Start DRbQS nodes connecting to <uri>.
@@ -17,7 +17,7 @@ HELP
       }
 
       begin
-        OptionParser.new(help_message) do |opt|
+        OptionParser.new(HELP_MESSAGE) do |opt|
           opt.on('-l', '--load FILE', String, 'Add a file to load.') do |v|
             options[:load] << File.expand_path(v)
           end

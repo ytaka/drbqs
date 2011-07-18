@@ -10,17 +10,17 @@ module DRbQS
     end
 
     def exit_normally
-      exit(0)
+      Kernel.exit(0)
     end
     private :exit_normally
 
     def exit_unusually
-      exit(1)
+      Kernel.exit(1)
     end
     private :exit_unusually
 
     def exit_invalid_option
-      exit(2)
+      Kernel.exit(2)
     end
     private :exit_invalid_option
   end
