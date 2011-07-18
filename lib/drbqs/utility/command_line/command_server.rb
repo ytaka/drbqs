@@ -47,11 +47,11 @@ HELP
           opt.on('--file-directory DIR', String, 'Set the file archive directory.') do |v|
             @options[:file_directory] = v
           end
-          opt.on('--scp-user USER', String, 'Set the user of scp destination.') do |v|
-            @options[:scp_user] = v
+          opt.on('--sftp-user USER', String, 'Set the user of sftp destination.') do |v|
+            @options[:sftp_user] = v
           end
-          opt.on('--scp-host HOST', String, 'Set the host of scp destination.') do |v|
-            @options[:scp_host] = v
+          opt.on('--sftp-host HOST', String, 'Set the host of sftp destination.') do |v|
+            @options[:sftp_host] = v
           end
           opt.on('--profile', 'Use profile for test exec.') do |v|
             @test_opts[:profile] = true

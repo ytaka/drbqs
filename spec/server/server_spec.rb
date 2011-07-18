@@ -72,7 +72,7 @@ describe DRbQS::Server do
     end
 
     it "should set DRbQS::FileTransfer" do
-      server = DRbQS::Server.new(:file_directory => '/tmp', :scp_user => 'hello', :scp_host => 'example.com')
+      server = DRbQS::Server.new(:file_directory => '/tmp', :sftp_user => 'hello', :sftp_host => 'example.com')
       DRbQS::TransferClient::SFTP.should_receive(:new).with('hello', 'example.com', '/tmp')
       DRb.should_receive(:start_service).once
       server.start

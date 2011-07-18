@@ -34,10 +34,10 @@ module DRbQS
     #   Exit programs in finish_hook.
     # :signal_trap
     #   Set trapping signal.
-    # :scp_user
-    #   Set user of scp.
-    # :scp_host
-    #   Set host of scp.
+    # :sftp_user
+    #   Set user of sftp.
+    # :sftp_host
+    #   Set host of sftp.
     # :file_directory
     #   Set the setting of file directory.
     def initialize(opts = {})
@@ -59,7 +59,7 @@ module DRbQS
       hook_init(opts[:finish_exit])
       set_signal_trap if opts[:signal_trap]
       @finalization_task = nil
-      @transfer_setting = DRbQS::Server::TransferSetting.new(opts[:scp_host], opts[:scp_user], opts[:file_directory])
+      @transfer_setting = DRbQS::Server::TransferSetting.new(opts[:sftp_host], opts[:sftp_user], opts[:file_directory])
       @config = DRbQS::Config.new
     end
 
