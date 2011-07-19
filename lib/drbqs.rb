@@ -19,5 +19,5 @@ module DRbQS
 
   ROOT_DEFAULT_PORT = 13500
 
-  VERSION = '0.0.13'
+  VERSION = '0.0.14'
 end
