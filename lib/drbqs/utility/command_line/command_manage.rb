@@ -8,7 +8,7 @@ Usage: #{@@command_name} <command> [arguments ...]
   #{@@command_name} signal <uri> server-exit
   #{@@command_name} signal <uri> node-exit-after-task <node_number>
   #{@@command_name} status <uri>
-  #{@@command_name} process
+  #{@@command_name} process list
   #{@@command_name} process clear
   #{@@command_name} initialize
 

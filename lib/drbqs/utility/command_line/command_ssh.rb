@@ -6,7 +6,7 @@ Usage: #{@@command_name} <command> [arguments ...]
   <command> is 'list', 'show', 'execute', or 'environment'
 
   #{@@command_name} list
-  #{@@command_name} show name
+  #{@@command_name} show <configuration>
   #{@@command_name} environment <destination>
   #{@@command_name} execute <destination>
 
