@@ -1,8 +1,11 @@
+require 'forwardable'
 require 'drbqs/manage/ssh_execute'
 require 'drbqs/manage/send_signal'
 
 module DRbQS
   class Manage
+    extend Forwardable
+
     class NotSetURI < StandardError
     end
 
@@ -51,16 +54,9 @@ module DRbQS
       config.save_sample
     end
 
-    def send_exit_signal
-      signal_sender.send_exit_signal
-    end
-
-    def send_node_exit_after_task(node_id)
-      signal_sender.send_node_exit_after_task(node_id)
-    end
-
-    def get_status
-      signal_sender.get_status
+    [:get_status, :get_history, :send_exit_signal, :send_node_exit_after_task,
+     :send_node_wake, :send_node_sleep].each do |method_name|
+      def_delegator :signal_sender, method_name, method_name
     end
 
     def server_respond?

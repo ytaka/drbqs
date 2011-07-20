@@ -7,7 +7,10 @@ Usage: #{@@command_name} <command> [arguments ...]
 
   #{@@command_name} signal <uri> server-exit
   #{@@command_name} signal <uri> node-exit-after-task <node_number>
+  #{@@command_name} signal <uri> node-wake <node_number>
+  #{@@command_name} signal <uri> node-sleep <node_number>
   #{@@command_name} status <uri>
+  #{@@command_name} history <uri>
   #{@@command_name} process list
   #{@@command_name} process clear
   #{@@command_name} initialize
@@ -67,15 +70,33 @@ HELP
     end
     private :command_process
 
-    def command_status
+    def request_to_server(method_name)
       check_argument_size(@argv, :==, 1)
       @manage.set_uri(@argv[0])
-      if status = @manage.get_status
+      if status = @manage.__send__(method_name)
         $stdout.puts status
       end
       exit_normally
     end
+    private :request_to_server
+
+    def command_status
+      request_to_server(:get_status)
+    end
     private :command_status
+
+    def command_history
+      request_to_server(:get_history)
+    end
+    private :command_history
+
+    def signal_to_node(method_name)
+      check_argument_size(@argv, :==, 3)
+      node_id = @argv[2].to_i
+      @manage.__send__(method_name, node_id)
+      exit_normally
+    end
+    private :signal_to_node
 
     def command_signal
       @manage.set_uri(@argv[0])
@@ -86,10 +107,11 @@ HELP
         @manage.send_exit_signal
         exit_normally
       when 'node-exit-after-task'
-        check_argument_size(@argv, :==, 3)
-        node_id = @argv[2].to_i
-        @manage.send_node_exit_after_task(node_id)
-        exit_normally
+        signal_to_node(:send_node_exit_after_task)
+      when 'node-wake'
+        signal_to_node(:send_node_wake)
+      when 'node-sleep'
+        signal_to_node(:send_node_sleep)
       else
         $stderr.print "error: Invalid signal '#{signal}'\n\n" << HELP_MESSAGE
         exit_unusually
@@ -105,6 +127,8 @@ HELP
         command_process
       when 'status'
         command_status
+      when 'history'
+        command_history
       when 'signal'
         command_signal
       end

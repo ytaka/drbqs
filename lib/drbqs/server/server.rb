@@ -210,11 +210,23 @@ module DRbQS
         when :exit_server
           self.exit
         when :request_status
-          @message.send_status(@queue.calculating)
+          @message.send_status(:calculate => @queue.calculating, :stock => @queue.stocked_task_number, :generator => @task_generator.size)
+        when :request_history
+          @message.send_history(@queue.all_logs)
         when :exit_after_task
           node_id = arg
           if @message.node_exist?(node_id)
             @message.send_exit_after_task(node_id)
+          end
+        when :wake_node
+          node_id = arg
+          if @message.node_exist?(node_id)
+            @message.send_wake(node_id)
+          end
+        when :sleep_node
+          node_id = arg
+          if @message.node_exist?(node_id)
+            @message.send_sleep(node_id)
           end
         when :node_error
           @queue.get_accept_signal

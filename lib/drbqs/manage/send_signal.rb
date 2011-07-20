@@ -24,13 +24,19 @@ module DRbQS
         send_signal_to_server(:exit_after_task, node_id)
       end
 
-      def get_status
-        send_signal_to_server(:request_status, sender_id)
+      def send_node_wake(node_id)
+        send_signal_to_server(:wake_node, node_id)
+      end
+
+      def send_node_sleep(node_id)
+        send_signal_to_server(:sleep_node, node_id)
+      end
+
+      def wait_response(message_cond)
         i = 0
         loop do
           begin
-            mes = @message.take([:status, String], 0)
-            return mes[1]
+            return @message.take(message_cond, 0)
           rescue Rinda::RequestExpiredError
             i += 1
             if i > MAX_WAIT_TIME
@@ -39,6 +45,23 @@ module DRbQS
             sleep(1)
           end
         end
+      end
+      private :wait_response
+
+      def get_status
+        send_signal_to_server(:request_status, sender_id)
+        if mes = wait_response([:status, String])
+          return mes[1]
+        end
+        nil
+      end
+
+      def get_history
+        send_signal_to_server(:request_history, sender_id)
+        if mes = wait_response([:history, String])
+          return mes[1]
+        end
+        nil
       end
     end
   end

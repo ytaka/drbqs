@@ -36,6 +36,14 @@ module DRbQS
           return [mes, arg]
         when :request_status
           @logger.info("Get status request from #{arg.to_s}")
+        when :request_history
+          @logger.info("Get history request from #{arg.to_s}")
+        when :sleep_node
+          @logger.info("Get sleep node message for node #{arg.to_s}")
+          return [mes, arg]
+        when :wake_node
+          @logger.info("Get wake node message for node #{arg.to_s}")
+          return [mes, arg]
         when :node_error
           @node_list.delete(arg[0])
           @logger.info("Node Error (#{arg[0]})") { arg[1] }
@@ -75,6 +83,14 @@ module DRbQS
         send_signal_to_all_nodes(:exit)
       end
 
+      def send_sleep(node_id)
+        send_signal(node_id, :sleep)
+      end
+
+      def send_wake(node_id)
+        send_signal(node_id, :wake)
+      end
+
       # Send all nodes a message to finalize and exit.
       def send_finalization
         send_signal_to_all_nodes(:finalize)
@@ -84,26 +100,41 @@ module DRbQS
         send_signal(node_id, :exit_after_task)
       end
 
-      def send_status(calculating_task_id)
-        s = ''
-        @node_list.history.each do |node_id, events|
-          if events.size == 0 || events.size > 2
-            raise "Invalid history of nodes: #{events.inspect}"
-          end
-          connect = events[0]
-          s << sprintf("%4d %s\t", node_id, connect[2])
-          if disconnect = events[1]
-            s << "disconnected: (#{time_to_history_string(connect[0])} - #{time_to_history_string(disconnect[0])})\n"
-          else
-            task_ids = calculating_task_id[node_id].to_a
-            s << "task: #{task_ids.map { |num| num.to_s }.join(', ')} (#{time_to_history_string(connect[0])})\n"
+      def send_status(data)
+        s = "Nodes:\n"
+        if @node_list.history.size == 0
+          s << "  none\n"
+        else
+          @node_list.history.each do |node_id, events|
+            if events.size == 0 || events.size > 2
+              raise "Invalid history of nodes: #{events.inspect}"
+            end
+            connect = events[0]
+            s << sprintf("%4d %s\t", node_id, connect[2])
+            if disconnect = events[1]
+              s << "disconnected: (#{time_to_history_string(connect[0])} - #{time_to_history_string(disconnect[0])})\n"
+            else
+              task_ids = data[:calculate][node_id].to_a
+              s << "task: #{task_ids.map { |num| num.to_s }.join(', ')} (#{time_to_history_string(connect[0])})\n"
+            end
           end
         end
+        s << "Server:\n"
+        s << "  stocked tasks: #{data[:stock]}\n"
+        s << "  task generator: #{data[:generator]}"
         begin
           @message.take([:status, nil], 0)
         rescue Rinda::RequestExpiredError
         end
         @message.write([:status, s])
+      end
+
+      def send_history(history_string)
+        begin
+          @message.take([:history, nil], 0)
+        rescue Rinda::RequestExpiredError
+        end
+        @message.write([:history, history_string])
       end
 
       def get_all_nodes
