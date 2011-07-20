@@ -1,14 +1,15 @@
 require 'drbqs/task/task'
 require 'drbqs/utility/transfer/transfer_client'
+require 'drbqs/utility/temporary'
 require 'drbqs/node/connection'
 require 'drbqs/node/task_client'
-require 'drbqs/utility/temporary'
+require 'drbqs/node/state'
 
 module DRbQS
 
   class Node
 
-    WAIT_NEW_TASK = 1
+    CONNECT_INTERVAL_TIME = 1
     PRIORITY_RESPOND = 10
     PRIORITY_CALCULATE = 0
     OUTPUT_NOT_SEND_RESULT = 'not_send_result'
@@ -20,6 +21,7 @@ module DRbQS
       @logger = DRbQS::Misc.create_logger(opts[:log_file] || DEFAULT_LOG_FILE, opts[:log_level])
       @connection = nil
       @task_client = nil
+      @state = DRbQS::Node::State.new(:sleep)
       @process_continue = opts[:continue]
       @signal_queue = Queue.new
       @config = DRbQS::Config.new
@@ -65,6 +67,7 @@ module DRbQS
       if ary = @connection.get_initialization
         execute_task(*ary)
       end
+      @state.change(:wait)
       @config.list.node.save(Process.pid, node_data)
     end
 
@@ -108,19 +111,23 @@ module DRbQS
     end
     private :send_error
 
-    def communicate_with_server
-      flag_finilize_exit = false
-      @task_client.add_new_task
-      case @connection.respond_signal
-      when :exit
-        return nil
-      when :finalize
-        flag_finilize_exit = true
-      when :exit_after_task
-        @task_client.set_exit_after_task
-        @process_continue = nil
+    def get_new_task
+      if @state.request? && @task_client.add_new_task
+        @state.change(:calculate)
       end
+    end
+    private :get_new_task
+
+    def send_result
       flag_finilize_exit = @task_client.send_result
+      unless @task_client.calculating_task
+        @state.change_to_calculated
+      end
+      flag_finilize_exit
+    end
+    private :send_result
+
+    def send_signal
       until @signal_queue.empty?
         signal, obj = @signal_queue.pop
         case signal
@@ -129,7 +136,34 @@ module DRbQS
           process_exit
         end
       end
-      if flag_finilize_exit
+    end
+    private :send_signal
+
+    def process_signal
+      case @connection.respond_signal
+      when :wake
+        @state.change_to_wait
+      when :sleep
+        @state.change_to_sleep
+      when :exit
+        return :exit
+      when :finalize
+        return :finalize
+      when :exit_after_task
+        @task_client.set_exit_after_task
+        @process_continue = nil
+      end
+      nil
+    end
+    private :process_signal
+
+    def communicate_with_server
+      get_new_task
+      sig = process_signal
+      return nil if sig == :exit
+      flag_finilize_exit = send_result
+      send_signal
+      if sig == :finalize || flag_finilize_exit
         execute_finalization
         return nil
       end
@@ -143,16 +177,26 @@ module DRbQS
     end
     private :calculate_task
 
+    def clear_node_files
+      DRbQS::Temporary.delete_all
+      @config.list.node.delete(Process.pid)
+    end
+    private :clear_node_files
+
+    def wait_interval_of_connection
+      sleep(CONNECT_INTERVAL_TIME)
+    end
+    private :wait_interval_of_connection
+
     def thread_communicate
       Thread.new do
         begin
           loop do
             unless communicate_with_server
-              DRbQS::Temporary.delete_all
-              @config.list.node.delete(Process.pid)
+              clear_node_files
               break
             end
-            sleep(WAIT_NEW_TASK)
+            wait_interval_of_connection
           end
         rescue => err
           send_error(err, "Calculating thread")

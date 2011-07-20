@@ -53,14 +53,14 @@ module DRbQS
       end
 
       def add_new_task
-        if !@calculating_task && !@exit_after_task
-          if ary = get_task
-            task_id, obj, method_sym, args = ary
-            @logger.info("Send accept signal: node #{@node_number} caluclating #{task_id}")
-            @result.write([:accept, task_id, @node_number])
-            queue_task(task_id, [obj, method_sym, args])
-          end
+        if !@calculating_task && !@exit_after_task && (ary = get_task)
+          task_id, obj, method_sym, args = ary
+          @logger.info("Send accept signal: node #{@node_number} caluclating #{task_id}")
+          @result.write([:accept, task_id, @node_number])
+          queue_task(task_id, [obj, method_sym, args])
+          return true
         end
+        nil
       end
 
       # If the method return true, a node should finilize and exit.

@@ -61,6 +61,21 @@ describe DRbQS::Node::TaskClient do
     end
   end
 
+  context "when getting new task" do
+    before(:all) do
+      init_task_client(7)
+    end
+
+    it "should return nil" do
+      subject.add_new_task.should be_nil
+    end
+
+    it "should return nil" do
+      add_task_to_tuplespace(100, [[1, 3, 5, 7], :size, []])
+      subject.add_new_task.should be_true
+    end
+  end
+
   context "when adding new task" do
     before(:all) do
       init_task_client(7)
