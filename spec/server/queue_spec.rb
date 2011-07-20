@@ -38,6 +38,10 @@ describe DRbQS::Server::Queue do
       subject.calculating_task_number.should == 0
     end
 
+    it "should get number of stocked tasks." do
+      subject.stocked_task_number.should == 0
+    end
+
     it "should be empty." do
       subject.should be_empty
     end
@@ -63,6 +67,10 @@ describe DRbQS::Server::Queue do
 
     it "should have no calculating task." do
       subject.calculating_task_number.should == 0
+    end
+
+    it "should get number of stocked tasks." do
+      subject.stocked_task_number.should == 1
     end
 
     it "should not be empty." do
@@ -96,6 +104,10 @@ describe DRbQS::Server::Queue do
 
     it "should return number of calculating task." do
       subject.calculating_task_number.should == 1
+    end
+
+    it "should get number of stocked tasks." do
+      subject.stocked_task_number.should == 0
     end
 
     it "should be empty." do
@@ -133,6 +145,10 @@ describe DRbQS::Server::Queue do
       subject.calculating_task_number.should == 0
     end
 
+    it "should get number of stocked tasks." do
+      subject.stocked_task_number.should == 0
+    end
+
     it "should be empty." do
       subject.should be_empty
     end
@@ -162,6 +178,10 @@ describe DRbQS::Server::Queue do
 
     it "should return number of calculating task." do
       subject.calculating_task_number.should == 0
+    end
+
+    it "should get number of stocked tasks." do
+      subject.stocked_task_number.should == 1
     end
 
     it "should be empty." do
@@ -225,6 +245,10 @@ describe DRbQS::Server::Queue do
 
     it "should return number of calculating task." do
       subject.calculating_task_number.should == 1
+    end
+
+    it "should get number of stocked tasks." do
+      subject.stocked_task_number.should == 1
     end
 
     it "should be empty." do

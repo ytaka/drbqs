@@ -105,12 +105,16 @@ module DRbQS
         @calculating.inject(0) { |s, key_val| s + key_val[1].size }
       end
 
+      def stocked_task_number
+        @cache.size - calculating_task_number
+      end
+
       # If queue is empty, that is, there is no tasks to calculate next,
       # this method returns true. Otherwise, false.
       # Even if there are calculating tasks,
       # the method can return true.
       def empty?
-        @cache.size - calculating_task_number == 0
+        stocked_task_number == 0
       end
 
       # If there are no tasks in queue and calculating,
