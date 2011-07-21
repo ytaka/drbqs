@@ -8,9 +8,11 @@ module DRbQS
 
     class NotSetURI < StandardError
     end
+    class NoServerRespond < StandardError
+    end
 
-    WAIT_SERVER_TIME = 0.3
-    WAIT_MAX_NUMBER = 200
+    WAIT_SERVER_TIME = 0.2
+    WAIT_MAX_NUMBER = 150
 
     # +opts+ has keys :home and :uri.
     def initialize(opts = {})
@@ -70,16 +72,21 @@ module DRbQS
       end
     end
 
-    def wait_server_process(pid)
+    def wait_server_process(pid = nil)
       i = 0
       begin
         sleep(WAIT_SERVER_TIME)
-        unless DRbQS::Misc.process_running_normally?(pid)
-          return nil
+        if pid
+          unless DRbQS::Misc.process_running_normally?(pid)
+            return nil
+          end
+        elsif server_data = config.list.server.get(@opts[:uri])
+          pid = server_data[:pid]
         end
         i += 1
         if i > WAIT_MAX_NUMBER
-          raise "Can not wait server process."
+          raise DRbQS::Manage::NoServerRespond,
+          "We are waiting for #{WAIT_SERVER_TIME * WAIT_MAX_NUMBER} seconds, but the server of #{@opts[:uri]} does not respond."
         end
       end while !server_respond?
       true

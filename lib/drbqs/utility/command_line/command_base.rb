@@ -92,12 +92,16 @@ module DRbQS
     end
     private :daemon_start
 
-    def exec_as_daemon
+    def exec_as_daemon(&block)
       if @daemon
         @daemon = FileName.create(@daemon, :position => :middle, :type => :time, :directory => :parent)
         daemon_start(@daemon) do
           @daemon = nil
-          exec
+          if block_given?
+            yield
+          else
+            exec
+          end
         end
         true
       else

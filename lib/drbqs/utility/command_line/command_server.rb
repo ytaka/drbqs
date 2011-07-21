@@ -76,22 +76,40 @@ HELP
     end
     private :command_start_server
 
+    def current_server_uri
+      DRbQS::Misc.create_uri(@options)
+    end
+    private :current_server_uri
+
+    def wait_server_process(uri, server_pid = nil)
+      manage = DRbQS::Manage.new(:uri => uri)
+      manage.wait_server_process(server_pid)
+    rescue DRbQS::Manage::NoServerRespond => err
+      $stderr.puts err.to_s
+      nil
+    end
+    private :wait_server_process
+
+    def execute_node_and_wait(uri)
+      node_log_file = nil
+      unless IO === @options[:log_file]
+        node_log_file = FileName.create(@options[:log_file], :add => :always, :position => :middle, :delimiter => '', :format => "_node_%02d")
+      end
+      exec_node = DRbQS::ExecuteNode.new(uri, node_log_file, @options[:log_level])
+      exec_node.execute(@execute_node_number, NODE_INTERVAL_TIME)
+      exec_node.wait
+    end
+    private :execute_node_and_wait
+
     def command_server_with_nodes
       server_pid = fork do
         DRbQS.start_server(@options)
       end
-      uri = DRbQS::Misc.create_uri(@options)
-      manage = DRbQS::Manage.new(:uri => uri)
-      if manage.wait_server_process(server_pid)
-        node_log_file = nil
-        unless IO === @options[:log_file]
-          node_log_file = FileName.create(@options[:log_file], :add => :always, :position => :middle, :delimiter => '', :format => "_node_%02d")
-        end
-        exec_node = DRbQS::ExecuteNode.new(uri, node_log_file, @options[:log_level])
-        exec_node.execute(@execute_node_number, NODE_INTERVAL_TIME)
-        exec_node.wait
+      uri = current_server_uri
+      if wait_server_process(uri, server_pid)
+        execute_node_and_wait(uri)
       else
-        $stderr.puts "error: Server has been terminated."
+        $stderr.puts "error: Probably, the server of #{uri} can not be executed properly."
         exit_unusually
       end
     end
@@ -115,15 +133,7 @@ HELP
     end
     private :command_server_help
 
-    def exec
-      if @command_type == :help
-        command_server_help
-      elsif @command_argv.size == 0 || !(@command_argv.all? { |path| File.exist?(path) })
-        $stderr.print "error: There are nonexistent files.\n\n" << HELP_MESSAGE
-        exit_unusually
-      elsif exec_as_daemon
-        return 0
-      end
+    def setup_arguments
       @command_argv.each do |path|
         load path
       end
@@ -131,6 +141,11 @@ HELP
         @options[:acl] = DRbQS::Config.new.get_acl_file
       end
       DRbQS.parse_option(@server_argv)
+    end
+    private :setup_arguments
+
+    def exec_normally
+      setup_arguments
       case @command_type
       when /^test/
         command_test
@@ -142,6 +157,42 @@ HELP
         end
       end
       exit_normally
+    end
+    private :exec_normally
+
+    def fork_daemon_process
+      if @daemon
+        case @command_type
+        when /^test/
+          $stderr.puts "Command '#{@command_type}' does not support daemon"
+          setup_arguments
+          command_test
+        else
+          fork do
+            exec_as_daemon
+          end
+          uri = current_server_uri
+          if wait_server_process(uri)
+            exit_normally
+          else
+            $stderr.puts "error: Probably, the server of #{uri} can not be executed properly."
+            exit_unusually
+          end
+        end
+      end
+    end
+    private :fork_daemon_process
+
+    def exec
+      if @command_type == :help
+        command_server_help
+      elsif @command_argv.size == 0 || !(@command_argv.all? { |path| File.exist?(path) })
+        $stderr.print "error: There are nonexistent files.\n\n" << HELP_MESSAGE
+        exit_unusually
+      else
+        fork_daemon_process
+      end
+      exec_normally
     rescue => err
       $stderr.print "error: #{err.to_s}\n" << err.backtrace.join("\n")
       exit_unusually
