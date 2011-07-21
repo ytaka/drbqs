@@ -40,11 +40,12 @@ def drbqs_wait_kill_server(process_id, wait_time = 10)
 end
 
 def drbqs_fork_server(uri_arg, task_args, opts = {})
+  server_args = opts[:opts] || {}
   if Integer === uri_arg
-    server_args = { :port => uri_arg }
+    server_args[:port] = uri_arg
     uri = "druby://:#{uri_arg}"
   else
-    server_args = { :unix => uri_arg }
+    server_args[:unix] = uri_arg
     uri = "drbunix:#{uri_arg}"
   end
     
