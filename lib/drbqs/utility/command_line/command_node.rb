@@ -13,6 +13,7 @@ HELP
       options = {
         :log_prefix => LOG_PREFIX_DEFAULT,
         :log_level => LOG_LEVEL_DEFAULT,
+        :node_opts => {},
         :load => []
       }
 
@@ -20,6 +21,11 @@ HELP
         OptionParser.new(HELP_MESSAGE) do |opt|
           opt.on('-l', '--load FILE', String, 'Add a file to load.') do |v|
             options[:load] << File.expand_path(v)
+          end
+          opt.on('--loadavg STR', String, 'Set the threshold load average to sleep.') do |v|
+            max_loadavg, sleep_time = v.split(':', -1)
+            options[:node_opts][:max_loadavg] = max_loadavg && max_loadavg.size > 0 ? max_loadavg.to_f : nil
+            options[:node_opts][:sleep_time] = sleep_time && sleep_time.size > 0 ? sleep_time.to_i : nil
           end
           opt.on('--log-prefix STR', String, "Set the prefix of log files. The default is '#{LOG_PREFIX_DEFAULT}'.") do |v|
             options[:log_prefix] = v
@@ -91,7 +97,7 @@ HELP
         end
       end
 
-      exec_node = DRbQS::ExecuteNode.new(uri, @options[:log_prefix], @options[:log_level])
+      exec_node = DRbQS::ExecuteNode.new(uri, @options[:log_prefix], @options[:log_level], @options[:node_opts])
       exec_node.execute(process_num)
       exec_node.wait
       exit_normally

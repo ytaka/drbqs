@@ -3,7 +3,7 @@ module DRbQS
   class ExecuteNode
     attr_reader :pid
 
-    def initialize(uri, log_prefix, log_level)
+    def initialize(uri, log_prefix, log_level, node_opts = {})
       @uri = uri
       @log_level = log_level
       if log_prefix
@@ -14,6 +14,7 @@ module DRbQS
         @fname = nil
       end
       @pid = []
+      @node_opts = node_opts
     end
 
     def get_log_file
@@ -26,7 +27,8 @@ module DRbQS
 
     def create_process
       @pid << fork do
-        node = DRbQS::Node.new(@uri, :log_level => @log_level, :log_file => get_log_file)
+        opts = @node_opts.merge({ :log_level => @log_level, :log_file => get_log_file })
+        node = DRbQS::Node.new(@uri, opts)
         node.connect
         node.calculate
       end
