@@ -112,6 +112,8 @@ module DRbQS
       @task_generator << task_generator
     end
 
+    # If current task generator waits for finish of created tasks,
+    # this method returns true.
     def generator_waiting?
       @task_generator.size > 0 && @task_generator[0].waiting?
     end
@@ -214,20 +216,11 @@ module DRbQS
         when :request_history
           @message.send_history(@queue.all_logs)
         when :exit_after_task
-          node_id = arg
-          if @message.node_exist?(node_id)
-            @message.send_exit_after_task(node_id)
-          end
+          @message.send_exit_after_task(arg)
         when :wake_node
-          node_id = arg
-          if @message.node_exist?(node_id)
-            @message.send_wake(node_id)
-          end
+          @message.send_wake(arg)
         when :sleep_node
-          node_id = arg
-          if @message.node_exist?(node_id)
-            @message.send_sleep(node_id)
-          end
+          @message.send_sleep(arg)
         when :node_error
           @queue.get_accept_signal
           @queue.requeue_for_deleted_node_id([arg])

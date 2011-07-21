@@ -9,19 +9,21 @@ module DRbQS
 
   class Node
 
-    CONNECT_INTERVAL_TIME = 1
     PRIORITY_RESPOND = 10
     PRIORITY_CALCULATE = 0
     OUTPUT_NOT_SEND_RESULT = 'not_send_result'
     DEFAULT_LOG_FILE = 'drbqs_client.log'
+    INTERVAL_TIME_DEFAULT = 1
 
     # :continue
+    # :max_loadavg
+    # :sleep_time
     def initialize(access_uri, opts = {})
       @access_uri = access_uri
       @logger = DRbQS::Misc.create_logger(opts[:log_file] || DEFAULT_LOG_FILE, opts[:log_level])
       @connection = nil
       @task_client = nil
-      @state = DRbQS::Node::State.new(:sleep)
+      @state = DRbQS::Node::State.new(:wait, :max_loadavg => opts[:max_loadavg], :sleep_time => opts[:sleep_time])
       @process_continue = opts[:continue]
       @signal_queue = Queue.new
       @config = DRbQS::Config.new
@@ -67,7 +69,7 @@ module DRbQS
       if ary = @connection.get_initialization
         execute_task(*ary)
       end
-      @state.change(:wait)
+      @state.change_to_wait
       @config.list.node.save(Process.pid, node_data)
     end
 
@@ -112,8 +114,12 @@ module DRbQS
     private :send_error
 
     def get_new_task
-      if @state.request? && @task_client.add_new_task
-        @state.change(:calculate)
+      if @state.request?
+        if @state.change_to_sleep_for_busy_system
+          @logger.info("Sleep because system is busy.")
+        elsif @task_client.add_new_task
+          @state.change_to_calculate
+        end
       end
     end
     private :get_new_task
@@ -121,7 +127,7 @@ module DRbQS
     def send_result
       flag_finilize_exit = @task_client.send_result
       if @state.calculate? && !@task_client.calculating_task
-        @state.change_to_calculated
+        @state.change_to_finish_calculating
       end
       flag_finilize_exit
     end
@@ -167,6 +173,7 @@ module DRbQS
         execute_finalization
         return nil
       end
+      @state.check_auto_wakeup
       true
     end
     private :communicate_with_server
@@ -184,7 +191,7 @@ module DRbQS
     private :clear_node_files
 
     def wait_interval_of_connection
-      sleep(CONNECT_INTERVAL_TIME)
+      sleep(INTERVAL_TIME_DEFAULT)
     end
     private :wait_interval_of_connection
 

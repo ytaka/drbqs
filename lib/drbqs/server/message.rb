@@ -11,6 +11,14 @@ module DRbQS
         @logger = logger
       end
 
+      # Returned values:
+      # [:exit_server, nil]
+      # [:request_status, nil]
+      # [:request_history, nil]
+      # [:exit_after_task, node_id]
+      # [:wake_node, node_id]
+      # [:sleep_node, node_id]
+      # [:node_error, [node_id, error_message]]
       def get_message
         begin
           mes = @message.take([:server, Symbol, nil], 0)
@@ -67,7 +75,9 @@ module DRbQS
       end
 
       def send_signal(node_id, signal)
-        @message.write([node_id, signal])
+        if node_exist?(node_id)
+          @message.write([node_id, signal])
+        end
       end
       private :send_signal
 
@@ -113,7 +123,7 @@ module DRbQS
             s << sprintf("%4d %s\t", node_id, connect[2])
             if disconnect = events[1]
               s << "disconnected: (#{time_to_history_string(connect[0])} - #{time_to_history_string(disconnect[0])})\n"
-            else
+            elsif data[:calculate]
               task_ids = data[:calculate][node_id].to_a
               s << "task: #{task_ids.map { |num| num.to_s }.join(', ')} (#{time_to_history_string(connect[0])})\n"
             end
