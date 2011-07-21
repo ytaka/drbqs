@@ -126,6 +126,16 @@ module DRbQS
       def all_logs
         @history.log_strings
       end
+
+      def calculating_nodes
+        nodes = []
+        @calculating.each do |node_id, tasks|
+          if tasks.size > 0
+            nodes << node_id
+          end
+        end
+        nodes.sort!
+      end
     end
 
   end

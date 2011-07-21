@@ -49,6 +49,10 @@ describe DRbQS::Server::Queue do
     it "should be finished." do
       subject.should be_finished
     end
+
+    it "should return an array of calculating nodes." do
+      subject.calculating_nodes.should == []
+    end
   end
 
   context "when adding a task" do
@@ -84,6 +88,10 @@ describe DRbQS::Server::Queue do
     it "should take objects from queue." do
       @ts[:queue].take([nil, nil, nil, nil]).should be_true
     end
+
+    it "should return an array of calculating nodes." do
+      subject.calculating_nodes.should == []
+    end
   end
 
   context "when getting accept signal" do
@@ -91,7 +99,7 @@ describe DRbQS::Server::Queue do
       object_init
       @node_id = 100
       @task_id = subject.add(@task[:obj])
-      @ts[:result].write([:accept, @task_id, 100])
+      @ts[:result].write([:accept, @task_id, @node_id])
     end
 
     it "should return number of acceptances of signals." do
@@ -121,6 +129,10 @@ describe DRbQS::Server::Queue do
     it "should take objects from queue." do
       @ts[:result].read_all([nil, nil, nil]).size.should == 0
     end
+
+    it "should return an array of calculating nodes." do
+      subject.calculating_nodes.should == [@node_id]
+    end
   end
 
   context "when getting result" do
@@ -128,7 +140,7 @@ describe DRbQS::Server::Queue do
       object_init
       @node_id = 100
       @task_id = subject.add(@task[:obj])
-      @ts[:result].write([:accept, @task_id, 100])
+      @ts[:result].write([:accept, @task_id, @node_id])
       subject.get_accept_signal
       @ts[:result].write([:result, @task_id, @node_id, :result_object])
     end
@@ -156,6 +168,10 @@ describe DRbQS::Server::Queue do
     it "should not be finished." do
       subject.should be_finished
     end
+
+    it "should return an array of calculating nodes." do
+      subject.calculating_nodes.should == []
+    end
   end
 
   context "when requeueing a task" do
@@ -163,7 +179,7 @@ describe DRbQS::Server::Queue do
       object_init
       @node_id = 100
       @task_id = subject.add(@task[:obj])
-      @ts[:result].write([:accept, @task_id, 100])
+      @ts[:result].write([:accept, @task_id, @node_id])
       subject.get_accept_signal
       subject.requeue_for_deleted_node_id([@node_id])
     end
@@ -196,6 +212,54 @@ describe DRbQS::Server::Queue do
       (ary = @ts[:queue].take([nil, nil, nil, nil])).should be_true
       ary[0].should == @task_id
     end
+
+    it "should return an array of calculating nodes." do
+      subject.calculating_nodes.should == []
+    end
+  end
+
+  context "when some nodes are calculating" do
+    before(:all) do
+      object_init
+      @node_ids = [200, 300]
+      @tasks = [DRbQS::Task.new([1, 2, 3], :size, []),
+                DRbQS::Task.new([-1, -2], :size, []),
+                DRbQS::Task.new([8, 9, 10, 11], :size, [])]
+      @task_ids = @tasks.map do |t|
+        subject.add(t)
+      end
+      @ts[:result].write([:accept, @task_ids[0], @node_ids[0]])
+      @ts[:result].write([:accept, @task_ids[1], @node_ids[1]])
+      subject.get_accept_signal
+    end
+
+    it "should return number of acceptances of signals." do
+      subject.get_accept_signal.should == 0
+    end
+
+    it "should return number of acceptances of resultss." do
+      subject.get_result(@server_dummy).should == 0
+    end
+
+    it "should return number of calculating task." do
+      subject.calculating_task_number.should == 2
+    end
+
+    it "should get number of stocked tasks." do
+      subject.stocked_task_number.should == 1
+    end
+
+    it "should be empty." do
+      subject.should_not be_empty
+    end
+
+    it "should not be finished." do
+      subject.should_not be_finished
+    end
+
+    it "should return an array of calculating nodes." do
+      subject.calculating_nodes.should == @node_ids.sort
+    end
   end
 
   context "when executing hook of task" do
@@ -209,9 +273,10 @@ describe DRbQS::Server::Queue do
     end
 
     it "should execute hook of task" do
+      @node_id = 100
       task_id = subject.add(@task[:obj])
       @task_id = subject.add(@task[:obj])
-      @ts[:result].write([:accept, @task_id, 100])
+      @ts[:result].write([:accept, @task_id, @node_id])
       subject.get_accept_signal
       @ts[:result].write([:result, @task_id, @node_id, :result_object])
       subject.get_result(@server_dummy)
