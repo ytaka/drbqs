@@ -41,10 +41,14 @@ module DRbQS
         end
       end
 
-      def specific_proc(key)
+      def specific_proc(key, &cond)
         case key
         when :finish
-          @finish_exit.call if @finish_exit
+          if @finish_exit
+            if !cond || cond.call('special:finish_exit')
+              @finish_exit.call
+            end
+          end
         end
       end
       private :specific_proc
@@ -53,11 +57,15 @@ module DRbQS
         @hook[key].map { |a| a[0] }
       end
 
-      def exec(key, *args)
+      def exec(key, *args, &cond)
         @hook[key].each do |ary|
-          ary[1].call(*args)
+          if !cond || cond.call(ary[0])
+            ary[1].call(*args)
+          else
+            return nil
+          end
         end
-        specific_proc(key)
+        specific_proc(key, &cond)
       end
 
       def set_finish_exit(&block)

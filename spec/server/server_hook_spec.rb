@@ -75,4 +75,62 @@ describe DRbQS::Server::Hook do
     subject.exec(:finish)
     execute.should be_true
   end
+
+  context "when checking block before executing hook" do
+    it "should execute hooks." do
+      exec_flag = {}
+      subject.add(:finish) do |server|
+        exec_flag[:first] = true
+      end
+      subject.add(:finish) do |server|
+        exec_flag[:second] = true
+      end
+      subject.exec(:finish) do |name|
+        name.should be_an_instance_of String
+        true
+      end
+      exec_flag[:first].should be_true
+      exec_flag[:second].should be_true
+    end
+
+    it "should execute finish_exit that is special proc." do
+      execute = nil
+      subject.set_finish_exit do
+        execute = true
+      end
+      subject.exec(:finish) do |name|
+        name.should be_an_instance_of String
+        true
+      end
+      execute.should be_true
+    end
+
+    it "should not execute hooks." do
+      exec_flag = {}
+      subject.add(:finish) do |server|
+        exec_flag[:first] = true
+      end
+      subject.add(:finish) do |server|
+        exec_flag[:second] = true
+      end
+      subject.exec(:finish) do |name|
+        name.should be_an_instance_of String
+        false
+      end
+      exec_flag[:first].should be_nil
+      exec_flag[:second].should be_nil
+    end
+
+    it "should not execute finish_exit that is special proc." do
+      execute = nil
+      subject.set_finish_exit do
+        execute = true
+      end
+      subject.exec(:finish) do |name|
+        name.should be_an_instance_of String
+        false
+      end
+      execute.should be_nil
+    end
+  end
 end

@@ -155,23 +155,36 @@ module DRbQS
       @hook.delete(key, name)
     end
 
+    def exec_empty_queue_hook
+      @hook.exec(:empty_queue, self) do |name|
+        if @queue.empty?
+          @logger.info("Execute empty queue hook: #{name}.")
+          true
+        else
+          false
+        end
+      end
+    end
+    private :exec_empty_queue_hook
+
     def exec_finish_hook
-      @logger.info("Execute finish hook.")
-      @hook.exec(:finish, self)
+      @hook.exec(:finish, self) do |name|
+        if !generator_waiting? && @queue.finished?
+          @logger.info("Execute finish hook: #{name}.")
+          true
+        else
+          false
+        end
+      end
     end
     private :exec_finish_hook
     
     def exec_hook
-      if @queue.empty?
-        @logger.info("Execute empty queue hook.")
-        @hook.exec(:empty_queue, self)
-      end
+      exec_empty_queue_hook
       if !generator_waiting? || @queue.finished?
         add_tasks_from_generator
       end
-      if !generator_waiting? && @queue.finished?
-        exec_finish_hook
-      end
+      exec_finish_hook
     end
     private :exec_hook
 
