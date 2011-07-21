@@ -69,7 +69,6 @@ module DRbQS
       if ary = @connection.get_initialization
         execute_task(*ary)
       end
-      @state.change_to_wait
       @config.list.node.save(Process.pid, node_data)
     end
 
