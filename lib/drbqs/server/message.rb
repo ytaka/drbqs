@@ -107,6 +107,7 @@ module DRbQS
       end
 
       def send_exit_after_task(node_id)
+        @node_list.add_to_preparation_to_exit(node_id)
         send_signal(node_id, :exit_after_task)
       end
 
@@ -117,15 +118,16 @@ module DRbQS
         else
           @node_list.history.each do |node_id, events|
             if events.size == 0 || events.size > 2
-              raise "Invalid history of nodes: #{events.inspect}"
-            end
-            connect = events[0]
-            s << sprintf("%4d %s\t", node_id, connect[2])
-            if disconnect = events[1]
-              s << "disconnected: (#{time_to_history_string(connect[0])} - #{time_to_history_string(disconnect[0])})\n"
-            elsif data[:calculate]
-              task_ids = data[:calculate][node_id].to_a
-              s << "task: #{task_ids.map { |num| num.to_s }.join(', ')} (#{time_to_history_string(connect[0])})\n"
+              s << "Invalid history of nodes: #{events.inspect}\n"
+            else
+              connect = events[0]
+              s << sprintf("%4d %s\t", node_id, connect[2])
+              if disconnect = events[1]
+                s << "disconnected: (#{time_to_history_string(connect[0])} - #{time_to_history_string(disconnect[0])})\n"
+              elsif data[:calculate]
+                task_ids = data[:calculate][node_id].to_a
+                s << "task: #{task_ids.map { |num| num.to_s }.join(', ')} (#{time_to_history_string(connect[0])})\n"
+              end
             end
           end
         end
@@ -176,6 +178,17 @@ module DRbQS
 
       def set_finalization(task)
         set_special_task(:finalization, task)
+      end
+
+      def shutdown_unused_nodes(calculating_nodes)
+        shutdown_nodes = []
+        @node_list.each do |node_id, id_str|
+          if !@node_list.prepare_to_exit?(node_id) && !calculating_nodes.include?(node_id)
+            send_exit_after_task(node_id)
+            shutdown_nodes << node_id
+          end
+        end
+        shutdown_nodes
       end
     end
 

@@ -32,6 +32,8 @@ module DRbQS
     #   Set the time interval of checking alive nodes.
     # :finish_exit
     #   Exit programs in finish_hook.
+    # :shutdown_unused_nodes
+    #   Shutdown unused nodes.
     # :signal_trap
     #   Set trapping signal.
     # :sftp_user
@@ -56,7 +58,7 @@ module DRbQS
       @queue= DRbQS::Server::Queue.new(@ts[:queue], @ts[:result], @logger)
       @check_alive = DRbQS::Server::CheckAlive.new(opts[:check_alive])
       @task_generator = []
-      hook_init(opts[:finish_exit])
+      hook_init(opts[:finish_exit], opts[:shutdown_unused_nodes])
       set_signal_trap if opts[:signal_trap]
       @finalization_task = nil
       @transfer_setting = DRbQS::Server::TransferSetting.new(opts[:sftp_host], opts[:sftp_user], opts[:file_directory])
@@ -79,9 +81,10 @@ module DRbQS
     end
     private :acl_init
 
-    def hook_init(finish_exit)
+    def hook_init(finish_exit, shutdown_nodes)
       @hook = DRbQS::Server::Hook.new
       @hook.set_finish_exit { self.exit } if finish_exit
+      @hook.set_shutdown_unused_nodes { shutdown_unused_nodes } if shutdown_nodes
     end
     private :hook_init
 
@@ -136,6 +139,11 @@ module DRbQS
     end
     private :add_tasks_from_generator
 
+    def all_tasks_assigned?
+      @task_generator.empty? && @queue.empty?
+    end
+    private :all_tasks_assigned?
+
     def set_initialization_task(task)
       @message.set_initialization(task)
     end
@@ -179,14 +187,32 @@ module DRbQS
     end
     private :exec_finish_hook
     
+    def exec_task_assigned_hook
+      @hook.exec(:task_assigned, self) do |name|
+        if all_tasks_assigned?
+          @logger.info("Execute task assigned hook: #{name}.")
+          true
+        else
+          false
+        end
+      end
+    end
+    private :exec_task_assigned_hook
+
     def exec_hook
       exec_empty_queue_hook
       if !generator_waiting? || @queue.finished?
         add_tasks_from_generator
       end
       exec_finish_hook
+      exec_task_assigned_hook
     end
     private :exec_hook
+
+    def shutdown_unused_nodes
+      @message.shutdown_unused_nodes(@queue.calculating_nodes)
+    end
+    private :shutdown_unused_nodes
 
     def exit
       if @finalization_task

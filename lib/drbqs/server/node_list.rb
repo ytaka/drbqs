@@ -9,6 +9,7 @@ module DRbQS
         @id = 0
         @list = {}
         @check = []
+        @prepare_to_exit = []
         @history = DRbQS::Server::History.new
       end
 
@@ -29,6 +30,7 @@ module DRbQS
 
       def delete(id, history_state)
         @list.delete(id)
+        @prepare_to_exit.delete(id)
         @history.set(id, history_state)
       end
 
@@ -51,6 +53,16 @@ module DRbQS
 
       def exist?(id)
         @list.find { |a| a[0] == id }
+      end
+
+      def prepare_to_exit?(node_id)
+        @prepare_to_exit.include?(node_id)
+      end
+
+      def add_to_preparation_to_exit(node_id)
+        unless prepare_to_exit?(node_id)
+          @prepare_to_exit << node_id
+        end
       end
     end
 

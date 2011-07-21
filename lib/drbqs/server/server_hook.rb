@@ -7,6 +7,7 @@ module DRbQS
         @finish_exit = nil
         set_argument_number(:empty_queue, 1)
         set_argument_number(:finish, 1)
+        set_argument_number(:task_assigned, 1)
       end
 
       def set_argument_number(key, num)
@@ -49,6 +50,12 @@ module DRbQS
               @finish_exit.call
             end
           end
+        when :task_assigned
+          if @shutdown_unused_nodes
+            if !cond || cond.call('special:task_assigned')
+              @shutdown_unused_nodes.call
+            end
+          end
         end
       end
       private :specific_proc
@@ -70,6 +77,10 @@ module DRbQS
 
       def set_finish_exit(&block)
         @finish_exit = block
+      end
+
+      def set_shutdown_unused_nodes(&block)
+        @shutdown_unused_nodes = block
       end
 
       def number_of_hook(key)
