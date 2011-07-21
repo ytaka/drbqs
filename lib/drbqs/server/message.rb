@@ -117,13 +117,17 @@ module DRbQS
           s << "  none\n"
         else
           @node_list.history.each do |node_id, events|
-            if events.size == 0 || events.size > 2
-              s << "Invalid history of nodes: #{events.inspect}\n"
+            if events.size == 0
+              s << "Empty history of node #{node_id}\n"
             else
               connect = events[0]
               s << sprintf("%4d %s\t", node_id, connect[2])
-              if disconnect = events[1]
-                s << "disconnected: (#{time_to_history_string(connect[0])} - #{time_to_history_string(disconnect[0])})\n"
+              if events.size > 1
+                s << "start:#{time_to_history_string(connect[0])}"
+                events[1..-1].each do |t, key|
+                  s << ", #{key}: #{time_to_history_string(t)}"
+                end
+                s << "\n"
               elsif data[:calculate]
                 task_ids = data[:calculate][node_id].to_a
                 s << "task: #{task_ids.map { |num| num.to_s }.join(', ')} (#{time_to_history_string(connect[0])})\n"

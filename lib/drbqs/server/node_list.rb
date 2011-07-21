@@ -56,6 +56,7 @@ module DRbQS
       end
 
       def prepare_to_exit?(node_id)
+        @history.set(node_id, :set_exitting)
         @prepare_to_exit.include?(node_id)
       end
 
