@@ -173,7 +173,7 @@ module DRbQS
         execute_finalization
         return nil
       end
-      @state.check_auto_wakeup
+      @state.wakeup_automatically_for_unbusy_system
       true
     end
     private :communicate_with_server

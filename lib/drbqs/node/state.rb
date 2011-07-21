@@ -71,8 +71,8 @@ module DRbQS
         @auto_wakeup = Time.now + @sleep_time
       end
 
-      def check_auto_wakeup
-        if @auto_wakeup && Time.now > @auto_wakeup
+      def wakeup_automatically_for_unbusy_system
+        if @auto_wakeup && Time.now > @auto_wakeup && !system_busy?
           change(:wait)
           @auto_wakeup = nil
           return true

@@ -130,16 +130,18 @@ describe DRbQS::Node::State do
     end
 
     it "should do nothing." do
+      subject.stub(:system_busy?).and_return(nil)
       subject.change(:wait)
       lambda do
-        subject.check_auto_wakeup
+        subject.wakeup_automatically_for_unbusy_system
       end.should_not change { subject.state }
     end
 
     it "should do nothing." do
+      subject.stub(:system_busy?).and_return(nil)
       subject.sleep_with_auto_wakeup
       lambda do
-        subject.check_auto_wakeup
+        subject.wakeup_automatically_for_unbusy_system
       end.should change { subject.state }.from(:sleep).to(:wait)
     end
   end
