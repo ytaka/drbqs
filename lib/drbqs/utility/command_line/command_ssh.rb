@@ -13,48 +13,32 @@ Usage: #{@@command_name} <command> [arguments ...]
 HELP
 
     def parse_option(argv)
-      options = {}
-      argv, command_args = split_arguments(argv)
-
-      begin
-        OptionParser.new(HELP_MESSAGE) do |opt|
-          opt.on('--debug', 'Set $DEBUG true.') do |v|
-            $DEBUG = true
-          end
-          opt.on('--dir DIR', String, 'Set the base directory over ssh.') do |v|
-            options[:dir] = v
-          end
-          opt.on('--shell STR', String, 'Set the shell over ssh') do |v|
-            options[:shell] = v
-          end
-          opt.on('--rvm STR', String, 'Ruby version to use on RVM over ssh.') do |v|
-            options[:rvm] = v
-          end
-          opt.on('--rvm-init PATH', String, 'Path of script to initialize RVM over ssh.') do |v|
-            options[:rvm_init] = v
-          end
-          opt.on('--output PATH', String, 'File path that stdout and stderr are output to over ssh.') do |v|
-            options[:output] = v
-          end
-          opt.on('--nice NUM', Integer, 'Set the value for nice command.') do |v|
-            options[:nice] = v
-          end
-          opt.on('--nohup', 'Use nohup command.') do |v|
-            options[:nohup] = true
-          end
-          opt.parse!(argv)
+      @options = {}
+      argv, @command_args = split_arguments(argv)
+      @argv = option_parser_base(argv, HELP_MESSAGE, :debug => true) do |opt|
+        opt.on('--dir DIR', String, 'Set the base directory over ssh.') do |v|
+          @options[:dir] = v
         end
-      rescue OptionParser::InvalidOption
-        $stderr.print "error: Invalid Option\n\n" << HELP_MESSAGE
-        exit_invalid_option
-      rescue OptionParser::InvalidArgument
-        $stderr.print "error: Invalid Argument\n\n" << HELP_MESSAGE
-        exit_invalid_option
+        opt.on('--shell STR', String, 'Set the shell over ssh') do |v|
+          @options[:shell] = v
+        end
+        opt.on('--rvm STR', String, 'Ruby version to use on RVM over ssh.') do |v|
+          @options[:rvm] = v
+        end
+        opt.on('--rvm-init PATH', String, 'Path of script to initialize RVM over ssh.') do |v|
+          @options[:rvm_init] = v
+        end
+        opt.on('--output PATH', String, 'File path that stdout and stderr are output to over ssh.') do |v|
+          @options[:output] = v
+        end
+        opt.on('--nice NUM', Integer, 'Set the value for nice command.') do |v|
+          @options[:nice] = v
+        end
+        opt.on('--nohup', 'Use nohup command.') do |v|
+          @options[:nohup] = true
+        end
       end
-      @options = options
-      @command = argv.shift
-      @argv = argv
-      @command_args = command_args
+      @command = @argv.shift
     end
 
     def command_list

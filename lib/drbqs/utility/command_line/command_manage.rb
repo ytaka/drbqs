@@ -18,22 +18,9 @@ Usage: #{@@command_name} <command> [arguments ...]
 HELP
 
     def parse_option(argv)
-      begin
-        OptionParser.new(HELP_MESSAGE) do |opt|
-          opt.on('--debug', 'Set $DEBUG true.') do |v|
-            $DEBUG = true
-          end
-          opt.parse!(argv)
-        end
-      rescue OptionParser::InvalidOption
-        $stderr.print "error: Invalid Option\n\n" << HELP_MESSAGE
-        exit_invalid_option
-      rescue OptionParser::InvalidArgument
-        $stderr.print "error: Invalid Argument\n\n" << HELP_MESSAGE
-        exit_invalid_option
+      @argv = option_parser_base(argv, HELP_MESSAGE, :debug => true) do |opt|
       end
-      @mode = argv.shift
-      @argv = argv
+      @mode = @argv.shift
       @manage = DRbQS::Manage.new
     end
 

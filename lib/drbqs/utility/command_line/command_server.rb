@@ -13,73 +13,54 @@ HELP
 
     def parse_option(argv)
       @options = {
-        :log_file => STDOUT
+        :log_file => STDOUT,
+        :log_level => Logger::ERROR
       }
       @command_type = :server_start
 
-      test_opts = {}
+      @test_opts = {}
       @execute_node_number = nil
       @command_argv, @server_argv = split_arguments(argv)
 
-      begin
-        OptionParser.new(HELP_MESSAGE) do |opt|
-          opt.on('-p PORT', '--port', Integer, 'Set the port number of server.') do |v|
-            @options[:port] = v
-          end
-          opt.on('-u PATH', '--unix', String, 'Set the path of unix domain socket.') do |v|
-            @options[:unix] = v
-          end
-          opt.on('--acl FILE', String, 'Set a file to define ACL.') do |v|
-            @options[:acl] = v
-          end
-          opt.on('--log-file STR', String, "Set the path of log file. If this options is not set, use STDOUT.") do |v|
-            @options[:log_file] = v
-          end
-          opt.on('--log-level LEVEL', String,
-                 "Set the log level. The value accepts 'fatal', 'error', 'warn', 'info', and 'debug'. The default is 'error'.") do |v|
-            if /^(fatal)|(error)|(warn)|(info)|(debug)$/i =~ v
-              @options[:log_level] = eval("Logger::#{v.upcase}")
-            else
-              $stderr.print "error: Invalid log level.\n\n" << HELP_MESSAGE
-              exit_invalid_option
-            end
-          end
-          opt.on('--file-directory DIR', String, 'Set the file archive directory.') do |v|
-            @options[:file_directory] = v
-          end
-          opt.on('--sftp-user USER', String, 'Set the user of sftp destination.') do |v|
-            @options[:sftp_user] = v
-          end
-          opt.on('--sftp-host HOST', String, 'Set the host of sftp destination.') do |v|
-            @options[:sftp_host] = v
-          end
-          opt.on('--profile', 'Use profile for test exec.') do |v|
-            @test_opts[:profile] = true
-          end
-          opt.on('--debug', 'Set $DEBUG true.') do |v|
-            $DEBUG = true
-          end
-          opt.on('--test STR', String, 'Execute test.') do |v|
-            @command_type = "test_#{v}"
-          end
-          opt.on('--execute-node NUM', Integer, 'Execute nodes.') do |v|
-            @execute_node_number = v
-          end
-          opt.on('--daemon OUT', String, 'Execute as daemon and set output file for stdout and stderr.') do |v|
-            @daemon = v
-          end
-          opt.on('-h', '--help', 'Show help.') do |v|
-            $stdout.print opt
-            @command_type = :help
-          end
-          opt.parse!(@command_argv)
+      @command_argv = option_parser_base(@command_argv, HELP_MESSAGE, :daemon => true, :debug => true) do |opt|
+        opt.on('-p PORT', '--port', Integer, 'Set the port number of server.') do |v|
+          @options[:port] = v
         end
-      rescue OptionParser::InvalidOption
-        $stderr.print "error: Invalid Option\n\n" << HELP_MESSAGE
-        exit_invalid_option
-      rescue OptionParser::InvalidArgument
-        $stderr.print "error: Invalid Argument\n\n" << HELP_MESSAGE
-        exit_invalid_option
+        opt.on('-u PATH', '--unix', String, 'Set the path of unix domain socket.') do |v|
+          @options[:unix] = v
+        end
+        opt.on('--acl FILE', String, 'Set a file to define ACL.') do |v|
+          @options[:acl] = v
+        end
+        opt.on('--log-file STR', String, "Set the path of log file. If this options is not set, use STDOUT.") do |v|
+          @options[:log_file] = v
+        end
+        opt.on('--log-level LEVEL', String,
+               "Set the log level. The value accepts 'fatal', 'error', 'warn', 'info', and 'debug'. The default is 'error'.") do |v|
+          @options[:log_level] = parse_log_level(v)
+        end
+        opt.on('--file-directory DIR', String, 'Set the file archive directory.') do |v|
+          @options[:file_directory] = v
+        end
+        opt.on('--sftp-user USER', String, 'Set the user of sftp destination.') do |v|
+          @options[:sftp_user] = v
+        end
+        opt.on('--sftp-host HOST', String, 'Set the host of sftp destination.') do |v|
+          @options[:sftp_host] = v
+        end
+        opt.on('--profile', 'Use profile for test exec.') do |v|
+          @test_opts[:profile] = true
+        end
+        opt.on('--test STR', String, 'Execute test.') do |v|
+          @command_type = "test_#{v}"
+        end
+        opt.on('--execute-node NUM', Integer, 'Execute nodes.') do |v|
+          @execute_node_number = v
+        end
+        opt.on('-h', '--help', 'Show this command help and server specific help.') do |v|
+          $stdout.print opt
+          @command_type = :help
+        end
       end
     end
 

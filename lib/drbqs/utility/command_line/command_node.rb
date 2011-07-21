@@ -10,55 +10,32 @@ HELP
     LOG_LEVEL_DEFAULT = Logger::ERROR
 
     def parse_option(argv)
-      options = {
+      @options = {
         :log_prefix => LOG_PREFIX_DEFAULT,
         :log_level => LOG_LEVEL_DEFAULT,
         :node_opts => {},
         :load => []
       }
-
-      begin
-        OptionParser.new(HELP_MESSAGE) do |opt|
-          opt.on('-l', '--load FILE', String, 'Add a file to load.') do |v|
-            options[:load] << File.expand_path(v)
-          end
-          opt.on('--loadavg STR', String, 'Set the threshold load average to sleep.') do |v|
-            max_loadavg, sleep_time = v.split(':', -1)
-            options[:node_opts][:max_loadavg] = max_loadavg && max_loadavg.size > 0 ? max_loadavg.to_f : nil
-            options[:node_opts][:sleep_time] = sleep_time && sleep_time.size > 0 ? sleep_time.to_i : nil
-          end
-          opt.on('--log-prefix STR', String, "Set the prefix of log files. The default is '#{LOG_PREFIX_DEFAULT}'.") do |v|
-            options[:log_prefix] = v
-          end
-          opt.on('--log-level LEVEL', String,
-                 "Set the log level. The value accepts 'fatal', 'error', 'warn', 'info', and 'debug'. The default is 'error'.") do |v|
-            if /^(fatal)|(error)|(warn)|(info)|(debug)$/i =~ v
-              options[:log_level] = eval("Logger::#{v.upcase}")
-            else
-              $stderr.print "error: Invalid log level.\n\n" << HELP_MESSAGE
-              exit_invalid_option
-            end
-          end
-          opt.on('--log-stdout', 'Use stdout for outputting logs. This option cancels --log-prefix.') do |v|
-            options[:log_prefix] = nil
-          end
-          opt.on('--daemon OUT', String, 'Execute as daemon and set output file for stdout and stderr.') do |v|
-            @daemon = v
-          end
-          opt.on('--debug', 'Set $DEBUG true.') do |v|
-            $DEBUG = true
-          end
-          opt.parse!(argv)
+      @argv = option_parser_base(argv, HELP_MESSAGE, :daemon => true, :debug => true) do |opt|
+        opt.on('-l', '--load FILE', String, 'Add a file to load.') do |v|
+          @options[:load] << File.expand_path(v)
         end
-      rescue OptionParser::InvalidOption
-        $stderr.print "error: Invalid Option\n\n" << HELP_MESSAGE
-        exit_invalid_option
-      rescue OptionParser::InvalidArgument
-        $stderr.print "error: Invalid Argument\n\n" << HELP_MESSAGE
-        exit_invalid_option
+        opt.on('--loadavg STR', String, 'Set the threshold load average to sleep.') do |v|
+          max_loadavg, sleep_time = v.split(':', -1)
+          @options[:node_opts][:max_loadavg] = max_loadavg && max_loadavg.size > 0 ? max_loadavg.to_f : nil
+          @options[:node_opts][:sleep_time] = sleep_time && sleep_time.size > 0 ? sleep_time.to_i : nil
+        end
+        opt.on('--log-prefix STR', String, "Set the prefix of log files. The default is '#{LOG_PREFIX_DEFAULT}'.") do |v|
+          @options[:log_prefix] = v
+        end
+        opt.on('--log-level LEVEL', String,
+               "Set the log level. The value accepts 'fatal', 'error', 'warn', 'info', and 'debug'. The default is 'error'.") do |v|
+          @options[:log_level] = parse_log_level(v)
+        end
+        opt.on('--log-stdout', 'Use stdout for outputting logs. This option cancels --log-prefix.') do |v|
+          options[:log_prefix] = nil
+        end
       end
-      @options = options
-      @argv = argv
       if @argv.size > 2
         $stderr.print "error: Too many arguments.\n\n" << HELP_MESSAGE
         exit_invalid_option
