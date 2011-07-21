@@ -28,7 +28,9 @@ module DRbQS
       def each(&block)
         @data.each(&block)
       end
+    end
 
+    class TaskHistory < History
       def log_strings
         s = ''
         each do |task_id, events|

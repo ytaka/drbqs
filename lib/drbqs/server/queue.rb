@@ -12,7 +12,7 @@ module DRbQS
         @task_id = 0
         @cache = {}
         @calculating = Hash.new { |hash, key| hash[key] = Array.new }
-        @history = DRbQS::Server::History.new
+        @history = DRbQS::Server::TaskHistory.new
         @logger = logger
       end
 
