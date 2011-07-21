@@ -65,6 +65,9 @@ HELP
           opt.on('--execute-node NUM', Integer, 'Execute nodes.') do |v|
             @execute_node_number = v
           end
+          opt.on('--daemon OUT', String, 'Execute as daemon and set output file for stdout and stderr.') do |v|
+            @daemon = v
+          end
           opt.on('-h', '--help', 'Show help.') do |v|
             $stdout.print opt
             @command_type = :help
@@ -134,10 +137,11 @@ HELP
     def exec
       if @command_type == :help
         command_server_help
-      end
-      if @command_argv.size == 0 || !(@command_argv.all? { |path| File.exist?(path) })
+      elsif @command_argv.size == 0 || !(@command_argv.all? { |path| File.exist?(path) })
         $stderr.print "error: There are nonexistent files.\n\n" << HELP_MESSAGE
         exit_unusually
+      elsif exec_as_daemon
+        return 0
       end
       @command_argv.each do |path|
         load path

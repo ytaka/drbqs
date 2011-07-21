@@ -42,6 +42,9 @@ HELP
           opt.on('--log-stdout', 'Use stdout for outputting logs. This option cancels --log-prefix.') do |v|
             options[:log_prefix] = nil
           end
+          opt.on('--daemon OUT', String, 'Execute as daemon and set output file for stdout and stderr.') do |v|
+            @daemon = v
+          end
           opt.on('--debug', 'Set $DEBUG true.') do |v|
             $DEBUG = true
           end
@@ -56,6 +59,10 @@ HELP
       end
       @options = options
       @argv = argv
+      if @argv.size > 2
+        $stderr.print "error: Too many arguments.\n\n" << HELP_MESSAGE
+        exit_invalid_option
+      end
     end
 
     def parse_argv_array
@@ -77,10 +84,7 @@ HELP
     private :parse_argv_array
 
     def exec
-      if @argv.size > 2
-        $stderr.print "error: Too many arguments.\n\n" << HELP_MESSAGE
-        exit_invalid_option
-      end
+      return 0 if exec_as_daemon
       process_num, uri = parse_argv_array
 
       @options[:load].each do |v|
