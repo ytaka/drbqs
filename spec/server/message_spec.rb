@@ -21,7 +21,7 @@ describe DRbQS::Server::Message do
 
   def clear_all_node
     @message_server.get_all_nodes.each do |id_num, id_str|
-      @node_list.delete(id_num)
+      @node_list.delete(id_num, :disconnect)
     end
   end
 
@@ -65,7 +65,7 @@ describe DRbQS::Server::Message do
     it "should get :node_error message" do
       node_id = 74
       @message.write([:server, :node_error, [node_id, 'Error occurs.']])
-      @node_list.should_receive(:delete).with(node_id)
+      @node_list.should_receive(:delete).with(node_id, :error)
       @message_server.get_message.should == [:node_error, node_id]
     end
 

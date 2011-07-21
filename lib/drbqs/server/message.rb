@@ -53,7 +53,7 @@ module DRbQS
           @logger.info("Get wake node message for node #{arg.to_s}")
           return [mes, arg]
         when :node_error
-          @node_list.delete(arg[0])
+          @node_list.delete(arg[0], :error)
           @logger.info("Node Error (#{arg[0]})") { arg[1] }
           return [mes, arg[0]]
         else

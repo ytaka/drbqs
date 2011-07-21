@@ -58,7 +58,7 @@ describe DRbQS::Server::NodeList do
 
     it "should delete a node" do
       id = subject.get_new_id(create_id_string)
-      subject.delete(id)
+      subject.delete(id, :disconnect)
       subject.exist?(id).should_not be_true
     end
   end
