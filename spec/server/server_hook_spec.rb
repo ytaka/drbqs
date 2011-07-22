@@ -5,6 +5,10 @@ require 'drbqs/server/server_hook'
 describe DRbQS::Server::Hook do
   subject { DRbQS::Server::Hook.new }
 
+  it "should return 0 for nonexistent key." do
+    subject.number_of_hook(:nonexistent_key).should == 0
+  end
+
   it "should add a hook with automatic creation of name." do
     n = subject.number_of_hook(:finish)
     name = subject.add(:finish) do |server|

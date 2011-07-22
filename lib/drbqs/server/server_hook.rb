@@ -84,7 +84,7 @@ module DRbQS
       end
 
       def number_of_hook(key)
-        @hook[key].size
+        @hook.has_key?(key) ? @hook[key].size : 0
       end
     end
   end
