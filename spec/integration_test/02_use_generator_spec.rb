@@ -13,7 +13,7 @@ describe DRbQS do
         end
       end
     end
-    @process_id, @uri = drbqs_fork_server(13501, @task_generators)
+    @process_id, @uri = drbqs_fork_server(13501, :task => @task_generators)
     @node = DRbQS::Node.new(@uri, :log_file => $stdout, :continue => true)
   end
 

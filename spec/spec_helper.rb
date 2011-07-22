@@ -39,7 +39,7 @@ def drbqs_wait_kill_server(process_id, wait_time = 10)
   end
 end
 
-def drbqs_fork_server(uri_arg, task_args, opts = {})
+def drbqs_fork_server(uri_arg, opts = {}, &block)
   server_args = opts[:opts] || {}
   if Integer === uri_arg
     server_args[:port] = uri_arg
@@ -52,14 +52,20 @@ def drbqs_fork_server(uri_arg, task_args, opts = {})
   pid = fork do
     server = DRbQS::Server.new(server_args)
 
-    unless task_args.respond_to?(:each)
-      task_args = [task_args]
+    if block_given?
+      yield(server)
     end
-    task_args.each do |arg|
-      if DRbQS::TaskGenerator === arg
-        server.add_task_generator(arg)
-      else
-        server.queue.add(arg)
+
+    if task_args = opts[:task]
+      unless task_args.respond_to?(:each)
+        task_args = [task_args]
+      end
+      task_args.each do |arg|
+        if DRbQS::TaskGenerator === arg
+          server.add_task_generator(arg)
+        else
+          server.queue.add(arg)
+        end
       end
     end
 

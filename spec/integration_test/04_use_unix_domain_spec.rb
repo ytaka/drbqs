@@ -9,7 +9,7 @@ describe DRbQS::Server do
       DRbQS::Task.new(Test1.new, :echo, [i])
     end
     path = "/tmp/drbqs"
-    @process_id, @uri = drbqs_fork_server(path, @tasks)
+    @process_id, @uri = drbqs_fork_server(path, :task => @tasks)
     @manage = DRbQS::Manage.new(:uri => @uri)
     @node = DRbQS::Node.new(@uri, :log_file => $stdout, :continue => true)
   end

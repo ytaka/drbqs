@@ -8,7 +8,7 @@ describe DRbQS do
     @tasks = 5.times.map do |i|
       DRbQS::Task.new(Test1.new, :echo, [i])
     end
-    @process_id, @uri = drbqs_fork_server(13501, @tasks)
+    @process_id, @uri = drbqs_fork_server(13501, :task => @tasks)
     @node = DRbQS::Node.new(@uri, :log_file => $stdout, :continue => true)
   end
 
