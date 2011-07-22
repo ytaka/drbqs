@@ -6,39 +6,79 @@ module DRbQS
   class Manage
     # Requirements:
     #   bash
-    #   nohup
     class SSHShell
+      class RubyEnvironment
+        DEFAULT_RVM_SCRIPT = '$HOME/.rvm/scripts/rvm'
+
+        attr_reader :directory, :rvm, :rvm_init, :env
+
+        # :dir
+        # :rvm
+        def initialize(opts = {})
+          @directory = opts[:dir]
+          @rvm = opts[:rvm]
+          @rvm_init = opts[:rvm_init]
+          if (@rvm || @rvm_init) && !(String === @rvm_init)
+            @rvm_init = DEFAULT_RVM_SCRIPT
+          end
+          @env = opts[:env]
+        end
+
+        def commands_to_set_env_on_bash
+          if @env
+            @env.map do |var, val|
+              "export #{var}=#{val}"
+            end
+          else
+            []
+          end
+        end
+        private :commands_to_set_env_on_bash
+
+        def setup_commands
+          cmds = commands_to_set_env_on_bash
+          cmds << "cd #{@directory}" if @directory
+          cmds << "source #{@rvm_init}" if @rvm_init
+          cmds << "rvm use #{@rvm}" if @rvm
+          cmds
+        end
+
+        def get_environment_commands
+          ['echo "directory: " `pwd`',
+           'echo "files:"',
+           'ls',
+           'if which rvm > /dev/null; then rvm info; else ruby -v; fi']
+        end
+      end
+
       class InvalidDestination < StandardError
       end
       class GetInvalidExitStatus < StandardError
       end
 
-      attr_reader :user, :host, :directory, :port
-
-      DEFAULT_RVM_SCRIPT = '$HOME/.rvm/scripts/rvm'
-      DEFAULT_OUTPUT_FILE = 'drbqs_nohup.log'
+      attr_reader :user, :host, :port, :keys
 
       # :shell     shell to use
+      # :env       a hash of environmental variables and their values
       # :dir       base directory of ssh server
       # :rvm       version of ruby on rvm
       # :rvm_init  path of script to initialize rvm
-      # :output    file to output of stdout and stderr
+      # :keys      path of a ssh key
+      # :io        IO to output results of commands
       def initialize(dest, opts = {})
         @user, @host, @port = split_destination(dest)
         if !(@host && @user)
           raise InvalidDestination, "Invalid destination of ssh server."
         end
+        @keys = opts.delete(:keys)
         @shell = opts[:shell] || 'bash'
-        @rvm = opts[:rvm]
-        @rvm_init = opts[:rvm_init]
-        if (@rvm || @rvm_init) && !(String === @rvm_init)
-          @rvm_init = DEFAULT_RVM_SCRIPT
-        end
-        @nohup_output = opts[:output] || DEFAULT_OUTPUT_FILE
-        @directory = opts[:dir]
-        @out = $stdout
-        @nice = opts[:nice]
-        @nohup = opts[:nohup]
+        @ruby_environment = DRbQS::Manage::SSHShell::RubyEnvironment.new(opts)
+        @out = opts[:io]
+        @ssh = nil
+      end
+
+      def directory
+        @ruby_environment.directory
       end
 
       def split_destination(dest)
@@ -62,11 +102,14 @@ module DRbQS
       private :split_destination
 
       def output_command(cmd, result)
-        @out.puts "#{@user}@#{@host}$ #{cmd}" if @out
-        @out.print result
+        if @out
+          @out.puts "#{@user}@#{@host}$ #{cmd}"
+          @out.print result
+        end
       end
       private :output_command
 
+      # Return an array of a Net::SSH::Shell::Process object and a result string.
       def shell_exec_get_output(sh, cmd)
         result = ''
         pr_cmd = sh.execute!(cmd) do |sh_proc|
@@ -90,53 +133,53 @@ module DRbQS
 
       def shell_exec_check(sh, cmd)
         ary = shell_exec(sh, cmd)
-        if ary[0].exit_status != 0
-          raise GetInvalidExitStatus, "Can not execute '#{cmd}' on #{@host} properly."
+        n = ary[0].exit_status
+        if n != 0
+          raise GetInvalidExitStatus, "Can not execute properly on #{@host}.\nExit status: #{n}\ncommand: #{cmd}"
         end
         ary
       end
       private :shell_exec_check
 
-      def execute_command(&block)
-        Net::SSH.start(@host, @user, :port => @port) do |ssh|
+      def exec(cmd, opts = {})
+        unless @ssh
+          raise "Not connect."
+        end
+        if opts[:check]
+          shell_exec(@ssh, cmd)
+        else
+          shell_exec_check(@ssh, cmd)
+        end
+      end
+
+      def start(&block)
+        Net::SSH.start(@host, @user, :port => @port, :keys => @keys) do |ssh|
           ssh.shell(@shell) do |sh|
-            shell_exec_check(sh, "cd #{@directory}") if @directory
-            shell_exec_check(sh, "source #{@rvm_init}") if @rvm_init
-            shell_exec_check(sh, "rvm use #{@rvm}") if @rvm
-            yield(sh)
+            @ruby_environment.setup_commands.each do |cmd|
+              shell_exec_check(sh, cmd)
+            end
+            @ssh = sh
+            yield(self)
             shell_exec(sh, "exit")
           end
         end
+      ensure
+        @ssh = nil
       end
-      private :execute_command
+
+      # :check
+      def execute_all(commands, opts = {})
+        results = []
+        start do |ssh_shell|
+          commands.each do |cmd|
+            results << ssh_shell.exec(cmd, opts)
+          end
+        end
+        results
+      end
 
       def get_environment
-        execute_command do |sh|
-          ['echo "directory: " `pwd`',
-           'echo "files:"',
-           'ls',
-           'if which rvm > /dev/null; then rvm info; else ruby -v; fi'].each do |cmd|
-            shell_exec(sh, cmd)
-          end
-        end
-      end
-
-      def start(*args)
-        cmd = args.join(' ')
-        if @nice
-          if Integer === @nice
-            cmd = "nice -n #{@nice.to_s} " + cmd
-          else
-            cmd = "nice " + cmd
-          end
-        end
-        execute_command do |sh|
-          if @nohup
-            pr, path = shell_exec_check(sh, "filename-create new -p middle -D parent -t time #{@nohup_output}")
-            cmd = "nohup #{cmd} > #{path.strip} 2>&1 &"
-          end
-          shell_exec(sh, cmd)
-        end
+        exec(@ruby_environment.get_environment_commands)
       end
     end
   end
