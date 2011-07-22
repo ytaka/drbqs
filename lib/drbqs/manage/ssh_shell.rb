@@ -146,9 +146,9 @@ module DRbQS
           raise "Not connect."
         end
         if opts[:check]
-          shell_exec(@ssh, cmd)
-        else
           shell_exec_check(@ssh, cmd)
+        else
+          shell_exec(@ssh, cmd)
         end
       end
 

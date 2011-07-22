@@ -55,7 +55,7 @@ module DRbQS
         @ssh_shell.start do |sh|
           dir = create_new_directory(sh, opts[:daemon] || 'drbqs_node_log')
           cmd = add_command_options('drbqs-node', File.join(dir, 'daemon_node.log'), opts[:nice])
-          cmd << ' ' << cmd_options.join(' ')
+          cmd << ' --log-prefix ' << File.join(dir, 'node') << ' ' << cmd_options.join(' ')
           process, result = sh.exec(cmd)
           ret = (process.exit_status == 0)
         end
