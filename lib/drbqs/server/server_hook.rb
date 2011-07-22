@@ -6,6 +6,7 @@ module DRbQS
         @argument_number = {}
         @finish_exit = nil
         set_argument_number(:empty_queue, 1)
+        set_argument_number(:process_data, 2)
         set_argument_number(:finish, 1)
         set_argument_number(:task_assigned, 1)
       end

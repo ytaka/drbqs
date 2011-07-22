@@ -36,4 +36,12 @@ describe DRbQS::Manage::SendSignal do
     @ts.should_receive(:take).once.and_return([:status, mes])
     @send_signal.get_status.should == mes
   end
+
+  it "should send data." do
+    data = 'hello world'
+    @send_signal.send_data(data)
+    lambda do
+      @ts.take([:server, :new_data, data], 0)
+    end.should_not raise_error 
+  end
 end

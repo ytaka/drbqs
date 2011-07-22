@@ -61,6 +61,7 @@ module DRbQS
       hook_init(opts[:finish_exit], opts[:shutdown_unused_nodes])
       set_signal_trap if opts[:signal_trap]
       @finalization_task = nil
+      @data_storage = []
       @transfer_setting = DRbQS::Server::TransferSetting.new(opts[:sftp_host], opts[:sftp_user], opts[:file_directory])
       @config = DRbQS::Config.new
     end
@@ -153,9 +154,14 @@ module DRbQS
       @message.set_finalization(@finalization_task)
     end
 
-    # +key+ is :empty_queue or :finish_exit.
+    # +key+ is :empty_queue, :process_data, or :finish_exit.
     # &block takes self as an argument.
     def add_hook(key, name = nil, &block)
+      if key == :process_data
+        if @hook.number_of_hook(:process_data) != 0
+          raise "Hook :process_data has already set."
+        end
+      end
       @hook.add(key, name, &block)
     end
 
@@ -199,7 +205,17 @@ module DRbQS
     end
     private :exec_task_assigned_hook
 
+    def exec_process_data_hook
+      if @data_storage.size > 0
+        while data = @data_storage.shift
+          process_data(data)
+        end
+      end
+    end
+    private :exec_process_data_hook
+
     def exec_hook
+      exec_process_data_hook
       exec_empty_queue_hook
       if !generator_waiting? || @queue.finished?
         add_tasks_from_generator
@@ -244,10 +260,33 @@ module DRbQS
       end
     end
 
+    # Set *args to data storage, which must be string objects.
+    # The data is processed by hook of :process_data.
+    def set_data(*args)
+      args.each do |s|
+        if String === s
+          @data_storage << s
+        else
+          @logger.error("Invalid data type\n#{s.inspect}")
+        end
+      end
+    end
+
+    def process_data(data)
+      @hook.exec(:process_data, self, data)
+    rescue => err
+      @logger.error("Error in processing data.") do
+        "#{err.to_s} (#{err.class})\n#{err.backtrace.join("\n")}"
+      end
+    end
+    private :process_data
+
     def check_message
       while mes_arg = @message.get_message
         mes, arg = mes_arg
         case mes
+        when :new_data
+          set_data(arg)
         when :exit_server
           self.exit
         when :request_status

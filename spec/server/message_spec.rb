@@ -69,6 +69,11 @@ describe DRbQS::Server::Message do
       @message_server.get_message.should == [:node_error, node_id]
     end
 
+    it "should get :new_data message" do
+      @message.write([:server, :new_data, 'data string'])
+      @message_server.get_message.should == [:new_data, 'data string']
+    end
+
     it "should return nil for invalid message" do
       @message.write([:server, :invalid_message])
       @message_server.get_message.should be_nil

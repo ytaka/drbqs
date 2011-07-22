@@ -57,7 +57,7 @@ module DRbQS
     end
 
     [:get_status, :get_history, :send_exit_signal, :send_node_exit_after_task,
-     :send_node_wake, :send_node_sleep].each do |method_name|
+     :send_node_wake, :send_node_sleep, :send_data].each do |method_name|
       def_delegator :signal_sender, method_name, method_name
     end
 

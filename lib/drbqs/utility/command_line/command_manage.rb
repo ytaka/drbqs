@@ -13,6 +13,8 @@ Usage: #{@@command_name} <command> [arguments ...]
   #{@@command_name} history <uri>
   #{@@command_name} process list
   #{@@command_name} process clear
+  #{@@command_name} send string <uri> <string>
+  #{@@command_name} send file <uri> <path>
   #{@@command_name} initialize
 
 HELP
@@ -106,6 +108,31 @@ HELP
     end
     private :command_signal
 
+    def command_send
+      type = @argv.shift
+      @manage.set_uri(@argv.shift)
+      case type
+      when 'string'
+        unless data = @argv[0]
+          $stderr.print "error: String data is not set\n\n" << HELP_MESSAGE
+          exit_unusually
+        end
+      when 'file'
+        if File.exist?(@argv[0])
+          data = File.read(@argv[0])
+        else
+          $stderr.print "error: File '#{@argv[0]}' does not exist\n\n" << HELP_MESSAGE
+          exit_unusually
+        end
+      else
+        $stderr.print "error: Invalid option '#{type}' for 'send'\n\n" << HELP_MESSAGE
+        exit_unusually
+      end
+      @manage.send_data(data)
+      exit_normally
+    end
+    private :command_send
+
     def exec
       case @mode
       when 'initialize'
@@ -118,6 +145,8 @@ HELP
         command_history
       when 'signal'
         command_signal
+      when 'send'
+        command_send
       end
       $stderr.print "error: Invalid command '#{@mode}'\n\n" << HELP_MESSAGE
       exit_invalid_option

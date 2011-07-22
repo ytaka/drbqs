@@ -32,6 +32,10 @@ module DRbQS
         send_signal_to_server(:sleep_node, node_id)
       end
 
+      def send_data(data)
+        send_signal_to_server(:new_data, data)
+      end
+
       def wait_response(message_cond)
         i = 0
         loop do

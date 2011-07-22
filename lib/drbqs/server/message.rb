@@ -56,6 +56,8 @@ module DRbQS
           @node_list.delete(arg[0], :error)
           @logger.info("Node Error (#{arg[0]})") { arg[1] }
           return [mes, arg[0]]
+        when :new_data
+          return [mes, arg]
         else
           @logger.error("Invalid message from #{arg.to_s}")
           return nil
