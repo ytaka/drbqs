@@ -51,6 +51,10 @@ HELP
         opt.on('--profile', 'Use profile for test exec.') do |v|
           @test_opts[:profile] = true
         end
+        opt.on('--profile-printer PRINTER', String,
+               'Set the printer type for profile. The value is :flat, :graph, :graphhtml, or :calltree.') do |v|
+          @test_opts[:printer] = v.intern
+        end
         opt.on('--test STR', String, 'Execute test.') do |v|
           @command_type = "test_#{v}"
         end
@@ -65,9 +69,24 @@ HELP
     end
 
     def command_test
-      s = @command_type.split('_')[1].split(',')
-      type = s[0].intern
-      DRbQS.test_server(@options, type, s[1..-1], @test_opts)
+      args = @command_type.split('_')[1].split(',')
+      type = args.shift.intern
+      limit = args[0] ? args[0].to_i : nil
+      server = DRbQS.create_test_server(@options)
+      case type
+      when :task
+        $stdout.puts "*** Test of Task Generators ***"
+        server.test_task_generator(:limit => limit, :progress => true)
+      when :exec
+        data = server.test_exec(:limit => limit, :profile => @test_opts[:profile], :printer => @test_opts[:printer])
+        s = sprintf("Results: %d tasks; total %.4fs", data[:task], data[:end] - data[:start])
+        s << sprintf("; %.4fs per one task", (data[:end] - data[:start]) / data[:task]) if data[:task] > 0
+        s << "\nOutput the profile data to #{data[:profile]}" if data[:profile]
+        $stdout.puts s
+      else
+        $stdout.puts "error: Not yet implemented test '#{type}'"
+        exit_invalid_option
+      end
     end
     private :command_test
 
@@ -186,7 +205,10 @@ HELP
     def exec
       if @command_type == :help
         command_server_help
-      elsif @command_argv.size == 0 || !(@command_argv.all? { |path| File.exist?(path) })
+      elsif @command_argv.size == 0
+        $stderr.print "error: Files for server definition are specified.\n\n" << HELP_MESSAGE
+        exit_unusually
+      elsif !(@command_argv.all? { |path| File.exist?(path) })
         $stderr.print "error: There are nonexistent files.\n\n" << HELP_MESSAGE
         exit_unusually
       else

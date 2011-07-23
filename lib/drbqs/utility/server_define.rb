@@ -55,8 +55,8 @@ HELP
       @default_server_opts = nil
     end
 
-    def create_server(options)
-      server = DRbQS::Server.new(@default_server_opts.merge(options))
+    def create_server(options, klass = DRbQS::Server)
+      server = klass.new(@default_server_opts.merge(options))
       @server_create.call(server, @argv, @opts)
       server.set_signal_trap
       server
@@ -72,17 +72,9 @@ HELP
       server.wait
     end
 
-    def test_server(options, type, arg = [], test_opts = {})
-      server = create_server(options)
-      case type
-      when :task
-        puts "*** Test of Task Generators ***"
-        server.test_task_generator(:limit => arg[0] ? arg[0].to_i : nil, :progress => true)
-      when :exec
-        server.test_exec(:limit => arg[0] ? arg[0].to_i : nil, :profile => test_opts[:profile])
-      else
-        puts "*** Not be yet implemented ***"
-      end
+    def create_test_server(options)
+      require 'drbqs/server/test_server'
+      create_server(options, DRbQS::TestServer)
     end
   end
 
@@ -90,7 +82,7 @@ HELP
 
   class << self
     [:define_server, :option_parser, :parse_option, :option_help_message, :clear_definition,
-     :start_server, :test_server].each do |m|
+     :start_server, :create_test_server].each do |m|
       define_method(m, &@@server_def.method(m))
     end
   end

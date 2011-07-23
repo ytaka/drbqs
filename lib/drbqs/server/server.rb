@@ -325,58 +325,5 @@ module DRbQS
         end
       end
     end
-
-    def start_profile
-      require 'ruby-prof'
-      RubyProf.start
-    end
-    private :start_profile
-
-    def finish_profile
-      result = RubyProf.stop
-      printer = RubyProf::FlatPrinter.new(result)
-      # printer = RubyProf::GraphPrinter.new(result)
-      # printer = RubyProf::CallTreePrinter.new(result)
-      printer.print(STDOUT)
-    end
-    private :finish_profile
-
-    def test_exec(opts = {})
-      first_task_generator_init
-      dummy_node = DRbQS::Node.new(nil, :log_file => $stdout, :log_level => opts[:log_level])
-      dummy_task_client = DRbQS::Node::TaskClient.new(nil, @ts[:queue], nil)
-      if @ts[:transfer]
-        dummy_node.instance_variable_set(:@transfer, DRbQS::TransferClient::Local.new(@ts[:transfer].directory))
-      end
-      num = 0
-      start_profile if opts[:profile]
-      loop do
-        exec_hook
-        if ary = dummy_task_client.get_task
-          task_id, marshal_obj, method_sym, args = ary
-          result = dummy_node.instance_eval { execute_task(marshal_obj, method_sym, args) }
-          @queue.exec_task_hook(self, task_id, result)
-        end
-        num += 1
-        if opts[:limit] && num >= opts[:limit]
-          break
-        end
-      end
-      finish_profile if opts[:profile]
-      if @finalization_task
-        args = @finalization_task.drb_args(nil)[1..-1]
-        dummy_node.instance_eval { execute_task(*args) }
-      end
-      exec_finish_hook
-    end
-
-    def test_task_generator(opts = {})
-      @task_generator.each_with_index do |t, i|
-        puts "Test task generator [#{i}]"
-        t.init
-        set_num, task_num = t.debug_all_tasks(opts)
-        puts "Create: task sets #{set_num}, all tasks #{task_num}"
-      end
-    end
   end
 end
