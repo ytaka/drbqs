@@ -9,7 +9,7 @@ describe DRbQS do
       @path = File.expand_path(File.join(File.dirname(__FILE__), 'definition/server01.rb'))
       @port = 13600
       @pid_server = fork do
-        DRbQS::CommandServer.exec([@path, '-p', @port.to_s, '--execute-node', '2'])
+        DRbQS::Command::Server.exec([@path, '-p', @port.to_s, '--execute-node', '2'])
       end
       lambda do
         i = 0
@@ -27,7 +27,7 @@ describe DRbQS do
       @path = File.expand_path(File.join(File.dirname(__FILE__), 'definition/server02.rb'))
       @port = 13601
       @pid_server = fork do
-        DRbQS::CommandServer.exec([@path, '-p', @port.to_s, '--execute-node', '2'])
+        DRbQS::Command::Server.exec([@path, '-p', @port.to_s, '--execute-node', '2'])
       end
       lambda do
         i = 0

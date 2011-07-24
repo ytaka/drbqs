@@ -3,4 +3,4 @@
 $LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
 require 'drbqs/utility/command_line'
 
-DRbQS::CommandManage.exec(ARGV)
+DRbQS::Command::Manage.exec(ARGV)

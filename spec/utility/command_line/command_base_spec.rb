@@ -2,18 +2,18 @@ require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 
 require 'drbqs/utility/command_line'
 
-describe DRbQS::CommandBase do
-  it "should define DRbQS::CommandBase.exec." do
+describe DRbQS::Command::Base do
+  it "should define DRbQS::Command::Base.exec." do
     argv = [1, 2, 3]
     obj = mock
-    DRbQS::CommandBase.should_receive(:new).and_return(obj)
+    DRbQS::Command::Base.should_receive(:new).and_return(obj)
     obj.should_receive(:parse_option)
     obj.should_receive(:exec)
-    DRbQS::CommandBase.exec(argv)
+    DRbQS::Command::Base.exec(argv)
   end
 
   subject do
-    DRbQS::CommandBase.new
+    DRbQS::Command::Base.new
   end
 
   it "should exit with 0." do

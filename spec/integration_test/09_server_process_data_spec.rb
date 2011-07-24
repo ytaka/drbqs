@@ -44,7 +44,7 @@ describe DRbQS::Server do
   it "should send string by command." do
     data = 'send command'
     fork do
-      DRbQS::CommandManage.exec(['send', 'string', @uri, data])
+      DRbQS::Command::Manage.exec(['send', 'string', @uri, data])
     end
     wait_file_creation(@file)
     File.read(@file).should == data
@@ -53,7 +53,7 @@ describe DRbQS::Server do
   it "should send file by command." do
     path = File.expand_path(__FILE__)
     fork do
-      DRbQS::CommandManage.exec(['send', 'file', @uri, path])
+      DRbQS::Command::Manage.exec(['send', 'file', @uri, path])
     end
     wait_file_creation(@file)
     File.read(@file).should == File.read(path)
