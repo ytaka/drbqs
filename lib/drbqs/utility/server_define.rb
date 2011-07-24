@@ -73,8 +73,9 @@ HELP
     end
 
     def create_test_server(options)
-      require 'drbqs/server/test_server'
-      create_server(options, DRbQS::TestServer)
+      require 'drbqs/server/test/server'
+      options[:finish_exit] = true
+      create_server(options, DRbQS::Test::Server)
     end
   end
 

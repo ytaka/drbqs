@@ -47,3 +47,17 @@ class TestSum
     sum
   end
 end
+
+class TestCount
+  @@count = 0
+
+  def calc
+    @@count += 1
+  end
+
+  def self.get
+    n = @@count
+    @@count = 0
+    n
+  end
+end
