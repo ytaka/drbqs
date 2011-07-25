@@ -1,3 +1,5 @@
+require 'tmpdir'
+
 module DRbQS
   module Temporary
     @@root = nil
@@ -7,8 +9,8 @@ module DRbQS
     def self.filename
       unless @@filename
         pid = Process.pid
-        @@root = sprintf("/tmp/drbqs_%d_%d", pid, rand(10000))
-        FileUtils.mkdir_p(@@root)
+        @@root = File.join(Dir.tmpdir, sprintf("drbqs_%d_%d", pid, rand(10000)))
+        FileUtils.mkdir_p(@@root, :mode => 0700)
         @@filename = FileName.new(File.join(@@root, sprintf("temp_%d_%d", pid, rand(10000))))
       end
       @@filename

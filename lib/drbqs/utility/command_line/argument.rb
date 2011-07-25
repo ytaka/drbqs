@@ -15,7 +15,7 @@ module DRbQS
         args.each_slice(2).each do |ary|
           if ary.size == 2
             unless n.__send__(*ary)
-              raise "Invalid arguments number. Please refer to documents."
+              raise ArgumentError, "Invalid arguments number. Please refer to documents."
             end
           else
             raise ArgumentError, "Invalid argument to check array size."

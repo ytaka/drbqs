@@ -67,6 +67,14 @@ module DRbQS
       Integer === pid && (ps_table = Sys::ProcTable.ps(pid)) && (ps_table.state != 'Z')
     end
     module_function :process_running_normally?
+
+    def output_error(err, io = $stderr)
+      backtrace = err.backtrace
+      io.puts "#{backtrace[0]}: #{err.to_s} (#{err.class})"
+      if backtrace.size > 1
+        io.puts "        from #{backtrace[1..-1].join("\n        from ")}"
+      end
+    end
   end
 
 end

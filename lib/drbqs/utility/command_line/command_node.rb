@@ -7,81 +7,36 @@ Usage: #{@@command_name} [<uri>] [<process_number>] [options ...]
 
 HELP
 
-      LOG_PREFIX_DEFAULT = 'drbqs_node'
-      LOG_LEVEL_DEFAULT = Logger::ERROR
+      def initialize
+        super(DRbQS::Setting::Node)
+      end
 
       def parse_option(argv)
-        @options = {
-          :log_prefix => LOG_PREFIX_DEFAULT,
-          :log_level => LOG_LEVEL_DEFAULT,
-          :node_opts => {},
-          :load => []
-        }
-        @argv = option_parser_base(argv, HELP_MESSAGE, :daemon => true, :debug => true) do |opt|
+        argv = option_parser_base(argv, HELP_MESSAGE, :log_level => true, :daemon => true, :debug => true) do |opt|
           opt.on('-l', '--load FILE', String, 'Add a file to load.') do |v|
-            @options[:load] << File.expand_path(v)
+            @setting.set(:load, v)
           end
           opt.on('--loadavg STR', String, 'Set the threshold load average to sleep.') do |v|
-            max_loadavg, sleep_time = v.split(':', -1)
-            @options[:node_opts][:max_loadavg] = max_loadavg && max_loadavg.size > 0 ? max_loadavg.to_f : nil
-            @options[:node_opts][:sleep_time] = sleep_time && sleep_time.size > 0 ? sleep_time.to_i : nil
+            @setting.set(:loadavg, v)
           end
           opt.on('--log-prefix STR', String, "Set the prefix of log files. The default is '#{LOG_PREFIX_DEFAULT}'.") do |v|
-            @options[:log_prefix] = v
-          end
-          opt.on('--log-level LEVEL', String,
-                 "Set the log level. The value accepts 'fatal', 'error', 'warn', 'info', and 'debug'. The default is 'error'.") do |v|
-            @options[:log_level] = parse_log_level(v)
+            @setting.set(:log_prefix, v)
           end
           opt.on('--log-stdout', 'Use stdout for outputting logs. This option cancels --log-prefix.') do |v|
-            options[:log_prefix] = nil
+            @setting.set(:log_stdout)
           end
         end
-        if @argv.size > 2
-          $stderr.print "error: Too many arguments.\n\n" << HELP_MESSAGE
+        begin
+          @setting.arguments(argv)
+        rescue
+          $stderr.print "error: Invalid arguments.\n\n" << HELP_MESSAGE
           exit_invalid_option
         end
       end
 
-      def parse_argv_array
-        process_num = 1
-        uri = nil
-        @argv.each do |arg|
-          if /^\d+$/ =~ arg
-            process_num = arg.to_i
-          elsif uri
-            $stderr.print "error: More than one uris is set.\n\n" << HELP_MESSAGE
-            exit_invalid_option
-          else
-            uri = arg
-          end
-        end
-        uri ||= DRbQS::Misc.create_uri
-        [process_num, uri]
-      end
-      private :parse_argv_array
-
       def exec
-        return 0 if exec_as_daemon
-        process_num, uri = parse_argv_array
-
-        @options[:load].each do |v|
-          $stdout.puts "load #{v}"
-          load v
-        end
-
-        $stdout.puts "Connect to #{uri}"
-        $stdout.puts "Execute #{process_num} processes"
-
-        if @options[:log_prefix]
-          if /\/$/ =~ @options[:log_prefix]
-            @options[:log_prefix] += 'out'
-          end
-        end
-
-        exec_node = DRbQS::ExecuteNode.new(uri, @options[:log_prefix], @options[:log_level], @options[:node_opts])
-        exec_node.execute(process_num)
-        exec_node.wait
+        @setting.parse
+        @setting.exec($stdout)
         exit_normally
       rescue => err
         $stderr.print "error: #{err.to_s}\n" << err.backtrace.join("\n")
