@@ -25,7 +25,7 @@ module DRbQS
           @__daemon__ = nil
           @source.register_key(:daemon, :check => 1)
         end
-        @source.instance_eval(&block)
+        @source.instance_eval(&block) if block_given?
         @options = {}
       end
 
@@ -35,16 +35,21 @@ module DRbQS
       def_delegator :@source, :set_argument, :set_argument
       def_delegator :@source, :get_argument, :get_argument
       def_delegator :@source, :command_line_argument, :command_line_argument
+      def_delegator :@source, :default, :default
 
       def string_for_shell
         command_line_argument(true).join(" ")
       end
 
+      def value
+        @source.value
+      end
+
       def parse!
+        @source.check!
         $DEBUG = true if get(:debug)
         @__daemon__ = get(:daemon)
         parse_log_level
-        @source.check_argument
       end
 
       def parse_log_level

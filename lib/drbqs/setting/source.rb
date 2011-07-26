@@ -1,22 +1,76 @@
 module DRbQS
   class Setting
+    class InvalidArgument < StandardError
+    end
+
     class Source
+      class DataContainer < BasicObject
+        attr_accessor :argument
+        attr_reader :__data__
+
+        def initialize(array_class)
+          @argument = []
+          @__data__ = {}
+          @__array__ = array_class
+        end
+
+        def method_missing(name, *args)
+          if /=$/ =~ name.to_s
+            if @__array__ === args[0]
+              @__data__[name.to_s[0...-1].intern] = args[0]
+            else
+              @__data__[name.to_s[0...-1].intern] = args
+            end
+          else
+            @__data__[name]
+          end
+        end
+      end
+
+      attr_reader :value, :default
+
       def initialize(all_keys_defined = true)
         @check = {}
         @add = {}
         @bool = {}
         @default = {}
-        @value = {}
-        @argument = nil
+        @value = DRbQS::Setting::Source::DataContainer.new(Array)
         @argument_condition = nil
         @all_keys_defined = all_keys_defined
       end
 
-      def checking(check, args)
+      def check!
+        if @argument_condition
+          checking(@argument_condition, get_argument)
+        end
+        keys = @value.__data__.keys
+        keys.each do |key|
+          args = @value.__data__[key]
+          unless Symbol === key
+            key = key.intern
+            @value.__data__.delete(key)
+          end
+          check_argument_size(key, args)
+          if @bool[key]
+            @value.__data__[key] = (args.size == 0 || args[0] ? true : false)
+          elsif @all_keys_defined && !@add.has_key?(key)
+            raise DRbQS::Setting::InvalidArgument, "Undefined key #{k.inspect}"
+          else
+            @value.__data__[key] = args
+          end
+        end
+      end
+
+      def checking(check, args, key = nil)
         n = args.size
         check.each_slice(2).each do |ary|
           unless n.__send__(*ary)
-            raise ArgumentError, "Invalid arguments number. Please refer to documents."
+            if key
+              mes = "Invalid argument for #{key.inspect}"
+            else
+              mes = "Invalid argument"
+            end
+            raise DRbQS::Setting::InvalidArgument, mes
           end
         end
       end
@@ -38,7 +92,7 @@ module DRbQS
         elsif Array === check && check.size.even?
           check
         else
-          raise ArgumentError, "Invalid argument to check array size."
+          raise DRbQS::Setting::InvalidArgument, "Invalid argument condition."
         end
       end
       private :condition
@@ -66,27 +120,22 @@ module DRbQS
 
       def set(key, *args)
         k = key.intern
-        check_argument_size(k, args)
-        if @bool[k]
-          @value[k] = (args.size == 0 || args[0] ? true : false)
-        elsif @add[k] && @value[k]
-          @value[k].concat(args)
-        elsif @all_keys_defined && !@add.has_key?(k)
-          raise ArgumentError, "Undefined key #{k.inspect}"
+        if @add[k] && @value.__data__[k]
+          @value.__data__[k].concat(args)
         else
-          @value[k] = args
+          @value.__data__[k] = args
         end
       end
 
       def clear(key)
         k = key.intern
         @add.delete(k)
-        @value.delete(k)
+        @value.__data__.delete(k)
       end
 
       def get(key, &block)
         k = key.intern
-        val = @value[k] || @default[k] || (@add[k] ? [] : nil)
+        val = @value.__data__[k] || @default[k] || (@add[k] ? [] : nil)
         if block_given? && val
           yield(val)
         else
@@ -96,7 +145,7 @@ module DRbQS
 
       def get_first(key, &block)
         k = key.intern
-        ary = @value[k] || @default[k] || (@add[k] ? [] : nil)
+        ary = @value.__data__[k] || @default[k] || (@add[k] ? [] : nil)
         val = (Array === ary ? ary[0] : ary)
         if block_given? && val
           yield(val)
@@ -106,22 +155,16 @@ module DRbQS
       end
 
       def set_argument(*args)
-        @argument = args
+        @value.argument = args
       end
 
       def get_argument
-        @argument ? @argument.dup : []
-      end
-
-      def check_argument
-        if @argument_condition
-          checking(@argument_condition, get_argument)
-        end
+        @value.argument
       end
 
       def command_line_argument(escape = nil)
         ary = get_argument
-        @value.each do |k, val|
+        @value.__data__.each do |k, val|
           s = k.to_s
           option_key = (s.size == 1 ? "-#{s}" : "--#{s}").gsub!(/_/, '-')
           if !@bool[k]
@@ -138,6 +181,14 @@ module DRbQS
           end
         end
         ary
+      end
+
+      def [](key)
+        get(key)
+      end
+
+      def []=(key, args)
+        set(key, *args)
       end
     end
   end

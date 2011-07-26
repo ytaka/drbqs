@@ -46,7 +46,7 @@ HELP
       end
 
       def exec
-        @setting.parse!
+        parse_arguments!
         @setting.exec($stdout)
       rescue => err
         $stderr.print "error: #{err.to_s}\n" << err.backtrace.join("\n")

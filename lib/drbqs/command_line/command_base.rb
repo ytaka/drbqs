@@ -1,5 +1,3 @@
-require 'drbqs/utility/setting'
-
 module DRbQS
   class Command
     class Base
@@ -14,7 +12,7 @@ module DRbQS
         obj.exec
       end
 
-      def initialize(klass)
+      def initialize(klass =  DRbQS::Setting::Base)
         @setting = klass.new
       end
 
@@ -68,6 +66,18 @@ module DRbQS
         argv
       end
       private :option_parser_base
+
+      def parse_arguments!
+        begin
+          @setting.parse!
+        rescue DRbQS::Setting::InvalidArgument
+          mes = "error: Invalid command arguments\n\n"
+          mes << self.class.const_get(:HELP_MESSAGE) if self.class.const_defined?(:HELP_MESSAGE)
+          $stderr.print mes
+          exit_invalid_option
+        end
+      end
+      private :parse_arguments!
     end
   end
 end

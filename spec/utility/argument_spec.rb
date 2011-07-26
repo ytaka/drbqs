@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-require 'drbqs/utility/command_line'
+require 'drbqs/command_line/command_line'
 
 describe DRbQS::Command::Argument do
 

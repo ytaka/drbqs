@@ -75,6 +75,7 @@ module DRbQS
         io.puts "        from #{backtrace[1..-1].join("\n        from ")}"
       end
     end
+    module_function :output_error
   end
 
 end

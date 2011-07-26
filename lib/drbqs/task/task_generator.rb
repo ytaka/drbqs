@@ -61,7 +61,9 @@ module DRbQS
           begin
             @source.instance_eval(&block)
           rescue => err
-            raise DRbQS::TaskCreatingError, "\n  #{err.to_s}\n#{err.backtrace.join("\n")}"
+            new_err = DRbQS::TaskCreatingError.new("#{err.to_s} (#{err.class}) when creating task")
+            new_err.set_backtrace(err.backtrace)
+            raise new_err
           end
           nil
         end

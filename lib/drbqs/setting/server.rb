@@ -1,6 +1,8 @@
 module DRbQS
   class Setting
     class Server < DRbQS::Setting::Base
+      include DRbQS::Misc
+
       NODE_INTERVAL_TIME = 1
 
       def initialize
@@ -116,9 +118,11 @@ module DRbQS
 
       def wait_server_process(uri, server_pid = nil)
         manage = DRbQS::Manage.new(:uri => uri)
-        manage.wait_server_process(server_pid)
+        unless manage.wait_server_process(server_pid)
+          raise "The process of the server of #{uri} does not exist."
+        end
       rescue DRbQS::Manage::NoServerRespond => err
-        nil
+        raise DRbQS::Manage::NoServerRespond, "The server of #{uri} does not respond."
       end
       private :wait_server_process
 
@@ -135,14 +139,17 @@ module DRbQS
 
       def command_server_with_nodes
         server_pid = fork do
-          DRbQS.start_server(@options)
+          begin
+            DRbQS.start_server(@options)
+          rescue SystemExit
+          rescue Exception => err
+            $stderr.puts "*** Error occurs on server process #{Process.pid}. ***"
+            output_error(err)
+          end
         end
         uri = current_server_uri
-        if wait_server_process(uri, server_pid)
-          execute_node_and_wait(uri)
-        else
-          raise "Probably, the server of #{uri} can not be executed properly."
-        end
+        wait_server_process(uri, server_pid)
+        execute_node_and_wait(uri)
       end
       private :command_server_with_nodes
 
@@ -185,9 +192,7 @@ module DRbQS
               exec_as_daemon
             end
             uri = current_server_uri
-            unless wait_server_process(uri)
-              raise "Probably, the server of #{uri} can not be executed properly."
-            end
+            wait_server_process(uri)
           end
           true
         else

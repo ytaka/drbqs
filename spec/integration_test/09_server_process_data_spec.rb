@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-require 'drbqs/utility/command_line'
+require 'drbqs/command_line/command_line'
 require 'drbqs/task/task'
 require 'drbqs/utility/temporary'
 
@@ -18,7 +18,7 @@ describe DRbQS::Server do
     @file = DRbQS::Temporary.file
     @initial_data = ['abc', 'def']
     @max_wait_time = 10
-    @server_process_id, @uri = drbqs_fork_server(13501, :continue => true) do |server|
+    @server_process_id, @uri = drbqs_fork_server(14090, :continue => true) do |server|
       server.add_hook(:process_data) do |srv, data|
         open(@file, 'a+') do |f|
           f.print data

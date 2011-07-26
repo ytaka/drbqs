@@ -6,10 +6,11 @@ module DRbQS
       def initialize
         super(:all_keys_defined => true, :log_level => true, :daemon => true) do
           register_key(:load, :check => [:>, 0], :add => true)
+          register_key(:node, :check => 1, :default => [1])
           register_key(:loadavg, :check => 1)
           register_key(:log_prefix, :check => 1, :default => [LOG_PREFIX_DEFAULT])
           register_key(:log_stdout, :bool => true)
-          set_argument_condition(:<=, 2)
+          set_argument_condition(:<=, 1)
         end
       end
 
@@ -26,10 +27,12 @@ module DRbQS
             str
           end
         end
-        parse_argument
+        @process_num = get_first(:node)
+        @uri = get_argument[0] || DRbQS::Misc.create_uri
       end
 
       def parse_load
+        @options[:load] = []
         get(:load).each do |path|
           epath = File.expand_path(v)
           unless File.exist?(epath)
@@ -41,6 +44,7 @@ module DRbQS
       private :parse_load
 
       def parse_loadavg
+        @options[:node_opts] = {}
         if args = get(:loadavg)
           max_loadavg, sleep_time = args[0].split(':', -1)
           @options[:node_opts][:max_loadavg] = max_loadavg && max_loadavg.size > 0 ? max_loadavg.to_f : nil
@@ -48,23 +52,6 @@ module DRbQS
         end
       end
       private :parse_loadavg
-
-      def parse_argument
-        args = get_argument
-        @process_num = 1
-        @uri = nil
-        args.each do |arg|
-          if /^\d+$/ =~ arg
-            @process_num = arg.to_i
-          elsif @uri
-            raise ArgumentError, "More than one uris is set."
-          else
-            @uri = arg
-          end
-        end
-        @uri ||= DRbQS::Misc.create_uri
-      end
-      private :parse_argument
 
       def exec(io = nil)
         return true if exec_as_daemon

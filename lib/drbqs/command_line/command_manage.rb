@@ -31,7 +31,7 @@ HELP
       end
 
       def exec
-        @setting.parse!
+        parse_arguments!
         @setting.exec($stdout)
       rescue DRb::DRbConnError => err
         $stderr.puts "error: Can not connect server: #{err.to_s}"

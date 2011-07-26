@@ -59,7 +59,7 @@ HELP
       end
 
       def exec
-        @setting.parse!
+        parse_arguments!
         @setting.exec($stdout)
         exit_normally
         # elsif @command_argv.size == 0

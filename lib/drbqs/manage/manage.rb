@@ -72,6 +72,10 @@ module DRbQS
       end
     end
 
+    # If the server responds, this method returns true.
+    # If the server process does not exist, this method return nil.
+    # If the server process exists and there is no response,
+    # this method raises error.
     def wait_server_process(pid = nil)
       i = 0
       begin

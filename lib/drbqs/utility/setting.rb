@@ -1,6 +1,0 @@
-require 'drbqs/utility/setting/source'
-require 'drbqs/utility/setting/base'
-require 'drbqs/utility/setting/server'
-require 'drbqs/utility/setting/node'
-require 'drbqs/utility/setting/manage'
-require 'drbqs/utility/setting/ssh'
