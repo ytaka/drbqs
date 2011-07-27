@@ -87,14 +87,12 @@ module DRbQS
       end
       setting.exec
     rescue Exception => err
-      new_err = InvalidServerDefinition.new("#{err.class.to_s} => #{err.to_s}")
+      new_err = InvalidServerDefinition.new("#{setting.string_for_shell}: #{err.to_s} (#{err.class.to_s})")
       new_err.set_backtrace(err.backtrace)
       raise new_err
     end
 
-    def execute_one_node(data, target_server)
-      uri = server_uri(target_server)
-
+    def execute_one_node(data, uri)
       setting = data[:setting]
       node_setting = (data[:type] == :ssh ? setting.mode_setting : setting)
       node_setting.value.argument.clear
@@ -107,17 +105,18 @@ module DRbQS
       end
       setting.parse!
       setting.exec
+    rescue Exception => err
+      new_err = InvalidNodeDefinition.new("#{setting.string_for_shell}; #{err.to_s} (#{err.class.to_s})")
+      new_err.set_backtrace(err.backtrace)
+      raise new_err
     end
     private :execute_one_node
 
     def execute_node
+      uri = server_uri(@server)
       each_node(@node) do |name, data|
-        execute_one_node(data, @server)
+        execute_one_node(data, uri)
       end
-    rescue Exception => err
-      new_err = InvalidNodeDefinition.new("#{err.class.to_s} => #{err.to_s}")
-      new_err.set_backtrace(err.backtrace)
-      raise new_err
     end
 
     def information
