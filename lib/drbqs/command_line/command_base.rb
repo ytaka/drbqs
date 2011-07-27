@@ -12,10 +12,12 @@ module DRbQS
         obj.exec
       end
 
-      attr_reader :setting
+      def initialize(klass =  DRbQS::Setting::Base, help_message = nil)
+        @opt_setting = DRbQS::Command::OptionSetting.new(help_message, klass.new)
+      end
 
-      def initialize(klass =  DRbQS::Setting::Base)
-        @setting = klass.new
+      def setting
+        @opt_setting.setting
       end
 
       def exit_normally
@@ -33,28 +35,10 @@ module DRbQS
       end
       private :exit_invalid_option
 
-      def option_parser_base(argv, help_message, options = {}, &block)
+      def option_parser_base(argv, options = {}, &block)
+        @opt_setting.define(options, &block)
         begin
-          OptionParser.new(help_message) do |opt|
-            yield(opt) if block_given?
-            if options[:log_level]
-              opt.on('--log-level LEVEL', String,
-                     "Set the log level. The value accepts 'fatal', 'error', 'warn', 'info', and 'debug'. The default is 'error'.") do |v|
-                @setting.set(:log_level, v)
-              end
-            end
-            if options[:daemon]
-              opt.on('--daemon OUT', String, 'Execute as daemon and set output file for stdout and stderr.') do |v|
-                @setting.set(:daemon, v)
-              end
-            end
-            if options[:debug]
-              opt.on('--debug', 'Set $DEBUG true.') do |v|
-                @setting.set(:debug)
-              end
-            end
-            opt.parse!(argv)
-          end
+          @opt_setting.parse!(argv)
         rescue DRbQS::Setting::InvalidLogLevel => err
           $stderr.print err.to_s << "\n\n" << help_message
           exit_invalid_option
@@ -70,14 +54,14 @@ module DRbQS
       private :option_parser_base
 
       def parse_arguments!
-        @setting.parse!
+        setting.parse!
       end
       private :parse_arguments!
 
       def exec
         begin
           parse_arguments!
-          @setting.exec($stdout)
+          setting.exec($stdout)
           exit_normally
         rescue DRb::DRbConnError => err
           $stderr.puts "error: Can not connect. #{err.to_s}"

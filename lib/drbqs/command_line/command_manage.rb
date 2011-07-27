@@ -21,13 +21,13 @@ Usage: #{@@command_name} <command> [arguments ...]
 HELP
 
       def initialize
-        super(DRbQS::Setting::Manage)
+        super(DRbQS::Setting::Manage, HELP_MESSAGE)
       end
 
       def parse_option(argv)
-        argv = option_parser_base(argv, HELP_MESSAGE, :debug => true) do |opt|
+        argv = option_parser_base(argv, :debug => true) do
         end
-        @setting.set_argument(*argv)
+        setting.set_argument(*argv)
       end
     end
   end

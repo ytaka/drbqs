@@ -8,28 +8,18 @@ Usage: #{@@command_name} <uri> [options ...]
 HELP
 
       def initialize
-        super(DRbQS::Setting::Node)
+        super(DRbQS::Setting::Node, HELP_MESSAGE)
       end
 
       def parse_option(argv)
-        argv = option_parser_base(argv, HELP_MESSAGE, :log_level => true, :daemon => true, :debug => true) do |opt|
-          opt.on('-l', '--load FILE', String, 'Add a file to load.') do |v|
-            @setting.set(:load, v)
-          end
-          opt.on('-P', '--process NUM', Integer, 'Set the number of node processes to execute.') do |v|
-            @setting.set(:process, v)
-          end
-          opt.on('--loadavg STR', String, 'Set the threshold load average to sleep.') do |v|
-            @setting.set(:loadavg, v)
-          end
-          opt.on('--log-prefix STR', String, "Set the prefix of log files. The default is '#{@setting.default[:log_prefix][0]}'.") do |v|
-            @setting.set(:log_prefix, v)
-          end
-          opt.on('--log-stdout', 'Use stdout for outputting logs. This option cancels --log-prefix.') do |v|
-            @setting.set(:log_stdout)
-          end
+        argv = option_parser_base(argv, :log_level => true, :daemon => true, :debug => true) do
+          set(:load, '-l', '--load FILE', String, 'Add a file to load.')
+          set(:process, '-P', '--process NUM', Integer, 'Set the number of node processes to execute.')
+          set(:loadavg, '--loadavg STR', String, 'Set the threshold load average to sleep.')
+          set(:log_prefix, '--log-prefix STR', String, "Set the prefix of log files. The default is '#{setting.default[:log_prefix][0]}'.")
+          set(:log_stdout, '--log-stdout', 'Use stdout for outputting logs. This option cancels --log-prefix.')
         end
-        @setting.set_argument(*argv)
+        setting.set_argument(*argv)
       end
     end
   end
