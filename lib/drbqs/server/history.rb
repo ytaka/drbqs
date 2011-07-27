@@ -30,7 +30,21 @@ module DRbQS
       end
     end
 
-    class TaskHistory < History
+    class TaskHistory < DRbQS::Server::History
+      attr_reader :finished_task_number
+
+      def initialize
+        super
+        @finished_task_number = 0
+      end
+
+      def set(id, *args)
+        if args[0] == :result
+          @finished_task_number += 1
+        end
+        super(id, *args)
+      end
+
       def log_strings
         s = ''
         each do |task_id, events|

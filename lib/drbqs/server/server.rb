@@ -281,6 +281,18 @@ module DRbQS
     end
     private :process_data
 
+    def send_status_for_request
+      data = {
+        :calculating_task_number => @queue.calculating_task_number,
+        :finished_task_number => @queue.finished_task_number,
+        :stocked_task_number => @queue.stocked_task_number,
+        :calculating_nodes => @queue.calculating,
+        :generator_number => @task_generator.size
+      }
+      @message.send_status(data)
+    end
+    private :send_status_for_request
+
     def check_message
       while mes_arg = @message.get_message
         mes, arg = mes_arg
@@ -290,7 +302,7 @@ module DRbQS
         when :exit_server
           self.exit
         when :request_status
-          @message.send_status(:calculate => @queue.calculating, :stock => @queue.stocked_task_number, :generator => @task_generator.size)
+          send_status_for_request
         when :request_history
           @message.send_history(@queue.all_logs)
         when :exit_after_task

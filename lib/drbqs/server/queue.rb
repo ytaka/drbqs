@@ -109,6 +109,10 @@ module DRbQS
         @cache.size - calculating_task_number
       end
 
+      def finished_task_number
+        @history.finished_task_number
+      end
+
       # If queue is empty, that is, there is no tasks to calculate next,
       # this method returns true. Otherwise, false.
       # Even if there are calculating tasks,

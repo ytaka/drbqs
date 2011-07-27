@@ -11,55 +11,56 @@ describe DRbQS::Server::History do
     end
   end
 
+  subject do
+    DRbQS::Server::History.new
+  end
+
   context "when setting events" do
     before(:all) do
-      @history = DRbQS::Server::History.new
-      @history.set(1, :abc)
-      @history.set(1, :def)
-      @history.set(2, 'ABC', 'DEF')
-      @history.set(3, :ghi)
-      @history.set(1, :jkl)
-      @history.set(2, 123, 456)
+      subject.set(1, :abc)
+      subject.set(1, :def)
+      subject.set(2, 'ABC', 'DEF')
+      subject.set(3, :ghi)
+      subject.set(1, :jkl)
+      subject.set(2, 123, 456)
     end
 
     it "should have 3 items." do
-      @history.should have(3).items
+      subject.should have(3).items
     end
 
     it "should 3 events of ID 1." do
-      @history.number_of_events(1).should == 3
+      subject.number_of_events(1).should == 3
     end
 
     it "should 2 events of ID 2" do
-      @history.number_of_events(2).should == 2
+      subject.number_of_events(2).should == 2
     end
 
     it "should 1 event of ID 3" do
-      @history.number_of_events(3).should == 1
+      subject.number_of_events(3).should == 1
     end
 
     it "should check events of ID 1" do
-      events = @history.events(1)
+      events = subject.events(1)
       check_event(events[0], :abc)
       check_event(events[1], :def)
       check_event(events[2], :jkl)
     end
 
     it "should check events of ID 2" do
-      events = @history.events(2)
+      events = subject.events(2)
       check_event(events[0], 'ABC', 'DEF')
       check_event(events[1], 123, 456)
     end
 
     it "should check events of ID 1" do
-      events = @history.events(3)
+      events = subject.events(3)
       check_event(events[0], :ghi)
     end
   end
 
   context "when executing a method" do
-    subject { DRbQS::Server::History.new }
-
     it "should add new event" do
       id = 1
       subject.set(id, :connect)
@@ -86,15 +87,35 @@ describe DRbQS::Server::History do
 end
 
 describe DRbQS::Server::TaskHistory do
-  before(:all) do
-    @history = DRbQS::Server::TaskHistory.new
-    @history.set(1, :def)
-    @history.set(2, 'ABC', 'DEF')
-    @history.set(3, :ghi)
-    @history.set(1, :jkl)
+  subject do
+    DRbQS::Server::TaskHistory.new
   end
 
   it "should return strings of log" do
-    @history.log_strings.should be_an_instance_of String
+    subject.set(1, :def)
+    subject.set(2, 'ABC', 'DEF')
+    subject.set(3, :ghi)
+    subject.set(1, :jkl)
+    subject.log_strings.should be_an_instance_of String
+  end
+
+  it "should return zero for finished_task_number." do
+    subject.finished_task_number.should == 0
+  end
+
+  it "should count finished task when setting :result." do
+    5.times do |i|
+      lambda do
+        subject.set(i, :result)
+      end.should change(subject, :finished_task_number).by(1)
+    end
+  end
+
+  it "should not change finished task number for :add." do
+    [:add, :requeue, :hook, :calculate].each do |sym|
+      lambda do
+        subject.set(1, sym)
+      end.should_not change(subject, :finished_task_number)
+    end
   end
 end

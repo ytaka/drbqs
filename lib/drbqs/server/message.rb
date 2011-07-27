@@ -113,6 +113,9 @@ module DRbQS
         send_signal(node_id, :exit_after_task)
       end
 
+      # +data+ is a hash including server information.
+      # The keys are :calculating_task_number, :finished_task_number, :stocked_task_number,
+      # :calculating_nodes, and :generator_number.
       def send_status(data)
         s = "Nodes:\n"
         if @node_list.history.size == 0
@@ -130,16 +133,18 @@ module DRbQS
                   s << ", #{key}: #{time_to_history_string(t)}"
                 end
                 s << "\n"
-              elsif data[:calculate]
-                task_ids = data[:calculate][node_id].to_a
+              elsif data[:calculating_nodes]
+                task_ids = data[:calculating_nodes][node_id].to_a
                 s << "task: #{task_ids.map { |num| num.to_s }.join(', ')} (#{time_to_history_string(connect[0])})\n"
               end
             end
           end
         end
         s << "Server:\n"
-        s << "  stocked tasks: #{data[:stock]}\n"
-        s << "  task generator: #{data[:generator]}"
+        s << "  calculating tasks: #{data[:calculating_task_number]}\n"
+        s << "  finished tasks   : #{data[:finished_task_number]}\n"
+        s << "  stocked tasks    : #{data[:stocked_task_number]}\n"
+        s << "  task generator   : #{data[:generator_number]}"
         begin
           @message.take([:status, nil], 0)
         rescue Rinda::RequestExpiredError
