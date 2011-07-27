@@ -2,7 +2,8 @@ module DRbQS
   class Command
     class Execute < DRbQS::Command::Base
       HELP_MESSAGE =<<HELP
-Usage: #{@@command_name} <definition> [arguments ...]
+Usage: #{@@command_name} <definition> [options ...]
+       #{@@command_name} <definition> [options ...] [-- server options ...]
   Execute DRbQS server and some nodes from definition file.
 
 HELP
@@ -12,7 +13,8 @@ HELP
       end
 
       def parse_option(argv)
-        args = option_parser_base(argv) do
+        args, server_args = split_arguments(argv)
+        args = option_parser_base(args) do
           set(:port, '--port NUM', Integer, 'Set the port number.')
           set(:server, '--server STR', String, 'Set the key of server.')
           set(:node, '--node STR', String, 'Set the comma sparated key of nodes.')
@@ -20,6 +22,7 @@ HELP
           set(:no_node, '--no-node', 'Not execute node.')
         end
         setting.set_argument(*args)
+        setting.server_argument = server_args
       end
     end
   end

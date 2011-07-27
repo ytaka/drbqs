@@ -17,6 +17,8 @@ module DRbQS
       @register = DRbQS::ProcessDefinition::Register.new
     end
 
+    # Log directory for processes on localhost.
+    # Processes over ssh does not use this directory.
     def local_log_directory
       @logal_log_directory ||= FileName.create(default_value(:log) || 'drbqs_execute_log')
     end
@@ -67,9 +69,10 @@ module DRbQS
     end
     private :server_uri
 
-    def execute_server
+    def execute_server(server_args)
       name, type, setting, hostname = get_server_setting(@server)
       server_setting = type == :ssh ? setting.mode_setting : setting
+      server_setting.set_server_argument(*server_args)
       server_setting.value.port server_port
       unless server_setting.value.sftp_host
         server_setting.value.sftp_host hostname
