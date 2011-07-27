@@ -50,10 +50,11 @@ module DRbQS
         n = args.size
         check.each_slice(2).each do |ary|
           unless n.__send__(*ary)
-            mes = "Invalid argument"
+            mes = "Size"
             if target
-              mes << " for #{target.inspect}"
+              mes << " of #{target.inspect}"
             end
+            mes << " must be " << ary.map(&:to_s).join(' ') << ", but #{n}"
             raise DRbQS::Setting::InvalidArgument, mes
           end
         end
@@ -76,7 +77,7 @@ module DRbQS
               check_argument_array_size(check, args, key)
             end
           elsif @all_keys_defined
-            raise DRbQS::Setting::InvalidArgument, "Undefined key #{key.inspect}"
+            raise DRbQS::Setting::InvalidArgument, "Undefined key '#{key.inspect}' must not set."
           end
           if boolean_value?(key)
             @value.__data__[key] = [(args.size == 0 || args[0] ? true : false)]

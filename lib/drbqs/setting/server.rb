@@ -15,12 +15,9 @@ module DRbQS
           register_key(:profile, :bool => true)
           register_key(:load, :add => true)
           register_key(:help, :bool => true)
-
           set_argument_condition(:>, 0)
         end
-
         @server_argument = DRbQS::Setting::Source.new(nil)
-
         @command_type = :server_start
         @test_opts = {}
         @execute_node_number = nil
@@ -167,8 +164,10 @@ module DRbQS
             if mes = DRbQS.option_help_message
               io.print "\n" << mes
             end
-          rescue
-            raise
+          rescue => err
+            new_err = err.class.new("Error in loading #{path}: #{err.to_s}")
+            new_err.set_backtrace(err.backtrace)
+            raise new_err
           end
         end
       end

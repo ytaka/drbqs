@@ -14,9 +14,7 @@ module DRbQS
 
       attr_reader :source
 
-      # :all_keys_defined
-      # :log_level
-      # :daemon
+      # The keys of options are :all_keys_defined, :log_level, and :daemon
       def initialize(opts = {}, &block)
         @source = DRbQS::Setting::Source.new(opts[:all_keys_defined])
         @source.register_key(:debug, :bool => true)
@@ -53,24 +51,13 @@ module DRbQS
       end
       private :preprocess!
 
+      # We execute DRbQS::Setting::Base#parse! before execute 'exec'.
       def parse!
         preprocess!
         @source.check!
         $DEBUG = true if get_first(:debug)
         @__daemon__ = get_first(:daemon)
         parse_log_level
-      end
-
-      def only_parsing
-        source_old = @source.clone
-        parse!
-        @source = source_old
-      end
-      private :only_parsing
-
-      def check_invalid_argument!
-        preprocess!
-        only_parsing
       end
 
       def parse_log_level

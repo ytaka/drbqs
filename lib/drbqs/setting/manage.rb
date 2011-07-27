@@ -9,24 +9,63 @@ module DRbQS
         end
       end
 
+      def check_all_arguments
+        case @mode
+        when 'initialize'
+          check_argument_size(@argv, :>=, 0, :<=, 1)
+        when 'process'
+          check_argument_size(@argv, :>=, 0, :<=, 1)
+          if @argv[0] && !['clear', 'list'].include?(@argv[0])
+            raise DRbQS::Setting::InvalidArgument, "Invalid command 'process #{@argv[0]}'"
+          end
+        when 'status', 'history'
+          check_argument_size(@argv, :==, 1)
+        when 'signal'
+          case @argv[1]
+          when 'server-exit'
+            check_argument_size(@argv, :==, 2)
+          when 'node-exit-after-task', 'node-wake', 'node-sleep'
+            check_argument_size(@argv, :==, 3)
+          else
+            raise DRbQS::Setting::InvalidArgument, "Invalid signal type '#{@argv[1]}'"
+          end
+        when 'send'
+          check_argument_size(@argv, :==, 3)
+          case @argv[0]
+          when 'string'
+            unless @argv[2]
+              raise DRbQS::Setting::InvalidArgument, "String data is not set"
+            end
+          when 'file'
+            unless File.exist?(@argv[2])
+              raise DRbQS::Setting::InvalidArgument, "File '#{@argv[2]}' does not exist"
+            end
+          else
+            raise DRbQS::Setting::InvalidArgument, "Invalid option '#{argv[2]}' for 'send'"
+          end
+        else
+          raise DRbQS::Setting::InvalidArgument, "Invalid command '#{@mode}'"
+        end
+      end
+      private :check_all_arguments
+
       # If there are invalid arguments,
       # this method raises an error.
       def parse!
         super
-        @argv = get_argument
-        @mode = @argv.shift
-        @manage = DRbQS::Manage.new
+        ary = get_argument
+        @mode = ary[0].to_s
+        @argv = ary[1..-1]
+        check_all_arguments
       end
 
       def command_initialize
-        check_argument_size(@argv, :>=, 0, :<=, 1)
         @manage.set_home_directory(@argv[0])
         @manage.create_config
       end
       private :command_initialize
 
       def command_process(io)
-        check_argument_size(@argv, :>=, 0, :<=, 1)
         if @argv[0] == 'clear'
           @manage.clear_process
           return true
@@ -52,7 +91,6 @@ module DRbQS
       private :command_process
 
       def request_to_server(io, method_name)
-        check_argument_size(@argv, :==, 1)
         @manage.set_uri(@argv[0])
         if status = @manage.__send__(method_name)
           io.puts status if io
@@ -71,7 +109,6 @@ module DRbQS
       private :command_history
 
       def signal_to_node(method_name)
-        check_argument_size(@argv, :==, 3)
         node_id = @argv[2].to_i
         @manage.__send__(method_name, node_id)
         exit_normally
@@ -80,10 +117,8 @@ module DRbQS
 
       def command_signal
         @manage.set_uri(@argv[0])
-        signal = @argv[1]
-        case signal
+        case @argv[1]
         when 'server-exit'
-          check_argument_size(@argv, :==, 2)
           @manage.send_exit_signal
         when 'node-exit-after-task'
           signal_to_node(:send_node_exit_after_task)
@@ -91,34 +126,24 @@ module DRbQS
           signal_to_node(:send_node_wake)
         when 'node-sleep'
           signal_to_node(:send_node_sleep)
-        else
-          raise DRbQS::Setting::InvalidArgument, "Invalid signal '#{signal}'"
         end
       end
       private :command_signal
 
       def command_send
-        type = @argv.shift
-        @manage.set_uri(@argv.shift)
-        case type
+        @manage.set_uri(@argv[1])
+        case @argv[0]
         when 'string'
-          unless data = @argv[0]
-            raise DRbQS::Setting::InvalidArgument, "String data is not set"
-          end
+          data = @argv[2]
         when 'file'
-          if File.exist?(@argv[0])
-            data = File.read(@argv[0])
-          else
-            raise DRbQS::Setting::InvalidArgument, "File '#{@argv[0]}' does not exist"
-          end
-        else
-          raise DRbQS::Setting::InvalidArgument, "Invalid option '#{type}' for 'send'"
+          data = File.read(@argv[2])
         end
         @manage.send_data(data)
       end
       private :command_send
 
       def exec(io = nil)
+        @manage = DRbQS::Manage.new
         case @mode
         when 'initialize'
           command_initialize
@@ -132,8 +157,6 @@ module DRbQS
           command_signal
         when 'send'
           command_send
-        else
-          raise DRbQS::Setting::InvalidArgument, "Invalid command '#{@mode}'"
         end
       end
     end

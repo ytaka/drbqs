@@ -34,17 +34,6 @@ module DRbQS
         end
       end
 
-      def only_parsing
-        if @mode_setting
-          mode_setting_old = @mode_setting.clone
-          super
-          @mode_setting = mode_setting_old
-        else
-          super
-        end
-      end
-      private :only_parsing
-
       def command_line_argument(escape = nil)
         ary = super(escape)
         ssh_args = @mode_setting.command_line_argument(escape)
@@ -83,8 +72,9 @@ module DRbQS
           end
         end
         @output = get_first(:output)
-        @argv = get_argument
-        @command = @argv.shift
+        ary = get_argument
+        @command = ary[0]
+        @argv = ary[1..-1]
         @mode_setting.parse!
         @mode_argument_array = @mode_setting.command_line_argument
       end
