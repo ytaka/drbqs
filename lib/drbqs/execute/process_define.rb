@@ -26,8 +26,13 @@ module DRbQS
     end
 
     def get_server_setting(name = nil)
-      data = (name ? @register.__server__.assoc(name.intern) : @register.__server__[0])
-      [data[0], data[1][:type], data[1][:setting], data[1][:args][0]]
+      if data = (name ? @register.__server__.assoc(name.intern) : @register.__server__[0])
+        [data[0], data[1][:type], data[1][:setting], data[1][:args][0]]
+      elsif name
+        get_server_setting(nil)
+      else
+        nil
+      end
     end
     private :get_server_setting
 
@@ -113,6 +118,23 @@ module DRbQS
       new_err = InvalidNodeDefinition.new("#{err.class.to_s} => #{err.to_s}")
       new_err.set_backtrace(err.backtrace)
       raise new_err
+    end
+
+    def information
+      info = {}
+      info[:server] = @register.__server__.map do |ary|
+        ary[0]
+      end
+      info[:node] = @register.__node__.map do |ary|
+        ary[0]
+      end
+      if ary = get_server_setting(@server)
+        default_server = ary[0]
+      else
+        default_server = nil
+      end
+      info[:default] = { :server => default_server, :node => @node || info[:node], :port => server_port }
+      info
     end
   end
 end
