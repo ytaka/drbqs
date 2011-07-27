@@ -12,10 +12,12 @@ module DRbQS
 
         attr_reader :directory, :rvm, :rvm_init, :env
 
-        # :dir
+        # :directory
         # :rvm
+        # :rvm_init
+        # :env
         def initialize(opts = {})
-          @directory = opts[:dir]
+          @directory = opts[:directory]
           @rvm = opts[:rvm]
           @rvm_init = opts[:rvm_init]
           if (@rvm || @rvm_init) && !(String === @rvm_init)
@@ -179,7 +181,7 @@ module DRbQS
       end
 
       def get_environment
-        exec(@ruby_environment.get_environment_commands)
+        execute_all(@ruby_environment.get_environment_commands)
       end
     end
   end

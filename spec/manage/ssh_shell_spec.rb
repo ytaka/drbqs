@@ -12,7 +12,7 @@ describe DRbQS::Manage::SSHShell do
   end
 
   it "should split destination including directory" do
-    ssh = DRbQS::Manage::SSHShell.new('user@hostname:22', :dir => '/path/to/directory')
+    ssh = DRbQS::Manage::SSHShell.new('user@hostname:22', :directory => '/path/to/directory')
     ssh.user.should == 'user'
     ssh.host.should == 'hostname'
     ssh.port.should == 22

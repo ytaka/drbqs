@@ -2,7 +2,7 @@ module DRbQS
   class Command
     class Node < DRbQS::Command::Base
       HELP_MESSAGE =<<HELP
-Usage: #{@@command_name} [<uri>] [options ...]
+Usage: #{@@command_name} <uri> [options ...]
   Start DRbQS nodes connecting to <uri>.
 
 HELP
@@ -16,8 +16,8 @@ HELP
           opt.on('-l', '--load FILE', String, 'Add a file to load.') do |v|
             @setting.set(:load, v)
           end
-          opt.on('-n', '--node NUM', Integer, 'Set the number of node processes to execute.') do |v|
-            @setting.set(:node, v)
+          opt.on('-P', '--process NUM', Integer, 'Set the number of node processes to execute.') do |v|
+            @setting.set(:process, v)
           end
           opt.on('--loadavg STR', String, 'Set the threshold load average to sleep.') do |v|
             @setting.set(:loadavg, v)
@@ -30,15 +30,6 @@ HELP
           end
         end
         @setting.set_argument(*argv)
-      end
-
-      def exec
-        parse_arguments!
-        @setting.exec($stdout)
-        exit_normally
-      rescue => err
-        $stderr.print "error: #{err.to_s}\n" << err.backtrace.join("\n")
-        exit_unusually
       end
     end
   end

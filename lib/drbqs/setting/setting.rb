@@ -1,4 +1,5 @@
 require 'drbqs/command_line/argument'
+require 'drbqs/setting/data_container'
 require 'drbqs/setting/source'
 require 'drbqs/setting/base'
 

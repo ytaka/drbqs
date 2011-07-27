@@ -29,17 +29,6 @@ HELP
         end
         @setting.set_argument(*argv)
       end
-
-      def exec
-        parse_arguments!
-        @setting.exec($stdout)
-      rescue DRb::DRbConnError => err
-        $stderr.puts "error: Can not connect server: #{err.to_s}"
-        exit_unusually
-      rescue => err
-        $stderr.print "error: #{err.to_s}\n" << err.backtrace.join("\n")
-        exit_unusually
-      end
     end
   end
 end

@@ -6,7 +6,6 @@ module DRbQS
       def initialize(dest, opts = {})
         @ssh_host = DRbQS::Config.new.ssh_host
         path, options = @ssh_host.get_options(dest)
-        # $stdout.puts "Use configuration: #{path}" if path
         dest = options.delete(:dest) || dest
         @ssh_shell = DRbQS::Manage::SSHShell.new(dest, options.merge(opts))
       end
@@ -37,6 +36,7 @@ module DRbQS
       end
       private :create_new_directory
 
+      # Add options --daemon and --log-file.
       def server(cmd_options, opts = {})
         ret = nil
         @ssh_shell.start do |sh|
@@ -50,6 +50,7 @@ module DRbQS
         ret
       end
 
+      # Add options --daemon and --log-prefix.
       def node(cmd_options, opts = {})
         ret = nil
         @ssh_shell.start do |sh|

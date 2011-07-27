@@ -12,6 +12,8 @@ module DRbQS
         obj.exec
       end
 
+      attr_reader :setting
+
       def initialize(klass =  DRbQS::Setting::Base)
         @setting = klass.new
       end
@@ -68,16 +70,28 @@ module DRbQS
       private :option_parser_base
 
       def parse_arguments!
+        @setting.parse!
+      end
+      private :parse_arguments!
+
+      def exec
         begin
-          @setting.parse!
-        rescue DRbQS::Setting::InvalidArgument
-          mes = "error: Invalid command arguments\n\n"
+          parse_arguments!
+          @setting.exec($stdout)
+          exit_normally
+        rescue DRb::DRbConnError => err
+          $stderr.puts "error: Can not connect. #{err.to_s}"
+          exit_unusually
+        rescue DRbQS::Setting::InvalidArgument => err
+          mes = "error: Invalid command argument. #{err.to_s}\n\n"
           mes << self.class.const_get(:HELP_MESSAGE) if self.class.const_defined?(:HELP_MESSAGE)
           $stderr.print mes
           exit_invalid_option
+        rescue => err
+          output_error(err, $stderr)
+          exit_unusually
         end
       end
-      private :parse_arguments!
     end
   end
 end

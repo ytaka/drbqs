@@ -22,28 +22,29 @@ module DRbQS
         @port = get_first(:port) do |val|
           val.to_i
         end
-        if get(:no_server)
-          @server = nil
-        else
-          @server = get_first(:server) do |val|
-            val.intern
+        @no_server = get_first(:no_server)
+        @server = get_first(:server) do |val|
+          val.intern
+        end
+        @no_node = get_first(:no_node)
+        @node = get_first(:node) do |val|
+          val.split(',').map do |s|
+            s.intern
           end
         end
-        if get(:no_node)
-          @node = nil
-        else
-          @node = get_first(:node) do |val|
-            val.split(',').map do |s|
-              s.intern
-            end
-          end
-        end
-        @definiiton = get_argument[0]
+        @definition = get_argument[0]
       end
 
       def exec(io = nil)
-        process_def = DRbQS::ProcessDefinition.new
+        process_def = DRbQS::ProcessDefinition.new(@server, @node, @port)
         process_def.load(@definition)
+        unless @no_server
+          process_def.execute_server
+        end
+        unless @no_node
+          process_def.execute_node
+        end
+        true
       end
     end
   end

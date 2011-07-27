@@ -12,6 +12,8 @@ module DRbQS
     class Base
       extend Forwardable
 
+      attr_reader :source
+
       # :all_keys_defined
       # :log_level
       # :daemon
@@ -31,6 +33,8 @@ module DRbQS
 
       def_delegator :@source, :set, :set
       def_delegator :@source, :get, :get
+      def_delegator :@source, :clear, :clear
+      def_delegator :@source, :set?, :set?
       def_delegator :@source, :get_first, :get_first
       def_delegator :@source, :set_argument, :set_argument
       def_delegator :@source, :get_argument, :get_argument
@@ -45,11 +49,28 @@ module DRbQS
         @source.value
       end
 
+      def preprocess!
+      end
+      private :preprocess!
+
       def parse!
+        preprocess!
         @source.check!
-        $DEBUG = true if get(:debug)
-        @__daemon__ = get(:daemon)
+        $DEBUG = true if get_first(:debug)
+        @__daemon__ = get_first(:daemon)
         parse_log_level
+      end
+
+      def only_parsing
+        source_old = @source.clone
+        parse!
+        @source = source_old
+      end
+      private :only_parsing
+
+      def check_invalid_argument!
+        preprocess!
+        only_parsing
       end
 
       def parse_log_level

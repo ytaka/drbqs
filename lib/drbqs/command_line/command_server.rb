@@ -57,22 +57,6 @@ HELP
         @setting.set_argument(*command_argv)
         @setting.set_server_argument(*server_argv)
       end
-
-      def exec
-        parse_arguments!
-        @setting.exec($stdout)
-        exit_normally
-        # elsif @command_argv.size == 0
-        #   $stderr.print "error: Files for server definition are specified.\n\n" << HELP_MESSAGE
-        #   exit_unusually
-        # elsif !(@command_argv.all? { |path| File.exist?(path) })
-        #   $stderr.print "error: There are nonexistent files.\n\n" << HELP_MESSAGE
-        #   exit_unusually
-
-      rescue => err
-        output_error(err)
-        exit_unusually
-      end
     end
   end
 end

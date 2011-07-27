@@ -13,6 +13,7 @@ module DRbQS
           end
           register_key(:log_file, :check => 1, :default => [STDOUT])
           register_key(:profile, :bool => true)
+          register_key(:load, :add => true)
           register_key(:help, :bool => true)
 
           set_argument_condition(:>, 0)
@@ -43,14 +44,13 @@ module DRbQS
       end
       private :parse_execute_node
 
-      def parse_command_argument
-        get_argument.each do |path|
-          unless File.exist?(path)
-            raise ArgumentError, "#{path} does not exist."
-          end
+      def preprocess!
+        if files = get(:load)
+          value.argument.concat(files)
+          clear(:load)
         end
       end
-      private :parse_command_argument
+      private :preprocess!
 
       def parse!
         if get(:help)
@@ -68,6 +68,9 @@ module DRbQS
         @options[:sftp_user] = get_first(:sftp_user)
         @options[:sftp_host] = get_first(:sftp_host)
         @options[:log_file] = get_first(:log_file)
+        @options.delete_if do |key, val|
+          !val
+        end
       end
 
       def set_server_argument(*args)
@@ -101,7 +104,7 @@ module DRbQS
             io.puts s
           end
         else
-          raise ArgumentError, "Not yet implemented test '#{type}'"
+          raise DRbQS::Setting::InvalidArgument, "Not yet implemented test '#{type}'"
         end
       end
       private :command_test
@@ -173,7 +176,11 @@ module DRbQS
 
       def setup_arguments
         get_argument.each do |path|
-          load path
+          if File.exist?(path)
+            load path
+          else
+            raise DRbQS::Setting::InvalidArgument, "#{path} does not exist."
+          end
         end
         unless @options[:acl]
           @options[:acl] = DRbQS::Config.new.get_acl_file
@@ -186,7 +193,7 @@ module DRbQS
         if @__daemon__
           case @command_type
           when /^test/
-            raise ArgumentError, "Test of server does not support daemon"
+            raise DRbQS::Setting::InvalidArgument, "Test of server does not support daemon"
           else
             fork do
               exec_as_daemon

@@ -3,24 +3,51 @@ module DRbQS
     class SSH < DRbQS::Setting::Base
       include DRbQS::Command::Argument
 
+      attr_accessor :mode_setting
+
       def initialize
         super(:all_keys_defined => true) do
-          [:dir, :shell, :rvm, :rvm_init, :output].each do |key|
+          [:directory, :shell, :rvm, :rvm_init, :output, :connect].each do |key|
             register_key(key, :check => 1)
           end
           register_key(:nice, :check => 1, :default => [10])
-          set_argument_condition(:>, 0)
+          set_argument_condition(:>=, 0)
         end
-        @ssh_argument = DRbQS::Setting::Source.new(nil)
+        @mode_setting = nil
       end
 
-      def set_ssh_argument(*args)
-        @ssh_argument.set_argument(*args)
+      def configure_mode_setting(type = nil, &block)
+        if type ||= get_argument[0]
+          unless @mode_setting
+            case type.intern
+            when :server
+              @mode_setting = DRbQS::Setting::Server.new
+            when :node
+              @mode_setting = DRbQS::Setting::Node.new
+            else
+              @mode_setting = DRbQS::Setting::Base.new
+            end
+          end
+          yield(@mode_setting.value)
+        else
+          raise DRbQS::Setting::InvalidArgument, "Command mode is not determined."
+        end
       end
+
+      def only_parsing
+        if @mode_setting
+          mode_setting_old = @mode_setting.clone
+          super
+          @mode_setting = mode_setting_old
+        else
+          super
+        end
+      end
+      private :only_parsing
 
       def command_line_argument(escape = nil)
         ary = super(escape)
-        ssh_args = @ssh_argument.command_line_argument(escape)
+        ssh_args = @mode_setting.command_line_argument(escape)
         if ssh_args.size > 0
           ary << '--'
           ary.concat(ssh_args)
@@ -28,22 +55,44 @@ module DRbQS
         ary
       end
 
+      def preprocess!
+        if connect = get_first(:connect)
+          value.argument << connect
+          clear(:connect)
+        end
+        if type = get_argument[0]
+          case type.intern
+          when :server
+            @mode_setting.clear(:log_file)
+            @mode_setting.clear(:daemon)
+          when :node
+            @mode_setting.clear(:log_prefix)
+            @mode_setting.clear(:daemon)
+          end
+        end
+      end
+      private :preprocess!
+
       # If there are invalid arguments,
       # this method raises an error.
       def parse!
         super
-        [:dir, :shell, :rvm, :rvm_init, :nice].each do |key|
-          @options[key] = get_first(key)
+        [:directory, :shell, :rvm, :rvm_init, :nice].each do |key|
+          if val = get_first(key)
+            @options[key] = val
+          end
         end
         @output = get_first(:output)
         @argv = get_argument
-        @ssh_args = get_ssh_argument
+        @command = @argv.shift
+        @mode_setting.parse!
+        @mode_argument_array = @mode_setting.command_line_argument
       end
 
       def command_list(io)
         if io
           ssh_host = DRbQS::Config.new.ssh_host
-          ioputs ssh_host.config_names.join("\n")
+          io.puts ssh_host.config_names.join("\n")
         end
       end
       private :command_list
@@ -54,6 +103,11 @@ module DRbQS
       end
       private :only_first_argument
 
+      def connecting_ssh_server
+        only_first_argument
+      end
+      private :connecting_ssh_server
+
       def command_show(io)
         if io
           name = only_first_argument
@@ -61,7 +115,7 @@ module DRbQS
           if path = ssh_host.get_path(name)
             io.puts File.read(path)
           else
-            raise ArgumentError, "Can not find configuration file '#{name}'."
+            raise DRbQS::Setting::InvalidArgument, "Can not find configuration file '#{name}'."
           end
         end
       end
@@ -79,10 +133,9 @@ module DRbQS
       private :command_environment
 
       def command_execute(io)
-        dest = only_first_argument
-        mng_ssh = manage_ssh(dest, io)
-        if @ssh_args.size > 0
-          mng_ssh.command(@ssh_args)
+        mng_ssh = manage_ssh(connecting_ssh_server, io)
+        if @mode_argument_array.size > 0
+          mng_ssh.command(@mode_argument_array)
         else
           raise "There is no command for ssh."
         end
@@ -90,14 +143,12 @@ module DRbQS
       private :command_execute
 
       def command_server(io)
-        dest = only_first_argument
-        manage_ssh(dest, io).server(@ssh_args, :nice => @nice, :daemon => @output)
+        manage_ssh(connecting_ssh_server, io).server(@mode_argument_array, :nice => @nice, :daemon => @output)
       end
       private :command_server
 
       def command_node(io)
-        dest = only_first_argument
-        manage_ssh(dest, io).node(@ssh_args, :nice => @nice, :daemon => @output)
+        manage_ssh(connecting_ssh_server, io).node(@mode_argument_array, :nice => @nice, :daemon => @output)
       end
       private :command_node
 
@@ -116,7 +167,7 @@ module DRbQS
         when 'node'
           command_node(io)
         else
-          raise ArgumentError, "Invalid command '#{@command}'."
+          raise DRbQS::Setting::InvalidArgument, "Invalid command '#{@command}'."
         end
       end
     end

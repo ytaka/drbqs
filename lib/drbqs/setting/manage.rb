@@ -92,7 +92,7 @@ module DRbQS
         when 'node-sleep'
           signal_to_node(:send_node_sleep)
         else
-          raise ArgumentError, "Invalid signal '#{signal}'"
+          raise DRbQS::Setting::InvalidArgument, "Invalid signal '#{signal}'"
         end
       end
       private :command_signal
@@ -103,16 +103,16 @@ module DRbQS
         case type
         when 'string'
           unless data = @argv[0]
-            raise ArgumentError, "String data is not set"
+            raise DRbQS::Setting::InvalidArgument, "String data is not set"
           end
         when 'file'
           if File.exist?(@argv[0])
             data = File.read(@argv[0])
           else
-            raise ArgumentError, "File '#{@argv[0]}' does not exist"
+            raise DRbQS::Setting::InvalidArgument, "File '#{@argv[0]}' does not exist"
           end
         else
-          raise ArgumentError, "Invalid option '#{type}' for 'send'"
+          raise DRbQS::Setting::InvalidArgument, "Invalid option '#{type}' for 'send'"
         end
         @manage.send_data(data)
       end
@@ -133,7 +133,7 @@ module DRbQS
         when 'send'
           command_send
         else
-          raise ArgumentError, "Invalid command '#{@mode}'"
+          raise DRbQS::Setting::InvalidArgument, "Invalid command '#{@mode}'"
         end
       end
     end

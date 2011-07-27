@@ -6,13 +6,22 @@ module DRbQS
       def initialize
         super(:all_keys_defined => true, :log_level => true, :daemon => true) do
           register_key(:load, :check => [:>, 0], :add => true)
-          register_key(:node, :check => 1, :default => [1])
+          register_key(:process, :check => 1, :default => [1])
           register_key(:loadavg, :check => 1)
           register_key(:log_prefix, :check => 1, :default => [LOG_PREFIX_DEFAULT])
           register_key(:log_stdout, :bool => true)
-          set_argument_condition(:<=, 1)
+          register_key(:connect, :check => 1)
+          set_argument_condition(:==, 1)
         end
       end
+
+      def preprocess!
+        if connect = get_first(:connect)
+          value.argument.unshift(connect)
+          clear(:connect)
+        end
+      end
+      private :preprocess!
 
       # If there are invalid arguments,
       # this method raises an error.
@@ -27,18 +36,14 @@ module DRbQS
             str
           end
         end
-        @process_num = get_first(:node)
-        @uri = get_argument[0] || DRbQS::Misc.create_uri
+        @process_num = get_first(:process)
+        @uri = get_argument[0]
       end
 
       def parse_load
         @options[:load] = []
-        get(:load).each do |path|
-          epath = File.expand_path(v)
-          unless File.exist?(epath)
-            raise ArgumentError, "#{path} does not exist."
-          end
-          @options[:load] << epath
+        get(:load).to_a.each do |path|
+          @options[:load] << File.expand_path(path)
         end
       end
       private :parse_load
@@ -56,9 +61,12 @@ module DRbQS
       def exec(io = nil)
         return true if exec_as_daemon
 
-        @options[:load].each do |v|
-          io.puts "load #{v}" if io
-          load v
+        @options[:load].each do |path|
+          io.puts "load #{path}" if io
+          unless File.exist?(path)
+            raise DRbQS::Setting::InvalidArgument, "#{path} does not exist."
+          end
+          load path
         end
 
         if io

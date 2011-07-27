@@ -16,10 +16,15 @@ module DRbQS
   end
 
   module Misc
+    # :port
+    # :host
+    # :unix
     def create_uri(opts = {})
       if opts[:port] || !opts[:unix]
         port = opts[:port] || ROOT_DEFAULT_PORT
-        "druby://:#{port}"
+        "druby://#{opts[:host]}:#{port}"
+      elsif opts[:host]
+        raise ArgumentError, "We can not set hostname to unix domain socket."
       else
         path = File.expand_path(opts[:unix])
         if !File.directory?(File.dirname(path))

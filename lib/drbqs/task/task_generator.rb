@@ -54,7 +54,7 @@ module DRbQS
       @iterate = opts[:generate] || 1
       @task_set = opts[:collect]
       if @iterate < 1 || (@task_set && @task_set < 1)
-        raise ArgumentError, "Invalid option."
+        raise ArgumentError, "Invalid options of task creation on generator."
       end
       @fiber_init = lambda do
         @fiber = Fiber.new do
