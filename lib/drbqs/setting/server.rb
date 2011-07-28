@@ -158,7 +158,7 @@ module DRbQS
           begin
             get_argument.each do |path|
               if File.exist?(path)
-                load path
+                Kernel.load(path)
               end
             end
             if mes = DRbQS.option_help_message
@@ -176,7 +176,7 @@ module DRbQS
       def setup_arguments
         get_argument.each do |path|
           if File.exist?(path)
-            load path
+            Kernel.load(path)
           else
             raise DRbQS::Setting::InvalidArgument, "#{path} does not exist."
           end
