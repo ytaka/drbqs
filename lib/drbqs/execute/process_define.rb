@@ -10,12 +10,18 @@ module DRbQS
 
     attr_reader :register
 
-    def initialize(server, node, port)
+    def initialize(server, node, port, io = nil)
       @server = server
       @node = node
       @port = port
       @register = DRbQS::ProcessDefinition::Register.new
+      @io = io
     end
+
+    def puts_progress(str)
+      @io.puts str if @io
+    end
+    private :puts_progress
 
     # Log directory for processes on localhost.
     # Processes over ssh does not use this directory.
@@ -29,7 +35,7 @@ module DRbQS
 
     def get_server_setting(name = nil)
       if data = (name ? @register.__server__.assoc(name.intern) : @register.__server__[0])
-        [data[0], data[1][:type], data[1][:setting], data[1][:args][0]]
+        { :name => data[0], :type => data[1][:type], :setting => data[1][:setting], :hostname => data[1][:args][0] }
       elsif name
         get_server_setting(nil)
       else
@@ -64,38 +70,47 @@ module DRbQS
     private :server_port
 
     def server_uri(name)
-      name, type, setting, hostname = get_server_setting(name)
-      DRbQS::Misc.create_uri(:host => hostname, :port => server_port)
+      data = get_server_setting(name)
+      DRbQS::Misc.create_uri(:host => data[:hostname], :port => data[:port])
     end
     private :server_uri
 
     def execute_server(server_args)
-      name, type, setting, hostname = get_server_setting(@server)
-      server_setting = type == :ssh ? setting.mode_setting : setting
-      server_setting.set_server_argument(*server_args)
-      server_setting.value.port server_port
-      unless server_setting.value.sftp_host
-        server_setting.value.sftp_host hostname
-      end
-      unless type == :ssh
-        server_setting.value.daemon FileName.create(local_log_directory, "server_execute.log", :position => :middle)
-      end
-      setting.parse!
-      unless type == :ssh
-        server_setting.value.argument.each do |path|
-          unless File.exist?(path)
-            raise "File '#{path}' does not exist."
+      if data = get_server_setting(@server)
+        puts_progress "Execute server '#{data[:name].to_s}' (#{data[:type]})"
+        setting = data[:setting]
+        hostname = data[:hostname]
+        type = data[:type]
+        server_setting = type == :ssh ? setting.mode_setting : setting
+        server_setting.set_server_argument(*server_args)
+        server_setting.value.port server_port
+        unless server_setting.value.sftp_host
+          server_setting.value.sftp_host hostname
+        end
+        unless type == :ssh
+          server_setting.value.daemon FileName.create(local_log_directory, "server_execute.log", :position => :middle)
+        end
+        setting.parse!
+        unless type == :ssh
+          server_setting.value.argument.each do |path|
+            unless File.exist?(path)
+              raise "File '#{path}' does not exist."
+            end
           end
         end
+        setting.exec
       end
-      setting.exec
     rescue Exception => err
-      new_err = InvalidServerDefinition.new("#{setting.string_for_shell}: #{err.to_s} (#{err.class.to_s})")
+      puts_progress "Fail to execute server '#{data[:name].to_s}'"
+      mes = "#{err.to_s} (#{err.class.to_s})"
+      mes = "#{setting.string_for_shell}; " << mes if setting.respond_to?(:string_for_shell)
+      new_err = InvalidNodeDefinition.new(mes)
       new_err.set_backtrace(err.backtrace)
       raise new_err
     end
 
-    def execute_one_node(data, uri)
+    def execute_one_node(name, data, uri)
+      puts_progress "Execute node '#{name.to_s}' (#{data[:type]})"
       setting = data[:setting]
       node_setting = (data[:type] == :ssh ? setting.mode_setting : setting)
       node_setting.value.argument.clear
@@ -109,7 +124,10 @@ module DRbQS
       setting.parse!
       setting.exec
     rescue Exception => err
-      new_err = InvalidNodeDefinition.new("#{setting.string_for_shell}; #{err.to_s} (#{err.class.to_s})")
+      puts_progress "Fail to execute node '#{name.to_s}'"
+      mes = "#{err.to_s} (#{err.class.to_s})"
+      mes = "#{setting.string_for_shell}; " << mes if setting.respond_to?(:string_for_shell)
+      new_err = InvalidNodeDefinition.new(mes)
       new_err.set_backtrace(err.backtrace)
       raise new_err
     end
@@ -118,7 +136,7 @@ module DRbQS
     def execute_node
       uri = server_uri(@server)
       each_node(@node) do |name, data|
-        execute_one_node(data, uri)
+        execute_one_node(name, data, uri)
       end
     end
 
@@ -130,8 +148,8 @@ module DRbQS
       info[:node] = @register.__node__.map do |ary|
         ary[0]
       end
-      if ary = get_server_setting(@server)
-        default_server = ary[0]
+      if data = get_server_setting(@server)
+        default_server = data[:name]
       else
         default_server = nil
       end

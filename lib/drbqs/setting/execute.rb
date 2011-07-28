@@ -39,7 +39,7 @@ module DRbQS
       end
 
       def exec(io = nil)
-        process_def = DRbQS::ProcessDefinition.new(@server, @node, @port)
+        process_def = DRbQS::ProcessDefinition.new(@server, @node, @port, io)
         process_def.load(@definition)
         unless @no_server
           process_def.execute_server(@server_argument)
