@@ -13,7 +13,8 @@ module DRbQS
       end
 
       def initialize(klass =  DRbQS::Setting::Base, help_message = nil)
-        @opt_setting = DRbQS::Command::OptionSetting.new(help_message, klass.new)
+        @help_message = help_message
+        @opt_setting = DRbQS::Command::OptionSetting.new(@help_message, klass.new)
       end
 
       def setting
@@ -40,13 +41,13 @@ module DRbQS
         begin
           @opt_setting.parse!(argv)
         rescue DRbQS::Setting::InvalidLogLevel => err
-          $stderr.print err.to_s << "\n\n" << help_message
+          $stderr.print err.to_s << "\n\n" << @help_message.to_s
           exit_invalid_option
         rescue OptionParser::InvalidOption
-          $stderr.print "error: Invalid Option\n\n" << help_message
+          $stderr.print "error: Invalid Option\n\n" << @help_message.to_s
           exit_invalid_option
         rescue OptionParser::InvalidArgument
-          $stderr.print "error: Invalid Argument\n\n" << help_message
+          $stderr.print "error: Invalid Argument\n\n" << @help_message.to_s
           exit_invalid_option
         end
         argv
@@ -67,8 +68,7 @@ module DRbQS
           $stderr.puts "error: Can not connect. #{err.to_s}"
           exit_unusually
         rescue DRbQS::Setting::InvalidArgument => err
-          mes = "error: Invalid command argument. #{err.to_s}\n\n"
-          mes << self.class.const_get(:HELP_MESSAGE) if self.class.const_defined?(:HELP_MESSAGE)
+          mes = "error: Invalid command argument. #{err.to_s}\n\n" << @help_message.to_s
           $stderr.print mes
           exit_invalid_option
         rescue => err
