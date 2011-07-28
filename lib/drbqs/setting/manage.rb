@@ -111,7 +111,6 @@ module DRbQS
       def signal_to_node(method_name)
         node_id = @argv[2].to_i
         @manage.__send__(method_name, node_id)
-        exit_normally
       end
       private :signal_to_node
 
