@@ -10,7 +10,7 @@ module DRbQS
           [:port, :server, :node].each do |key|
             register_key(key, :check => 1)
           end
-          [:no_server, :no_node, :help].each do |key|
+          [:no_server, :no_node, :information, :help].each do |key|
             register_key(key, :bool => true)
           end
           set_argument_condition(:<=, 1)
@@ -36,7 +36,13 @@ module DRbQS
           end
         end
         @definition = get_argument[0]
-        @output_help = get_first(:help)
+        if get_first(:help)
+          @mode = :help
+        elsif get_first(:information)
+          @mode = :information
+        else
+          @mode = nil
+        end
         if !@output_help && !@definition
           raise DRbQS::Setting::InvalidArgument, "Definition file must be specified."
         end
@@ -45,8 +51,11 @@ module DRbQS
       def exec(io = nil)
         process_def = DRbQS::ProcessDefinition.new(@server, @node, @port, io)
         process_def.load(@definition) if @definition
-        if @output_help
-          io.puts process_def.usage
+        case @mode
+        when :help
+          io.puts process_def.usage if io
+        when :information
+          io.puts process_def.information_string if io
         else
           unless @no_server
             process_def.execute_server(@server_argument)

@@ -142,19 +142,40 @@ module DRbQS
 
     def information
       info = {}
-      info[:server] = @register.__server__.map do |ary|
-        ary[0]
+      info[:server] = @register.__server__.map do |name, data|
+        [name, data[:type]]
       end
-      info[:node] = @register.__node__.map do |ary|
-        ary[0]
+      info[:node] = @register.__node__.map do |name, data|
+        [name, data[:type]]
       end
       if data = get_server_setting(@server)
         default_server = data[:name]
       else
         default_server = nil
       end
-      info[:default] = { :server => default_server, :node => @node || info[:node], :port => server_port }
+      info[:default] = {
+        :server => default_server,
+        :node => @node || info[:node].map { |ary| ary[0]},
+        :port => server_port
+      }
       info
+    end
+
+    def information_string
+      info = information
+      str = "Server:\n"
+      info[:server].each do |name, type|
+        s = sprintf("%- 16s  %s\n", name, (type == :ssh ? 'ssh' : 'local'))
+        str << (info[:default][:server] == name ? "* " : "  ")
+        str << s
+      end
+      str << "Node:\n"
+      info[:node].each do |name, type|
+        s = sprintf("%- 16s  %s\n", name, (type == :ssh ? 'ssh' : 'local'))
+        str << (info[:default][:node].include?(name) ? "  " : "- ")
+        str << s
+      end
+      str << "Port: #{info[:default][:port]}"
     end
 
     def usage
