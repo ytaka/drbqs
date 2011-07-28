@@ -48,6 +48,8 @@ module DRbQS
       # When we execute a server over ssh, we can use the similar options to the command 'drbqs-ssh'
       # Exceptionally, we can set files to load by 'load' method
       # and set a ssh server by 'connect' method.
+      # If we omit the 'connect' method then the program tries to connect
+      # the name specified as first argument.
       # 
       # * Example of a server on localhost
       # register_server(:server_local, "example.com") do |server|
@@ -82,6 +84,8 @@ module DRbQS
       # To set properties of nodes we can use the similar options to the command 'drbqs-node'.
       # When we execute a server over ssh, we can use the similar options to the command 'drbqs-ssh'
       # Exceptionally, we can set a ssh server by 'connect' method.
+      # If we omit the 'connect' method then the program tries to connect
+      # the name specified as first argument.
       # 
       # * Example of nodes on localhost
       # register_node(:node_local) do |node|

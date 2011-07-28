@@ -77,7 +77,8 @@ module DRbQS
 
     def execute_server(server_args)
       if data = get_server_setting(@server)
-        puts_progress "Execute server '#{data[:name].to_s}' (#{data[:type]})"
+        name = data[:name].to_s
+        puts_progress "Execute server '#{name}' (#{data[:type]})"
         setting = data[:setting]
         hostname = data[:hostname]
         type = data[:type]
@@ -87,7 +88,9 @@ module DRbQS
         unless server_setting.value.sftp_host
           server_setting.value.sftp_host hostname
         end
-        unless type == :ssh
+        if type == :ssh
+          setting.value.connect name
+        end
           server_setting.value.daemon FileName.create(local_log_directory, "server_execute.log", :position => :middle)
         end
         setting.parse!
@@ -110,12 +113,16 @@ module DRbQS
     end
 
     def execute_one_node(name, data, uri)
-      puts_progress "Execute node '#{name.to_s}' (#{data[:type]})"
+      puts_progress "Execute node '#{name}' (#{data[:type]})"
       setting = data[:setting]
       node_setting = (data[:type] == :ssh ? setting.mode_setting : setting)
       node_setting.value.argument.clear
       node_setting.value.connect uri
-      unless data[:type] == :ssh
+      if data[:type] == :ssh
+        unless setting.set?(:connect)
+          setting.value.connect name.to_s
+        end
+      else
         node_log_dir = FileName.create(local_log_directory, 'node_execute_log', :directory => :self)
         setting.clear :log_stdout
         setting.value.log_prefix File.join(node_log_dir, 'node')
