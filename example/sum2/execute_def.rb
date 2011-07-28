@@ -1,5 +1,7 @@
 default :server => :server_local, :port => 13789, :log => '/tmp/drbqs_execute'
 
+usage :message => "Calculate sum of numbers", :server => File.join(File.dirname(__FILE__), 'server_def.rb')
+
 register_server :server_local, "localhost" do |server|
   server.load File.expand_path(File.join(File.dirname(__FILE__), 'server_def.rb'))
 end

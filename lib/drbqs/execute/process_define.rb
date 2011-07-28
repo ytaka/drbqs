@@ -156,5 +156,17 @@ module DRbQS
       info[:default] = { :server => default_server, :node => @node || info[:node], :port => server_port }
       info
     end
+
+    def usage
+      data = @register.__usage__
+      str = data[:message] ? "\nDescription:\n#{data[:message]}" : ""
+      if (server_file = data[:server]) && File.exist?(server_file)
+        Kernel.load(server_file)
+        if server_help = DRbQS.option_help_message
+          str << "\n\n" << server_help
+        end
+      end
+      str
+    end
   end
 end

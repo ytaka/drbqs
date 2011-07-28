@@ -1,12 +1,13 @@
 module DRbQS
   class ProcessDefinition
     class Register
-      attr_reader :__server__, :__node__, :__default__
+      attr_reader :__server__, :__node__, :__default__, :__usage__
 
       def initialize
         @__server__ = []
         @__node__ = []
         @__default__ = {}
+        @__usage__ = nil
       end
 
       def __register__(type, name, *args, &block)
@@ -124,6 +125,14 @@ module DRbQS
 
       def default_clear(key)
         @__default__.delete(key)
+      end
+
+      # We can set messages of usage and path of definition file of server
+      # to output help of server on showing help.
+      # * Example of usage
+      # usage(:message => 'Calculate some value', :server => 'server.rb')
+      def usage(opts = {})
+        @__usage__ = opts
       end
 
       def __load__(path)
