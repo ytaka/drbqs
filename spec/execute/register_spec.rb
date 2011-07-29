@@ -8,15 +8,54 @@ describe DRbQS::ProcessDefinition::Register do
   end
 
   context "when registering a server" do
-    
+    it "should define a server on localhost." do
+      load_file = 'file.rb'
+      subject.register_server(:server1) do |server|
+        server.load load_file
+      end
+      name, data = subject.__server__.assoc(:server1)
+      data[:type].should == :server
+      data[:setting].get(:load).should == [load_file]
+    end
+
+    it "should define a server over ssh." do
+      dest = "user@example.com"
+      load_file = 'file.rb'
+      subject.register_server(:server1) do |server, ssh|
+        server.load load_file
+        ssh.connect dest
+      end
+      name, data = subject.__server__.assoc(:server1)
+      data[:type].should == :ssh
+      setting = data[:setting]
+      setting.get(:connect).should == [dest]
+      setting.mode_setting.get(:load).should == [load_file]
+    end
   end
 
   context "when registering a node" do
-    it "should define node on localhost." do
+    it "should define a node on localhost." do
+      uri = 'druby://:12345'
       subject.register_node(:node1) do |node|
-        node.connect 'abc'
+        node.connect uri
       end
-      p subject.__node__
+      name, data = subject.__node__.assoc(:node1)
+      data[:type].should == :node
+      data[:setting].get(:connect).should == [uri]
+    end
+
+    it "should define a node over ssh." do
+      dest = "user@example.com"
+      uri = 'druby://:12345'
+      subject.register_node(:node2) do |node, ssh|
+        node.connect uri
+        ssh.connect dest
+      end
+      name, data = subject.__node__.assoc(:node2)
+      data[:type].should == :ssh
+      setting = data[:setting]
+      setting.get(:connect).should == [dest]
+      setting.mode_setting.get(:connect).should == [uri]
     end
   end
 
