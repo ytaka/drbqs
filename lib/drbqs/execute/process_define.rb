@@ -67,14 +67,14 @@ module DRbQS
           while i < names.size
             name = names[i]
             if data = get_node_data(name)
-              unless data[:template]
+              if data[:template]
                 if :group == data[:type]
                   data[:args].each do |n|
                     names << n unless names.include?(n)
                   end
-                else
-                  node_data << [name, data]
                 end
+              else
+                node_data << [name, data]
               end
             end
             i += 1
@@ -197,10 +197,10 @@ module DRbQS
       else
         default_server = nil
       end
-      info_node = each_node(@node).map do |node_name, node_data|
+      default_nodes = each_node(@node).map do |node_name, node_data|
         node_name
       end
-      info[:default] = { :server => default_server, :node => info_node, :port => server_port }
+      info[:default] = { :server => default_server, :node => default_nodes, :port => server_port }
       info
     end
 
