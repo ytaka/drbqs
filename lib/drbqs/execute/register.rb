@@ -245,6 +245,8 @@ module DRbQS
         if val[:port]
           val[:port] = val[:port].to_i
         end
+        raise "Invalid default value for :node." if val.has_key?(:node) && !(Array === val[:node])
+        raise "Invalid default value for :log." if val.has_key?(:log) && !(String === val[:log])
         @__default__.merge!(val)
       end
 

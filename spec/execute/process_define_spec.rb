@@ -178,4 +178,27 @@ describe DRbQS::ProcessDefinition do
       FileUtils.rm_r(@tmp)
     end
   end
+
+  context "when execute default nodes" do
+    before(:all) do
+      @port = DRbQS::ROOT_DEFAULT_PORT
+      @hostname = 'localhost'     # defined in execute1.rb
+      @tmp = '/tmp/drbqs_tmp_log' # defined in execute1.rb
+      @process_def = DRbQS::ProcessDefinition.new(nil, nil, nil)
+      @process_def.load(definition_file('execute2.rb'))
+      @server_setting = subject.__send__(:get_server_setting)[:setting]
+      @node_local_setting = subject.__send__(:get_node_data, :node_local)[:setting]
+      @node_ssh_setting = subject.__send__(:get_node_data, :node_ssh)[:setting]
+    end
+
+    subject do
+      @process_def
+    end
+
+    it "should check port number set in node." do
+      @node_local_setting.should_not_receive(:exec)
+      @node_ssh_setting.should_receive(:exec)
+      subject.execute_node
+    end
+  end
 end

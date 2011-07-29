@@ -445,6 +445,13 @@ describe DRbQS::ProcessDefinition::Register do
       h[:port].should == 12345
     end
 
+    it "should set default nodes." do
+      nodes = [:node1, :node2]
+      subject.default(:node => nodes)
+      h = subject.__default__
+      h[:node].should == nodes
+    end
+
     it "should set default value for some keys." do
       subject.default(:log => '/tmp/drbqs/log', :some_key => 'some_value')
       h = subject.__default__

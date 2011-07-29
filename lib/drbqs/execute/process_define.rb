@@ -173,9 +173,14 @@ module DRbQS
     end
     private :execute_one_node
 
+    def each_node_to_execute(&block)
+      each_node(@node || @register.__default__[:node], &block)
+    end
+    private :each_node_to_execute
+
     def execute_node
       uri = server_uri(@server)
-      each_node(@node) do |name, data|
+      each_node_to_execute do |name, data|
         execute_one_node(name, data, uri)
       end
     end
@@ -197,7 +202,7 @@ module DRbQS
       else
         default_server = nil
       end
-      default_nodes = each_node(@node).map do |node_name, node_data|
+      default_nodes = each_node_to_execute.map do |node_name, node_data|
         node_name
       end
       info[:default] = { :server => default_server, :node => default_nodes, :port => server_port }
