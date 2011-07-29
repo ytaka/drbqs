@@ -34,13 +34,19 @@ module DRbQS
     end
 
     def get_server_setting(name = nil)
-      if data = (name ? @register.__server__.assoc(name.intern) : @register.__server__[0])
-        { :name => data[0], :type => data[1][:type], :setting => data[1][:setting], :hostname => data[1][:args][0] }
-      elsif name
-        get_server_setting(nil)
-      else
-        nil
+      if !name
+        data = nil
+        @register.__server__.each do |server_data|
+          unless server_data[1][:template]
+            data = server_data
+            break
+          end
+        end
+        return nil unless data
+      elsif !(data = @register.__server__.assoc(name.intern))
+        return get_server_setting(nil)
       end
+      { :name => data[0], :type => data[1][:type], :setting => data[1][:setting], :hostname => data[1][:args][0] }
     end
     private :get_server_setting
 
@@ -54,16 +60,33 @@ module DRbQS
     private :get_node_data
 
     def each_node(names = nil, &block)
-      if names
-        names.each do |name|
-          if data = get_node_data(name)
-            yield(name, data)
+      if block_given?
+        if names
+          node_data = []
+          i = 0
+          while i < names.size
+            name = names[i]
+            if data = get_node_data(name)
+              unless data[:template]
+                if :group == data[:type]
+                  data[:args].each do |n|
+                    names << n unless names.include?(n)
+                  end
+                else
+                  node_data << [name, data]
+                end
+              end
+            end
+            i += 1
           end
+          node_data.each do |data|
+            yield(*data)
+          end
+        else
+          each_node(@register.__node__.map { |name, data| name }, &block)
         end
       else
-        @register.__node__.each do |name, data|
-          yield(name, data)
-        end
+        to_enum(:each_node, names)
       end
     end
     private :each_node
@@ -91,7 +114,7 @@ module DRbQS
         setting = data[:setting]
         hostname = data[:hostname]
         type = data[:type]
-        if type == :ssh
+        if data[:ssh]
           setting.value.connect name
           server_setting = setting.mode_setting
         else
@@ -104,7 +127,7 @@ module DRbQS
           server_setting.value.sftp_host hostname
         end
         setting.parse!
-        unless type == :ssh
+        unless data[:ssh]
           server_setting.value.argument.each do |path|
             unless File.exist?(path)
               raise "File '#{path}' does not exist."
@@ -125,10 +148,10 @@ module DRbQS
     def execute_one_node(name, data, uri)
       puts_progress "Execute node '#{name}' (#{data[:type]})"
       setting = data[:setting]
-      node_setting = (data[:type] == :ssh ? setting.mode_setting : setting)
+      node_setting = (data[:ssh] ? setting.mode_setting : setting)
       node_setting.value.argument.clear
       node_setting.value.connect uri
-      if data[:type] == :ssh
+      if data[:ssh]
         unless setting.set?(:connect)
           setting.value.connect name.to_s
         end
@@ -160,37 +183,52 @@ module DRbQS
     def information
       info = {}
       info[:server] = @register.__server__.map do |name, data|
-        [name, data[:type]]
+        new_data = data.dup
+        new_data.delete(:setting)
+        [name, new_data]
       end
       info[:node] = @register.__node__.map do |name, data|
-        [name, data[:type]]
+        new_data = data.dup
+        new_data.delete(:setting)
+        [name, new_data]
       end
       if data = get_server_setting(@server)
         default_server = data[:name]
       else
         default_server = nil
       end
-      info[:default] = {
-        :server => default_server,
-        :node => @node || info[:node].map { |ary| ary[0]},
-        :port => server_port
-      }
+      info_node = each_node(@node).map do |node_name, node_data|
+        node_name
+      end
+      info[:default] = { :server => default_server, :node => info_node, :port => server_port }
       info
     end
 
     def information_string
       info = information
       str = "Server:\n"
-      info[:server].each do |name, type|
-        s = sprintf("%- 16s  %s\n", name, (type == :ssh ? 'ssh' : 'local'))
-        str << (info[:default][:server] == name ? "* " : "  ")
-        str << s
+      ary = (info[:server] + info[:node]).map do |name, data|
+        name.size
+      end
+      string_name_size = ary.max
+      info[:server].each do |name, data|
+        prop = (data[:ssh] ? 'ssh' : 'local')
+        prop << ',template' if data[:template]
+        str << (data[:template] ? " - " : (info[:default][:server] == name ? " * " : "   "))
+        str << sprintf("%- #{string_name_size}s  %s\n", name, prop)
       end
       str << "Node:\n"
-      info[:node].each do |name, type|
-        s = sprintf("%- 16s  %s\n", name, (type == :ssh ? 'ssh' : 'local'))
-        str << (info[:default][:node].include?(name) ? "  " : "- ")
-        str << s
+      info[:node].each do |name, data|
+        if data[:type] == :group
+          prop = 'group: ' << data[:args].map(&:to_s).join(',')
+        else
+          prop = (data[:ssh] ? 'ssh' : 'local')
+          if data[:template]
+            prop << ',template'
+          end
+        end
+        str << (data[:template] ? " - " : (info[:default][:node].include?(name) ? " * " : "   "))
+        str << sprintf("%- #{string_name_size}s  %s\n", name, prop)
       end
       str << "Port: #{info[:default][:port]}"
     end

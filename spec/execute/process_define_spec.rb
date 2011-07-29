@@ -18,13 +18,27 @@ describe DRbQS::ProcessDefinition do
     end
 
     it "should get server list." do
-      info = @info[:server].sort_by { |a| a [0] }
-      info.should == [[:server_local, :server], [:server_ssh, :ssh]].sort_by { |a| a [0] }
+      data = @info[:server].assoc(:server_local)[1]
+      data[:type].should == :server
+      data[:ssh].should_not be_true
+      data[:args].should == ["localhost"]
+
+      data = @info[:server].assoc(:server_ssh)[1]
+      data[:type].should == :server
+      data[:ssh].should be_true
+      data[:args].should == ["example.com"]
     end
 
     it "should get node list." do
-      info = @info[:node].sort_by { |a| a[0] }
-      info.should == [[:node_local, :node], [:node_ssh, :ssh]].sort_by { |a| a[0] }
+      data = @info[:node].assoc(:node_local)[1]
+      data[:type].should == :node
+      data[:ssh].should_not be_true
+      data[:args].should == []
+
+      data = @info[:node].assoc(:node_ssh)[1]
+      data[:type].should == :node
+      data[:ssh].should be_true
+      data[:args].should == []
     end
 
     it "should get default server." do
