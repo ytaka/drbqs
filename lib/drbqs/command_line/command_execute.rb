@@ -15,9 +15,9 @@ HELP
       def parse_option(argv)
         args, server_args = split_arguments(argv)
         args = option_parser_base(args) do
-          set(:port, '--port NUM', Integer, 'Set the port number.')
-          set(:server, '--server STR', String, 'Set the key of server.')
-          set(:node, '--node STR', String, 'Set the comma sparated key of nodes.')
+          set(:port, '-p NUM', '--port NUM', Integer, 'Set the port number.')
+          set(:server, '-s STR', '--server STR', String, 'Set the key of server.')
+          set(:node, '-n STR', '--node STR', String, 'Set the comma sparated key of nodes.')
           set(:no_server, '--no-server', 'Not execute server.')
           set(:no_node, '--no-node', 'Not execute node.')
           set(:information, '-i', '--information', 'Show information.')
