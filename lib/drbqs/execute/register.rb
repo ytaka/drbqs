@@ -46,7 +46,9 @@ module DRbQS
 
       def __register_server__(template, name, load_def, *args, &block)
         if load_def
-          if data = @__server__.assoc(load_def.intern)
+          if DRbQS::Setting::Base === load_def
+            setting = load_def
+          elsif data = @__server__.assoc(load_def.intern)
             setting = data[1][:setting].clone
           else
             raise ArgumentError, "Not registered definition '#{load_def}'."
@@ -60,7 +62,9 @@ module DRbQS
 
       def __register_node__(template, name, load_def, *args, &block)
         if load_def
-          if data = @__node__.assoc(load_def.intern)
+          if DRbQS::Setting::Base === load_def
+            setting = load_def
+          elsif data = @__node__.assoc(load_def.intern)
             if data[1][:type] == :group
               raise ArgumentError, "Definition to inherit is group."
             end
@@ -110,6 +114,12 @@ module DRbQS
       #   ssh.nice 10
       # end
       def register_server(name, *args, &block)
+        name = name.intern
+        if ind = @__server__.index { |n, data| name == n }
+          old_data = @__server__.delete_at(ind)
+        else
+          old_data = nil
+        end
         unless block_given?
           raise ArgumentError, "Block to define settings is not given."
         end
@@ -129,12 +139,23 @@ module DRbQS
             opts = {}
           end
         else
-          raise ArgumentError, "Invalid argument size."
+          unless old_data
+            raise ArgumentError, "Invalid argument size."
+          end
+        end
+        if old_data
+          if opts[:load]
+            raise ArgumentError, "Can not set both reconfiguring and loading."
+          end
+          load_def = old_data[1][:setting]
+          hostname = old_data[1][:args][0] if !hostname
+        else
+          load_def = opts[:load]
         end
         if !opts[:template] && !hostname
           raise ArgumentError, "Definition of server '#{name}' needs hostname."
         end
-        __register_server__(opts[:template], name, opts[:load], hostname, &block)
+        __register_server__(opts[:template], name, load_def, hostname, &block)
       end
 
       # To set properties of nodes we can use the similar options to the command 'drbqs-node'.
@@ -167,6 +188,20 @@ module DRbQS
       #   ssh.nice 10
       # end
       def register_node(name, opts = {}, &block)
+        name = name.intern
+        load_def = opts[:load]
+        if ind = @__node__.index { |n, data| name == n }
+          old_data = @__node__.delete_at(ind)
+          if (opts[:group] && old_data[1][:type] != :group) ||
+              (!opts[:group] && old_data[1][:type] == :group)
+            raise ArgumentError, "Change type of definition on reconfiguring."
+          elsif (!opts[:group] && load_def)
+            raise ArgumentError, "Can not set both reconfiguring and loading."
+          end
+          load_def = old_data[1][:setting]
+        else
+          old_data = nil
+        end
         if opts[:group]
           unless Array === opts[:group]
             raise ":group must be an array of node names."
@@ -175,11 +210,27 @@ module DRbQS
             :type => :group, :template => true, :ssh => nil, :setting => nil,
             :args => opts[:group].map(&:intern)
           }
-          @__node__ << [name.intern, data]
+          @__node__ << [name, data]
         elsif block_given?
-          __register_node__(opts[:template], name, opts[:load], &block)
+          __register_node__(opts[:template], name, load_def, &block)
         else
           raise ArgumentError, "Block to define settings is not given."
+        end
+      end
+
+      def clear_server(*args)
+        args.each do |arg|
+          @__server__.delete_if do |name, data|
+            name == arg.intern
+          end
+        end
+      end
+
+      def clear_node(*args)
+        args.each do |arg|
+          @__node__.delete_if do |name, data|
+            name == arg.intern
+          end
         end
       end
 
@@ -188,17 +239,19 @@ module DRbQS
       #   default :port => 13456, :server => :server_local, :log => "/tmp/drbqs_execute_log"
       def default(val = {})
         val.delete_if { |key, v| !v }
+        if val[:server]
+          val[:server] = val[:server].intern
+        end
+        if val[:port]
+          val[:port] = val[:port].to_i
+        end
         @__default__.merge!(val)
-        if @__default__[:server]
-          @__default__[:server] = @__default__[:server].intern
-        end
-        if @__default__[:port]
-          @__default__[:port] = @__default__[:port].to_i
-        end
       end
 
-      def default_clear(key)
-        @__default__.delete(key)
+      def default_clear(*keys)
+        keys.each do |key|
+          @__default__.delete(key)
+        end
       end
 
       # We can set messages of usage and path of definition file of server
