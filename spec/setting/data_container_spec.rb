@@ -88,5 +88,13 @@ describe DRbQS::Setting::Source::DataContainer do
       subject.key1 = 'def'
       subject.key1.should_not == container_clone.key1
     end
+
+    it "should not change a cloned object." do
+      subject.key1 = 'abc'
+      container_clone = DRbQS::Setting::Source.clone_container(subject)
+      subject.key1 << 'def'
+      container_clone.key1.should_not include('def')
+      subject.key1.should include('def')
+    end
   end
 end

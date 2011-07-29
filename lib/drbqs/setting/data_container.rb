@@ -30,7 +30,7 @@ module DRbQS
         cl = DRbQS::Setting::Source::DataContainer.new(Array)
         cl.argument = obj.argument.clone
         obj.__data__.each do |key, val|
-          cl.__data__[key] = val
+          cl.__data__[key] = val.clone
         end
         cl
       end

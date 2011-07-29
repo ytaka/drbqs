@@ -32,4 +32,15 @@ describe DRbQS::Setting::Base do
       obj.parse!
     end.should_not change(obj, :string_for_shell)
   end
+
+  it "should clone an object." do
+    obj = DRbQS::Setting::Base.new(:all_keys_defined => true, :log_level => true, :daemon => true)
+    obj.value.daemon '/path/to/log'
+    obj.value.log_level 'debug'
+    obj_clone = obj.clone
+    obj.value.daemon << '/add'
+    obj.value.daemon.should_not == obj_clone.value.daemon
+    obj_clone.value.debug 'error'
+    obj_clone.value.debug.should_not == obj.value.debug
+  end
 end

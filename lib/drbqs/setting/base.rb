@@ -47,6 +47,21 @@ module DRbQS
         @source.value
       end
 
+      def clone
+        new_obj = self.class.new
+        instance_variables.each do |var_name|
+          var = instance_variable_get(var_name)
+          case var
+          when NilClass, FalseClass, TrueClass, Symbol
+            new_var = var
+          else
+            new_var = var.clone
+          end
+          new_obj.instance_variable_set(var_name, new_var)
+        end
+        new_obj
+      end
+
       def preprocess!
       end
       private :preprocess!
