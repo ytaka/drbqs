@@ -44,16 +44,25 @@ module DRbQS
     end
     private :get_server_setting
 
+    def get_node_data(name)
+      if ary = @register.__node__.assoc(name)
+        ary[1]
+      else
+        nil
+      end
+    end
+    private :get_node_data
+
     def each_node(names = nil, &block)
       if names
         names.each do |name|
-          if data = @register.__node__.assoc(name)
-            yield(name, data[1])
+          if data = get_node_data(name)
+            yield(name, data)
           end
         end
       else
         @register.__node__.each do |name, data|
-          yield(name, data[1])
+          yield(name, data)
         end
       end
     end
@@ -71,7 +80,7 @@ module DRbQS
 
     def server_uri(name)
       data = get_server_setting(name)
-      DRbQS::Misc.create_uri(:host => data[:hostname], :port => data[:port])
+      DRbQS::Misc.create_uri(:host => data[:hostname], :port => server_port)
     end
     private :server_uri
 
@@ -108,7 +117,7 @@ module DRbQS
       puts_progress "Fail to execute server '#{data[:name].to_s}'"
       mes = "#{err.to_s} (#{err.class.to_s})"
       mes = "#{setting.string_for_shell}; " << mes if setting.respond_to?(:string_for_shell)
-      new_err = InvalidNodeDefinition.new(mes)
+      new_err = InvalidServerDefinition.new(mes)
       new_err.set_backtrace(err.backtrace)
       raise new_err
     end

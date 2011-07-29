@@ -95,4 +95,73 @@ describe DRbQS::ProcessDefinition do
       DRbQS.clear_definition
     end
   end
+
+  context "when execute all nodes" do
+    before(:all) do
+      @port = 11111
+      @hostname = 'localhost'     # defined in execute1.rb
+      @tmp = '/tmp/drbqs_tmp_log' # defined in execute1.rb
+      @process_def = DRbQS::ProcessDefinition.new(nil, nil, @port)
+      @process_def.load(definition_file('execute1.rb'))
+      @server_setting = subject.__send__(:get_server_setting)[:setting]
+      @node_local_setting = subject.__send__(:get_node_data, :node_local)[:setting]
+      @node_ssh_setting = subject.__send__(:get_node_data, :node_ssh)[:setting]
+    end
+
+    subject do
+      @process_def
+    end
+
+    it "should check port number of server." do
+      @server_setting.should_receive(:exec)
+      subject.execute_server([])
+      @server_setting.get_first(:port).should == @port
+    end
+
+    it "should check port number set in node." do
+      @node_local_setting.should_receive(:exec)
+      @node_ssh_setting.should_receive(:exec)
+      subject.execute_node
+      uri = "druby://#{@hostname}:#{@port}"
+      @node_local_setting.value.argument.should == [uri]
+      @node_ssh_setting.mode_setting.value.argument == [uri]
+    end
+
+    after(:all) do
+      FileUtils.rm_r(@tmp)
+    end
+  end
+
+  context "when execute a specified node" do
+    before(:all) do
+      @port = DRbQS::ROOT_DEFAULT_PORT
+      @hostname = 'localhost'     # defined in execute1.rb
+      @tmp = '/tmp/drbqs_tmp_log' # defined in execute1.rb
+      @process_def = DRbQS::ProcessDefinition.new(nil, [:node_local], nil)
+      @process_def.load(definition_file('execute1.rb'))
+      @server_setting = subject.__send__(:get_server_setting)[:setting]
+      @node_local_setting = subject.__send__(:get_node_data, :node_local)[:setting]
+    end
+
+    subject do
+      @process_def
+    end
+
+    it "should check port number of server." do
+      @server_setting.should_receive(:exec)
+      subject.execute_server([])
+      @server_setting.get_first(:port).should == @port
+    end
+
+    it "should check port number set in node." do
+      @node_local_setting.should_receive(:exec)
+      subject.execute_node
+      uri = "druby://#{@hostname}:#{@port}"
+      @node_local_setting.value.argument.should == [uri]
+    end
+
+    after(:all) do
+      FileUtils.rm_r(@tmp)
+    end
+  end
 end
