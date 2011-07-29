@@ -1,5 +1,8 @@
 # Use in process_define_spec.rb
 
+server_file = File.join(File.dirname(__FILE__), '../../integration_test/definition/server02.rb')
+usage message: "Usage of this definition.", server: server_file
+
 register_server 'server_local', 'localhost' do |server|
   server.load 'server.rb'
 end

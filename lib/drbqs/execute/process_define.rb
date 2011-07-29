@@ -82,16 +82,17 @@ module DRbQS
         setting = data[:setting]
         hostname = data[:hostname]
         type = data[:type]
-        server_setting = type == :ssh ? setting.mode_setting : setting
-        server_setting.set_server_argument(*server_args)
-        server_setting.value.port server_port
-        unless server_setting.value.sftp_host
-          server_setting.value.sftp_host hostname
-        end
         if type == :ssh
           setting.value.connect name
-        end
+          server_setting = setting.mode_setting
+        else
+          server_setting = setting
           server_setting.value.daemon FileName.create(local_log_directory, "server_execute.log", :position => :middle)
+        end
+        server_setting.set_server_argument(*server_args)
+        server_setting.value.port server_port
+        unless server_setting.set?(:sftp_host)
+          server_setting.value.sftp_host hostname
         end
         setting.parse!
         unless type == :ssh
@@ -186,15 +187,18 @@ module DRbQS
     end
 
     def usage
-      data = @register.__usage__
-      str = data[:message] ? "\nDescription:\n#{data[:message]}" : ""
-      if (server_file = data[:server]) && File.exist?(server_file)
-        Kernel.load(server_file)
-        if server_help = DRbQS.option_help_message
-          str << "\n\n" << server_help
+      if data = @register.__usage__
+        str = data[:message] ? "\nDescription:\n#{data[:message]}" : ""
+        if (server_file = data[:server]) && File.exist?(server_file)
+          Kernel.load(server_file)
+          if server_help = DRbQS.option_help_message
+            str << "\n\n" << server_help
+          end
         end
+        str
+      else
+        ''
       end
-      str
     end
   end
 end
