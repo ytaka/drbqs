@@ -17,7 +17,7 @@ module DRbQS
         @directory = directory || @directory
         return nil if !@directory
         @created = true
-        transfer_client = DRbQS::TransferClient.new(@directory)
+        transfer_client = DRbQS::TransferClient.new(File.expand_path(@directory))
         transfer_client.make_directory
         if host = opts[:host] || @host
           user = opts[:user] || @user || ENV['USER']

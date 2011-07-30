@@ -5,8 +5,8 @@ module DRbQS
   class TransferClient
 
     class ClientBase
-      def initialize(directory)
-        @directory = File.expand_path(directory)
+      def initialize(server_directory)
+        @directory = server_directory
       end
 
       def upload_name(path)
@@ -49,8 +49,11 @@ module DRbQS
 
     attr_reader :directory, :local, :sftp
 
-    def initialize(dir)
-      @directory = File.expand_path(dir)
+    def initialize(server_directory)
+      unless Pathname.new(server_directory).absolute?
+        raise ArgumentError, "Directory of server must be absolute."
+      end
+      @directory = server_directory
       @local = DRbQS::TransferClient::Local.new(@directory)
       @sftp = nil
     end
