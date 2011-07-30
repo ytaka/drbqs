@@ -117,7 +117,7 @@ describe DRbQS::ProcessDefinition do
       @tmp = '/tmp/drbqs_tmp_log' # defined in execute1.rb
       @process_def = DRbQS::ProcessDefinition.new(nil, nil, @port)
       @process_def.load(definition_file('execute1.rb'))
-      @server_setting = subject.__send__(:get_server_setting)[:setting]
+      @server_setting = subject.__send__(:get_server_setting)[1][:setting]
       @node_local_setting = subject.__send__(:get_node_data, :node_local)[:setting]
       @node_ssh_setting = subject.__send__(:get_node_data, :node_ssh)[:setting]
     end
@@ -153,7 +153,7 @@ describe DRbQS::ProcessDefinition do
       @tmp = '/tmp/drbqs_tmp_log' # defined in execute1.rb
       @process_def = DRbQS::ProcessDefinition.new(nil, [:node_local], nil)
       @process_def.load(definition_file('execute1.rb'))
-      @server_setting = subject.__send__(:get_server_setting)[:setting]
+      @server_setting = subject.__send__(:get_server_setting)[1][:setting]
       @node_local_setting = subject.__send__(:get_node_data, :node_local)[:setting]
     end
 
@@ -186,7 +186,7 @@ describe DRbQS::ProcessDefinition do
       @tmp = '/tmp/drbqs_tmp_log' # defined in execute1.rb
       @process_def = DRbQS::ProcessDefinition.new(nil, nil, nil)
       @process_def.load(definition_file('execute2.rb'))
-      @server_setting = subject.__send__(:get_server_setting)[:setting]
+      @server_setting = subject.__send__(:get_server_setting)[1][:setting]
       @node_local_setting = subject.__send__(:get_node_data, :node_local)[:setting]
       @node_ssh_setting = subject.__send__(:get_node_data, :node_ssh)[:setting]
     end
