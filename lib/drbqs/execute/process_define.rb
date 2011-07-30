@@ -114,7 +114,7 @@ module DRbQS
       if ary = get_server_setting(@server)
         name = ary[0].to_s
         data = ary[1]
-        puts_progress "Execute server '#{name}' (#{data[:type]})"
+        puts_progress "Execute server '#{name}' (#{data[:ssh] ? 'ssh' : 'local'})"
         setting = data[:setting]
         hostname = data[:args][0]
         type = data[:type]
@@ -153,7 +153,7 @@ module DRbQS
     end
 
     def execute_one_node(name, data, uri)
-      puts_progress "Execute node '#{name}' (#{data[:type]})"
+      puts_progress "Execute node '#{name}' (#{data[:ssh] ? 'ssh' : 'local'})"
       setting = data[:setting]
       node_setting = (data[:ssh] ? setting.mode_setting : setting)
       node_setting.value.argument.clear
@@ -173,7 +173,10 @@ module DRbQS
     rescue Exception => err
       puts_progress "Fail to execute node '#{name.to_s}'"
       mes = "#{err.to_s} (#{err.class.to_s})"
-      mes = "#{setting.string_for_shell}; " << mes if setting.respond_to?(:string_for_shell)
+      begin
+        mes = "#{setting.string_for_shell}; " << mes if setting.respond_to?(:string_for_shell)
+      rescue
+      end
       new_err = InvalidNodeDefinition.new(mes)
       new_err.set_backtrace(err.backtrace)
       raise new_err
