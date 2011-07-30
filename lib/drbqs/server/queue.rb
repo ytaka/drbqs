@@ -28,7 +28,7 @@ module DRbQS
         @logger.info("New task: #{@task_id}")
         @cache[@task_id] = task
         queue_task(@task_id)
-        @history.set(@task_id, :add)
+        @history.set(@task_id, :add, task.message)
         @task_id
       end
 
@@ -99,6 +99,18 @@ module DRbQS
           @logger.debug("Get: #{count} results.")
         end
         count
+      end
+
+      # Return a hash of which keys are node ID number and
+      # values are an array of pairs of task ID number and its message.
+      def calculating_task_message
+        mes = {}
+        @calculating.each do |node_id, task_id_ary|
+          mes[node_id] = task_id_ary.map do |n|
+            [n, @history.events(n)[0][2]]
+          end
+        end
+        mes
       end
 
       def calculating_task_number

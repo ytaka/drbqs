@@ -113,43 +113,16 @@ module DRbQS
         send_signal(node_id, :exit_after_task)
       end
 
-      # +data+ is a hash including server information.
-      # The keys are :calculating_task_number, :finished_task_number, :stocked_task_number,
-      # :calculating_nodes, and :generator_number.
-      def send_status(data)
-        s = "Nodes:\n"
-        if @node_list.history.size == 0
-          s << "  none\n"
-        else
-          @node_list.history.each do |node_id, events|
-            if events.size == 0
-              s << "Empty history of node #{node_id}\n"
-            else
-              connect = events[0]
-              s << sprintf("%4d %s\t", node_id, connect[2])
-              if events.size > 1
-                s << "start:#{time_to_history_string(connect[0])}"
-                events[1..-1].each do |t, key|
-                  s << ", #{key}: #{time_to_history_string(t)}"
-                end
-                s << "\n"
-              elsif data[:calculating_nodes]
-                task_ids = data[:calculating_nodes][node_id].to_a
-                s << "task: #{task_ids.map { |num| num.to_s }.join(', ')} (#{time_to_history_string(connect[0])})\n"
-              end
-            end
-          end
-        end
-        s << "Server:\n"
-        s << "  calculating tasks: #{data[:calculating_task_number]}\n"
-        s << "  finished tasks   : #{data[:finished_task_number]}\n"
-        s << "  stocked tasks    : #{data[:stocked_task_number]}\n"
-        s << "  task generator   : #{data[:generator_number]}"
+      def each_node_history(&block)
+        @node_list.history.each(&block)
+      end
+
+      def send_status(server_status_string)
         begin
           @message.take([:status, nil], 0)
         rescue Rinda::RequestExpiredError
         end
-        @message.write([:status, s])
+        @message.write([:status, server_status_string])
       end
 
       def send_history(history_string)

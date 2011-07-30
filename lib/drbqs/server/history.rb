@@ -51,7 +51,11 @@ module DRbQS
           s << "Task #{task_id}\n"
           events.each do |ev|
             case ev[1]
-            when :add, :requeue, :hook
+            when :add
+              s << "  #{time_to_history_string(ev[0])}\t#{ev[1]}"
+              s << "\t" << ev[2].to_s if ev[2]
+              s << "\n"
+            when :requeue, :hook
               s << "  #{time_to_history_string(ev[0])}\t#{ev[1]}\n"
             when :calculate, :result
               s << "  #{time_to_history_string(ev[0])}\t#{ev[1]} (node #{ev[2]})\n"

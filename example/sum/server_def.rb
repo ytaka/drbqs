@@ -17,7 +17,7 @@ DRbQS.define_server(:check_alive => 5) do |server, argv, opts|
   end_num = (argv[1] || 50).to_i
   step_num = opts[:step] || 10
   start_num.step(end_num, step_num) do |i|
-    task = DRbQS::Task.new(Sum.new(i - 10, i), :exec) do |srv, ret|
+    task = DRbQS::Task.new(Sum.new(i - 10, i), :exec, [], "#{i-10} to #{i}") do |srv, ret|
       puts "Receive: #{ret.inspect}"
     end
     server.queue.add(task)

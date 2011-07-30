@@ -56,6 +56,11 @@ module DRbQS
     end
     module_function :time_to_history_string
 
+    def time_to_history_string2(t)
+      t.strftime("%m-%d %H:%M:%S")
+    end
+    module_function :time_to_history_string2
+
     STRINGS_FOR_KEY = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a
 
     def random_key(size = 20)

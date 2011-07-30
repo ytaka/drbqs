@@ -110,7 +110,7 @@ describe DRbQS::Server::Message do
     end
 
     it "should send status" do
-      @message_server.send_status({})
+      @message_server.send_status('status message')
       sym, status = @message.take([:status, nil])
       status.should be_an_instance_of String
     end

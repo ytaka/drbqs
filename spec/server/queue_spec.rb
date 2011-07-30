@@ -287,9 +287,9 @@ describe DRbQS::Server::Queue do
 
   context "when managing some tasks" do
     before(:all) do
-      @task_ary = [DRbQS::Task.new([1, 2, 3], :size, []),
-                   DRbQS::Task.new([1, 3], :size, []),
-                   DRbQS::Task.new([2, 1, 2, 3], :size, [])]
+      @task_ary = [DRbQS::Task.new([1, 2, 3], :size, [], 'task1'),
+                   DRbQS::Task.new([1, 3], :size, [], 'task2'),
+                   DRbQS::Task.new([2, 1, 2, 3], :size, [], 'task3')]
       object_init
       @node_id = 100
       @task_id_ary = @task_ary.map do |task|
@@ -322,6 +322,33 @@ describe DRbQS::Server::Queue do
 
     it "should not be finished." do
       subject.should_not be_finished
+    end
+  end
+
+  context "when creating messages of calculating tasks" do
+    before(:all) do
+      @task_ary = [DRbQS::Task.new([1, 2, 3], :size, [], 'task1'),
+                   DRbQS::Task.new([1, 3], :size, [], 'task2'),
+                   DRbQS::Task.new([2, 1, 2, 3], :size, [], 'task3')]
+      object_init
+      @node_id = 100
+      @task_id_ary = @task_ary.map do |task|
+        subject.add(task)
+      end
+      @ts[:result].write([:accept, @task_id_ary[0], 100])
+      @ts[:result].write([:accept, @task_id_ary[1], 101])
+      @ts[:result].write([:result, @task_id_ary[0], @node_id, :result_object])
+    end
+
+    it "should return number of acceptances of signals." do
+      subject.get_accept_signal.should == 2
+    end
+    
+    it "should return calculating task messages." do
+      messages = subject.calculating_task_message
+      messages.should have(2).items
+      messages[100].should == [[@task_id_ary[0], 'task1']]
+      messages[101].should == [[@task_id_ary[1], 'task2']]
     end
   end
 

@@ -11,6 +11,8 @@ module DRbQS
   # When we set both empty_queue_hook and task_generator,
   # empty_queue_hook is prior to task_generator.
   class Server
+    include DRbQS::Misc
+
     WAIT_TIME_NODE_EXIT = 3
     WAIT_TIME_NODE_FINALIZE = 10
     WAIT_TIME_NEW_RESULT = 1
@@ -282,14 +284,40 @@ module DRbQS
     private :process_data
 
     def send_status_for_request
-      data = {
-        :calculating_task_number => @queue.calculating_task_number,
-        :finished_task_number => @queue.finished_task_number,
-        :stocked_task_number => @queue.stocked_task_number,
-        :calculating_nodes => @queue.calculating,
-        :generator_number => @task_generator.size
-      }
-      @message.send_status(data)
+      messages = @queue.calculating_task_message
+      s = ''
+      @message.each_node_history do|node_id, events|
+        if events.size == 0
+          s << "Empty history of node #{node_id}\n"
+        else
+          connect = events[0]
+          s << sprintf("%4d %s\t", node_id, connect[2])
+          if events.size > 1
+            s << "start:#{time_to_history_string2(connect[0])}"
+            events[1..-1].each do |t, key|
+              s << ", #{key}: #{time_to_history_string2(t)}"
+            end
+            s << "\n"
+          else
+            task_ids = @queue.calculating[node_id].to_a
+            s << "task: "
+            s << messages[node_id].map do |task_id, mes|
+              calc_task = task_id.to_s
+              calc_task << ": " << mes.to_s if mes
+              calc_task
+            end.join(', ')
+            s << " (#{time_to_history_string2(connect[0])})\n"
+          end
+        end
+      end
+      s << "  none\n" if s.size == 0
+      s = "Nodes:\n" << s
+      s << "Server:\n"
+      s << "  calculating tasks: #{@queue.calculating_task_number}\n"
+      s << "  finished tasks   : #{@queue.finished_task_number}\n"
+      s << "  stocked tasks    : #{@queue.stocked_task_number}\n"
+      s << "  task generator   : #{@task_generator.size}"
+      @message.send_status(s)
     end
     private :send_status_for_request
 
