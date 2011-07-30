@@ -25,11 +25,11 @@ module DRbQS
         @port = get_first(:port) do |val|
           val.to_i
         end
-        @no_server = get_first(:no_server)
+        @no_server = set?(:no_server)
         @server = get_first(:server) do |val|
           val.intern
         end
-        @no_node = get_first(:no_node)
+        @no_node = set?(:no_node)
         @node = get_first(:node) do |val|
           val.split(',').map do |s|
             s.intern
