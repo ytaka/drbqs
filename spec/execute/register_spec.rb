@@ -10,7 +10,7 @@ describe DRbQS::ProcessDefinition::Register do
   context "when registering a server" do
     it "should define a server on localhost." do
       load_file = 'file.rb'
-      subject.register_server(:server1, "example.com") do |server|
+      subject.server(:server1, "example.com") do |server|
         server.load load_file
       end
       name, data = subject.__server__.assoc(:server1)
@@ -25,7 +25,7 @@ describe DRbQS::ProcessDefinition::Register do
     it "should define a server over ssh." do
       dest = "user@example.com"
       load_file = 'file.rb'
-      subject.register_server(:server2, "example.com") do |server, ssh|
+      subject.server(:server2, "example.com") do |server, ssh|
         server.load load_file
         ssh.connect dest
       end
@@ -42,7 +42,7 @@ describe DRbQS::ProcessDefinition::Register do
     it "should raise error for arguments without hostname." do
       load_file = 'file.rb'
       lambda do
-        subject.register_server(:server3) do |server|
+        subject.server(:server3) do |server|
           server.load load_file
         end
       end.should raise_error
@@ -50,7 +50,7 @@ describe DRbQS::ProcessDefinition::Register do
 
     it "should set template." do
       load_file = 'file.rb'
-      subject.register_server(:server4, :template => true) do |server|
+      subject.server(:server4, :template => true) do |server|
         server.load load_file
       end
       name, data = subject.__server__.assoc(:server4)
@@ -65,7 +65,7 @@ describe DRbQS::ProcessDefinition::Register do
     it "should define a server over ssh." do
       load_file = 'file.rb'
       bash = "bash"
-      subject.register_server(:server5, :template => true) do |server, ssh|
+      subject.server(:server5, :template => true) do |server, ssh|
         server.load load_file
         ssh.shell bash
       end
@@ -83,7 +83,7 @@ describe DRbQS::ProcessDefinition::Register do
   context "when registering a node" do
     it "should define a node on localhost." do
       uri = 'druby://:12345'
-      subject.register_node(:node1) do |node|
+      subject.node(:node1) do |node|
         node.connect uri
       end
       name, data = subject.__node__.assoc(:node1)
@@ -98,7 +98,7 @@ describe DRbQS::ProcessDefinition::Register do
     it "should define a node over ssh." do
       dest = "user@example.com"
       uri = 'druby://:12345'
-      subject.register_node(:node2) do |node, ssh|
+      subject.node(:node2) do |node, ssh|
         node.connect uri
         ssh.connect dest
       end
@@ -114,7 +114,7 @@ describe DRbQS::ProcessDefinition::Register do
 
     it "should define a node template." do
       uri = 'druby://:12345'
-      subject.register_node(:node3, :template => true) do |node|
+      subject.node(:node3, :template => true) do |node|
         node.connect uri
       end
       name, data = subject.__node__.assoc(:node3)
@@ -129,7 +129,7 @@ describe DRbQS::ProcessDefinition::Register do
     it "should define a node over ssh." do
       dest = "user@example.com"
       uri = 'druby://:12345'
-      subject.register_node(:node4, :template => true) do |node, ssh|
+      subject.node(:node4, :template => true) do |node, ssh|
         node.connect uri
         ssh.connect dest
       end
@@ -145,7 +145,7 @@ describe DRbQS::ProcessDefinition::Register do
 
     it "should set node group." do
       nodes = [:node1, :node2]
-      subject.register_node(:node_group, :group => nodes)
+      subject.node(:node_group, :group => nodes)
       name, data = subject.__node__.assoc(:node_group)
       data[:type].should == :group
       data[:template].should be_true
@@ -155,17 +155,17 @@ describe DRbQS::ProcessDefinition::Register do
 
     it "should raise error for invalid node group." do
       lambda do
-        subject.register_node(:node_group, :group => :node_error)
+        subject.node(:node_group, :group => :node_error)
       end.should raise_error
     end
   end
 
   context "when loading other server difinition" do
     it "should load server definition." do
-      subject.register_server :parent, template: true do |server|
+      subject.server :parent, template: true do |server|
         server.log_level "debug"
       end
-      subject.register_server :child, 'example.com', load: :parent do |server|
+      subject.server :child, 'example.com', load: :parent do |server|
         server.load "file.rb"
       end
 
@@ -180,11 +180,11 @@ describe DRbQS::ProcessDefinition::Register do
     end
 
     it "should load server definition that is over ssh." do
-      subject.register_server :parent, template: true do |server, ssh|
+      subject.server :parent, template: true do |server, ssh|
         server.log_level "debug"
         ssh.rvm "ruby-head"
       end
-      subject.register_server :child, 'example.com', load: :parent do |server, ssh|
+      subject.server :child, 'example.com', load: :parent do |server, ssh|
         server.load "file.rb"
         ssh.nice 20
       end
@@ -203,10 +203,10 @@ describe DRbQS::ProcessDefinition::Register do
     end
 
     it "should load server definition on localhost for definition over ssh." do
-      subject.register_server :parent, template: true do |server|
+      subject.server :parent, template: true do |server|
         server.log_level "debug"
       end
-      subject.register_server :child, 'example.com', load: :parent do |server, ssh|
+      subject.server :child, 'example.com', load: :parent do |server, ssh|
         server.load "file.rb"
         ssh.nice 20
       end
@@ -223,12 +223,12 @@ describe DRbQS::ProcessDefinition::Register do
     end
 
     it "should raise error because definition on localhost loads that over ssh." do
-      subject.register_server :parent, template: true do |server, ssh|
+      subject.server :parent, template: true do |server, ssh|
         server.log_level "debug"
         ssh.rvm "ruby-head"
       end
       lambda do
-        subject.register_server :child, 'example.com', load: :parent do |server|
+        subject.server :child, 'example.com', load: :parent do |server|
         end
       end.should raise_error
     end
@@ -236,10 +236,10 @@ describe DRbQS::ProcessDefinition::Register do
 
   context "when loading other node difinition" do
     it "should load node definition." do
-      subject.register_node :parent, template: true do |node|
+      subject.node :parent, template: true do |node|
         node.log_level "debug"
       end
-      subject.register_node :child, load: :parent do |node|
+      subject.node :child, load: :parent do |node|
         node.load "file.rb"
       end
 
@@ -254,11 +254,11 @@ describe DRbQS::ProcessDefinition::Register do
     end
 
     it "should load node definition that is over ssh." do
-      subject.register_node :parent, template: true do |node, ssh|
+      subject.node :parent, template: true do |node, ssh|
         node.log_level "debug"
         ssh.rvm "ruby-head"
       end
-      subject.register_node :child, load: :parent do |node, ssh|
+      subject.node :child, load: :parent do |node, ssh|
         node.load "file.rb"
         ssh.nice 20
       end
@@ -277,10 +277,10 @@ describe DRbQS::ProcessDefinition::Register do
     end
 
     it "should load node definition on localhost for definition over ssh." do
-      subject.register_node :parent, template: true do |node|
+      subject.node :parent, template: true do |node|
         node.log_level "debug"
       end
-      subject.register_node :child, load: :parent do |node, ssh|
+      subject.node :child, load: :parent do |node, ssh|
         node.load "file.rb"
         ssh.nice 20
       end
@@ -297,20 +297,20 @@ describe DRbQS::ProcessDefinition::Register do
     end
 
     it "should raise error because definition on localhost loads that over ssh." do
-      subject.register_node :parent, template: true do |node, ssh|
+      subject.node :parent, template: true do |node, ssh|
         node.log_level "debug"
         ssh.rvm "ruby-head"
       end
       lambda do
-        subject.register_node :child, load: :parent do |node|
+        subject.node :child, load: :parent do |node|
         end
       end.should raise_error
     end
 
     it "should raise error because group definition is loaded." do
-      subject.register_node :parent, group: [:node1, :node2, :node3]
+      subject.node :parent, group: [:node1, :node2, :node3]
       lambda do
-        subject.register_node :child, load: :parent do |node|
+        subject.node :child, load: :parent do |node|
         end
       end.should raise_error
     end
@@ -319,10 +319,10 @@ describe DRbQS::ProcessDefinition::Register do
   context "when reconfiguring server" do
     it "should reconfigure definition." do
       load_file = 'file.rb'
-      subject.register_server(:server1, "example.com") do |server|
+      subject.server(:server1, "example.com") do |server|
         server.load load_file
       end
-      subject.register_server(:server1, "example.com") do |server|
+      subject.server(:server1, "example.com") do |server|
         server.log_level 'info'
       end
 
@@ -336,10 +336,10 @@ describe DRbQS::ProcessDefinition::Register do
     end
 
     it "should raise error for simultaneous reconfiguring and loading." do
-      subject.register_server(:server2, "example.com") do |server|
+      subject.server(:server2, "example.com") do |server|
       end
       lambda do
-        subject.register_server(:server2, "example.com", load: :some_definition) do |server|
+        subject.server(:server2, "example.com", load: :some_definition) do |server|
         end
       end.should raise_error
     end
@@ -348,10 +348,10 @@ describe DRbQS::ProcessDefinition::Register do
   context "when reconfiguring node" do
     it "should reconfigure definition." do
       load_file = 'file.rb'
-      subject.register_node(:node1) do |node|
+      subject.node(:node1) do |node|
         node.load load_file
       end
-      subject.register_node(:node1) do |node|
+      subject.node(:node1) do |node|
         node.log_level 'info'
       end
 
@@ -367,8 +367,8 @@ describe DRbQS::ProcessDefinition::Register do
     it "should raise error to change type of group." do
       nodes = [:node1, :node2]
       nodes2 = [:node3, :node4, :node5]
-      subject.register_node(:node_group, :group => nodes)
-      subject.register_node(:node_group, :group => nodes2)
+      subject.node(:node_group, :group => nodes)
+      subject.node(:node_group, :group => nodes2)
       name, data = subject.__node__.assoc(:node_group)
       data[:type].should == :group
       data[:template].should be_true
@@ -377,38 +377,38 @@ describe DRbQS::ProcessDefinition::Register do
     end
 
     it "should raise error for simultaneous reconfiguring and loading." do
-      subject.register_node(:node2) do |node|
+      subject.node(:node2) do |node|
       end
       lambda do
-        subject.register_node(:node2, load: :some_definition) do |node|
+        subject.node(:node2, load: :some_definition) do |node|
         end
       end.should raise_error
     end
 
     it "should raise error to change type of group." do
-      subject.register_node(:node_group, group: [:node1, :node2])
+      subject.node(:node_group, group: [:node1, :node2])
       lambda do
-        subject.register_node(:node_group) do |node|
+        subject.node(:node_group) do |node|
         end
       end.should raise_error
     end
 
     it "should raise error to change type of process." do
-      subject.register_node(:node) do |node|
+      subject.node(:node) do |node|
       end
       lambda do
-        subject.register_node(:node, group: [:node1, :node2])
+        subject.node(:node, group: [:node1, :node2])
       end.should raise_error
     end
   end
 
   context "when clearing" do
     it "should clear servers" do
-      subject.register_server(:server1, "example.com") do |server|
+      subject.server(:server1, "example.com") do |server|
       end
-      subject.register_server(:server2, "example.com") do |server|
+      subject.server(:server2, "example.com") do |server|
       end
-      subject.register_server(:server3, "example.com") do |server|
+      subject.server(:server3, "example.com") do |server|
       end
       subject.clear_server(:server1, :server3)
       subject.__server__.assoc(:server1).should_not be_true
@@ -417,11 +417,11 @@ describe DRbQS::ProcessDefinition::Register do
     end
 
     it "should clear nodes" do
-      subject.register_node(:node1) do |node|
+      subject.node(:node1) do |node|
       end
-      subject.register_node(:node2) do |node|
+      subject.node(:node2) do |node|
       end
-      subject.register_node(:node3) do |node|
+      subject.node(:node3) do |node|
       end
       subject.clear_node(:node1, :node3)
       subject.__node__.assoc(:node1).should_not be_true

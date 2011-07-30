@@ -88,7 +88,7 @@ module DRbQS
       # We can set :template and :load as an option.
       # 
       # * Example of a server on localhost
-      # register_server(:server_local, "example.com") do |server|
+      # server(:server_local, "example.com") do |server|
       #   server.load "server_definition.rb"
       #   server.acl "/path/to/acl"
       #   server.log_file "/path/to/log"
@@ -98,7 +98,7 @@ module DRbQS
       # end
       # 
       # * Example of a server over ssh
-      # register_server(:server_ssh, "example.co.jp") do |server, ssh|
+      # server(:server_ssh, "example.co.jp") do |server, ssh|
       #   server.load "server_definition.rb"
       #   server.acl "/path/to/acl"
       #   server.log_level Logger::ERROR
@@ -113,7 +113,7 @@ module DRbQS
       #   ssh.output "/path/to/output"
       #   ssh.nice 10
       # end
-      def register_server(name, *args, &block)
+      def server(name, *args, &block)
         name = name.intern
         if ind = @__server__.index { |n, data| name == n }
           old_data = @__server__.delete_at(ind)
@@ -166,7 +166,7 @@ module DRbQS
       # We can set :template, :load, and :group as options.
       # 
       # * Example of nodes on localhost
-      # register_node(:node_local) do |node|
+      # node(:node_local) do |node|
       #   node.process 3
       #   node.load "load_lib.rb"
       #   node.log_prefix "/path/to/log"
@@ -174,7 +174,7 @@ module DRbQS
       # end
       # 
       # * Example of nodes over ssh
-      # register_node(:node_ssh) do |node, ssh|
+      # node(:node_ssh) do |node, ssh|
       #   node.process 3
       #   node.load "load_lib.rb"
       #   node.log_level Logger::DEBUG
@@ -187,7 +187,7 @@ module DRbQS
       #   ssh.output "/path/to/output"
       #   ssh.nice 10
       # end
-      def register_node(name, opts = {}, &block)
+      def node(name, opts = {}, &block)
         name = name.intern
         load_def = opts[:load]
         if ind = @__node__.index { |n, data| name == n }
