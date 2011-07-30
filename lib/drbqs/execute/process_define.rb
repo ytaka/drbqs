@@ -46,7 +46,7 @@ module DRbQS
       elsif !(data = @register.__server__.assoc(name.intern))
         return get_server_setting(nil)
       end
-      { :name => data[0], :type => data[1][:type], :setting => data[1][:setting], :hostname => data[1][:args][0] }
+      data
     end
     private :get_server_setting
 
@@ -102,20 +102,24 @@ module DRbQS
     private :server_port
 
     def server_uri(name)
-      data = get_server_setting(name)
-      DRbQS::Misc.create_uri(:host => data[:hostname], :port => server_port)
+      if ary = get_server_setting(name)
+        DRbQS::Misc.create_uri(:host => ary[1][:args][0], :port => server_port)
+      else
+        nil
+      end
     end
     private :server_uri
 
     def execute_server(server_args)
-      if data = get_server_setting(@server)
-        name = data[:name].to_s
+      if ary = get_server_setting(@server)
+        name = ary[0].to_s
+        data = ary[1]
         puts_progress "Execute server '#{name}' (#{data[:type]})"
         setting = data[:setting]
-        hostname = data[:hostname]
+        hostname = data[:args][0]
         type = data[:type]
         if data[:ssh]
-          setting.value.connect name
+          setting.value.connect name unless setting.set?(:connect)
           server_setting = setting.mode_setting
         else
           server_setting = setting
@@ -139,7 +143,10 @@ module DRbQS
     rescue Exception => err
       puts_progress "Fail to execute server '#{data[:name].to_s}'"
       mes = "#{err.to_s} (#{err.class.to_s})"
-      mes = "#{setting.string_for_shell}; " << mes if setting.respond_to?(:string_for_shell)
+      begin
+        mes = "#{setting.string_for_shell}; " << mes if setting.respond_to?(:string_for_shell)
+      rescue
+      end
       new_err = InvalidServerDefinition.new(mes)
       new_err.set_backtrace(err.backtrace)
       raise new_err
@@ -197,8 +204,8 @@ module DRbQS
         new_data.delete(:setting)
         [name, new_data]
       end
-      if data = get_server_setting(@server)
-        default_server = data[:name]
+      if ary = get_server_setting(@server)
+        default_server = ary[0]
       else
         default_server = nil
       end
