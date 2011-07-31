@@ -3,7 +3,7 @@ module DRbQS
     class TaskClient
       attr_reader :node_number, :calculating_task
 
-      def initialize(node_number, queue, result, logger = DRbQS::LoggerDummy.new)
+      def initialize(node_number, queue, result, logger = DRbQS::Misc::LoggerDummy.new)
         @node_number = node_number
         @queue = queue
         @result = result

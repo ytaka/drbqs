@@ -11,7 +11,7 @@ describe DRbQS::Server do
   end
 
   it "should send node exit" do
-    execute_node = DRbQS::ExecuteNode.new(@uri, nil, nil)
+    execute_node = DRbQS::Execution::ExecuteNode.new(@uri, nil, nil)
     execute_node.execute(1)
     client_process_id = execute_node.pid[0]
     th = Process.detach(client_process_id)

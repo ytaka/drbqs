@@ -1,6 +1,6 @@
 require 'drbqs'
 require 'drbqs/manage/manage'
-require 'drbqs/manage/execute_node'
+require 'drbqs/execute/execute_node'
 require 'drbqs/command_line/argument'
 require 'drbqs/command_line/option_setting'
 require 'drbqs/command_line/command_base'

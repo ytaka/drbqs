@@ -5,7 +5,7 @@ module DRbQS
     class Message
       include DRbQS::Misc
 
-      def initialize(message, logger = DRbQS::LoggerDummy.new)
+      def initialize(message, logger = DRbQS::Misc::LoggerDummy.new)
         @message = message
         @node_list = DRbQS::Server::NodeList.new
         @logger = logger

@@ -131,7 +131,7 @@ module DRbQS
         unless IO === @options[:log_file]
           node_log_file = FileName.create(@options[:log_file], :add => :always, :position => :middle, :delimiter => '', :format => "_node_%02d")
         end
-        exec_node = DRbQS::ExecuteNode.new(uri, node_log_file, @options[:log_level])
+        exec_node = DRbQS::Execution::ExecuteNode.new(uri, node_log_file, @options[:log_level])
         exec_node.execute(@execute_node_number, NODE_INTERVAL_TIME)
         exec_node.wait
       end

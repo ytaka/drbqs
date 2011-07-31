@@ -2,9 +2,9 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 require 'drbqs/utility/temporary'
 
-describe DRbQS::LoggerDummy do
+describe DRbQS::Misc::LoggerDummy do
   subject do
-    DRbQS::LoggerDummy.new
+    DRbQS::Misc::LoggerDummy.new
   end
 
   it "should respond to info." do

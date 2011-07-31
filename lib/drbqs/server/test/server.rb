@@ -11,9 +11,9 @@ module DRbQS
         result = { :start => Time.now }
         num = 0
         if profile
-          require 'drbqs/server/prof'
+          require 'drbqs/server/test/prof'
           result[:profile] = FileName.create(PROF_FILE, :position => :middle)
-          prof = DRbQS::Prof.new(printer || :flat, result[:profile])
+          prof = DRbQS::Test::Prof.new(printer || :flat, result[:profile])
           prof.start
         end
         begin

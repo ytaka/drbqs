@@ -4,7 +4,7 @@ module DRbQS
     class Connection
       attr_reader :id, :node_number
 
-      def initialize(message, logger = DRbQS::LoggerDummy.new)
+      def initialize(message, logger = DRbQS::Misc::LoggerDummy.new)
         @message = message
         @logger = logger
         @node_number = nil

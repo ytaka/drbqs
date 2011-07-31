@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe DRbQS::ServerDefinition do
+describe DRbQS::Execution::ServerDefinition do
   context "when we call class methods" do
     subject do
       DRbQS.class_variable_get(:@@server_def)

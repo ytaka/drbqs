@@ -6,7 +6,7 @@ module DRbQS
     class Queue
       attr_reader :calculating, :history
 
-      def initialize(queue, result, logger = DRbQS::LoggerDummy.new)
+      def initialize(queue, result, logger = DRbQS::Misc::LoggerDummy.new)
         @queue = queue
         @result = result
         @task_id = 0

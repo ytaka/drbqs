@@ -1,21 +1,21 @@
 require 'sys/proctable'
 
 module DRbQS
-  class LoggerDummy
-    def info(*args)
-    end
-
-    def warn(*args)
-    end
-
-    def error(*args)
-    end
-
-    def debug(*args)
-    end
-  end
-
   module Misc
+    class LoggerDummy
+      def info(*args)
+      end
+
+      def warn(*args)
+      end
+
+      def error(*args)
+      end
+
+      def debug(*args)
+      end
+    end
+
     # :port
     # :host
     # :unix
