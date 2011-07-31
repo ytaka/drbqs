@@ -17,8 +17,9 @@ module DRbQS
         @directory = directory || @directory
         return nil if !@directory
         @created = true
-        transfer_client = DRbQS::TransferClient.new(File.expand_path(@directory))
-        transfer_client.make_directory
+        dir = File.expand_path(@directory)
+        transfer_client = DRbQS::Transfer::Client.new(dir)
+        FileUtils.mkdir_p(dir)
         if host = opts[:host] || @host
           user = opts[:user] || @user || ENV['USER']
           transfer_client.set_sftp(user, host)
