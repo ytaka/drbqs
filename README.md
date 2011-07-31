@@ -171,7 +171,7 @@ after the task is completed.
 
 When a task is finished on a node,
 we can transfer files from a server to a client.
-To be more precise, we enqueue a file by DRbQS::FileTransfer.enqueue
+To be more precise, we enqueue a file by DRbQS::Transfer.enqueue
 in methods to calculate tasks and
 files in the queue are automatically transferred.
 Then, original files on nodes are deleted after transferring.

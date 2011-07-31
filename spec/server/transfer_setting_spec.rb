@@ -11,7 +11,7 @@ describe DRbQS::Server::TransferSetting do
   end
 
   context "when setup transfer settings" do
-    it "should return transfer client." do
+    it "should set transfer settings by initializing." do
       dir = DRbQS::Temporary.file
       setting = DRbQS::Server::TransferSetting.new('example.com', 'user', dir)
       setting.setup_server(nil).should be_true
@@ -20,7 +20,7 @@ describe DRbQS::Server::TransferSetting do
       setting.directory.should == dir
     end
 
-    it "should return transfer client with a directory argument." do
+    it "should set directory by setup_server." do
       dir = DRbQS::Temporary.file
       setting = DRbQS::Server::TransferSetting.new('example.com', 'user', nil)
       setting.setup_server(dir).should be_true
@@ -29,7 +29,7 @@ describe DRbQS::Server::TransferSetting do
       setting.directory.should == dir
     end
 
-    it "should return transfer client without sftp" do
+    it "should not set sftp settings." do
       dir = DRbQS::Temporary.file
       setting = DRbQS::Server::TransferSetting.new(nil, nil, dir)
       setting.setup_server(nil).should be_true

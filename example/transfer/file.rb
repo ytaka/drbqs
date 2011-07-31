@@ -11,13 +11,13 @@ class CreateFile
 
   def create
     path = output_to_file
-    DRbQS::FileTransfer.enqueue(path)
+    DRbQS::Transfer.enqueue(path)
     File.basename(path)
   end
 
   def create_compress
     path = output_to_file
-    DRbQS::FileTransfer.compress_enqueue(path)
+    DRbQS::Transfer.compress_enqueue(path)
     File.basename(path)
   end
 end
@@ -36,13 +36,13 @@ class CreateDirectory
 
   def create
     dir = output_to_directory
-    DRbQS::FileTransfer.enqueue(dir)
+    DRbQS::Transfer.enqueue(dir)
     File.basename(dir)
   end
 
   def create_compress
     dir = output_to_directory
-    DRbQS::FileTransfer.compress_enqueue(dir)
+    DRbQS::Transfer.compress_enqueue(dir)
     File.basename(dir)
   end
 end

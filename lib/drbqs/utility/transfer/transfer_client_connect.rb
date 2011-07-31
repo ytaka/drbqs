@@ -12,6 +12,12 @@ module DRbQS
           File.join(@directory, File.basename(path))
         end
         private :upload_name
+
+        def directory_for_download(path)
+          dir = DRbQS::Temporary.directory
+          [dir, File.join(dir, File.basename(path))]
+        end
+        private :directory_for_download
       end
 
       # Transfer files to directory on DRbQS server over sftp.
@@ -46,9 +52,9 @@ module DRbQS
           moved = []
           start_sftp do |sftp|
             files.each do |path|
-              dir = DRbQS::Temporary.directory
+              dir, downloaded_path = directory_for_download(path)
               sftp.download(path, dir, :recursive => true)
-              moved << File.join(dir, File.basename(path))
+              moved << downloaded_path
             end
           end
           moved
@@ -66,9 +72,9 @@ module DRbQS
 
         def download(files)
           files.map do |path|
-            dir = DRbQS::Temporary.directory
+            dir, downloaded_path = directory_for_download(path)
             FileUtils.cp_r(path, dir)
-            File.join(dir, File.basename(path))
+            downloaded_path
           end
         end
       end

@@ -69,7 +69,7 @@ module DRbQS
         end
 
         def transfer_to_server
-          if files = DRbQS::FileTransfer.dequeue_all
+          if files = DRbQS::Transfer.dequeue_all
             if @transfer
               begin
                 @transfer.transfer(files)

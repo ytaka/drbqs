@@ -29,7 +29,7 @@ describe DRbQS::CommandExecute do
   end
 
   it "should enqueue files" do
-    DRbQS::FileTransfer.should_receive(:enqueue).exactly(2)
+    DRbQS::Transfer.should_receive(:enqueue).exactly(2)
     cmd_exec = DRbQS::CommandExecute.new('ls > /dev/null', :transfer => ['hello', 'world'])
     cmd_exec.exec
   end

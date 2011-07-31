@@ -64,14 +64,14 @@ describe DRbQS::Server do
   end
 
   context "when starting DRbQS::Server" do
-    it "should not set DRbQS::FileTransfer" do
+    it "should not set DRbQS::Transfer" do
       server = DRbQS::Server.new
       DRbQS::Transfer::Client.should_not_receive(:new)
       DRb.should_receive(:start_service).once
       server.start
     end
 
-    it "should set DRbQS::FileTransfer" do
+    it "should set DRbQS::Transfer" do
       dir = '/tmp/drbqs_transfer_test'
       DRb.should_receive(:start_service).once
       server = DRbQS::Server.new(:file_directory => dir, :sftp_user => 'hello', :sftp_host => 'example.com')
@@ -84,7 +84,7 @@ describe DRbQS::Server do
       FileUtils.rm_r(dir)
     end
 
-    it "should set DRbQS::FileTransfer by DRbQS::Server#set_file_transfer with optional arguments" do
+    it "should set DRbQS::Transfer by DRbQS::Server#set_file_transfer with optional arguments" do
       dir = '/tmp/drbqs_transfer_test'
       server = DRbQS::Server.new
       DRb.should_receive(:start_service).once

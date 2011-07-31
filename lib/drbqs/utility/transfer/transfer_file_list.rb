@@ -27,6 +27,7 @@ module DRbQS
         @downloaded = true
         @path = DRbQS::Transfer::Client.get.download(@files, @readonly)
       end
+      private :download
 
       # Return an array of paths of downloaded files.
       # Note that this method is executed on a node.
