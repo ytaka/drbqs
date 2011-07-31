@@ -2,11 +2,6 @@ require 'net/ssh'
 require 'net/ssh/shell'
 
 module DRbQS
-  class InvalidDestination < StandardError
-  end
-  class GetInvalidExitStatus < StandardError
-  end
-
   class Manage
     # Requirements:
     #   bash
@@ -69,7 +64,7 @@ module DRbQS
       def initialize(dest, opts = {})
         @user, @host, @port = split_destination(dest)
         if !(@host && @user)
-          raise InvalidDestination, "Invalid destination of ssh server."
+          raise ArgumentError, "Invalid ssh server: host=#{@host.inspect}, user=#{@user.inspect}."
         end
         @keys = opts.delete(:keys)
         @shell = opts[:shell] || 'bash'
@@ -136,7 +131,7 @@ module DRbQS
         ary = shell_exec(sh, cmd)
         n = ary[0].exit_status
         if n != 0
-          raise GetInvalidExitStatus, "Can not execute properly on #{@host}.\nExit status: #{n}\ncommand: #{cmd}"
+          raise RuntimeError, "Can not execute properly on #{@host}.\nExit status: #{n}\ncommand: #{cmd}"
         end
         ary
       end

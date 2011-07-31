@@ -1,12 +1,6 @@
 require 'drbqs/execute/register'
 
 module DRbQS
-  class InvalidServerDefinition < StandardError
-  end
-
-  class InvalidNodeDefinition < StandardError
-  end
-
   class ProcessDefinition
 
     attr_reader :register
@@ -143,12 +137,12 @@ module DRbQS
       end
     rescue Exception => err
       puts_progress "Fail to execute server '#{data[:name].to_s}'"
-      mes = "#{err.to_s} (#{err.class.to_s})"
+      mes = "Invalid server definition: #{err.to_s} (#{err.class.to_s})"
       begin
         mes = "#{setting.string_for_shell}; " << mes if setting.respond_to?(:string_for_shell)
       rescue
       end
-      new_err = InvalidServerDefinition.new(mes)
+      new_err = err.class.new(mes)
       new_err.set_backtrace(err.backtrace)
       raise new_err
     end
@@ -173,12 +167,12 @@ module DRbQS
       setting.exec
     rescue Exception => err
       puts_progress "Fail to execute node '#{name.to_s}'"
-      mes = "#{err.to_s} (#{err.class.to_s})"
+      mes = "Invalid node definition: #{err.to_s} (#{err.class.to_s})"
       begin
         mes = "#{setting.string_for_shell}; " << mes if setting.respond_to?(:string_for_shell)
       rescue
       end
-      new_err = InvalidNodeDefinition.new(mes)
+      new_err = err.class.new(mes)
       new_err.set_backtrace(err.backtrace)
       raise new_err
     end

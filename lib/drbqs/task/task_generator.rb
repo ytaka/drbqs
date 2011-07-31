@@ -1,7 +1,4 @@
 module DRbQS
-  class DRbQS::TaskCreatingError < StandardError
-  end
-
   class Task
     class Source
       def initialize(data)
@@ -62,7 +59,7 @@ module DRbQS
             begin
               @source.instance_eval(&block)
             rescue => err
-              new_err = DRbQS::TaskCreatingError.new("#{err.to_s} (#{err.class}) when creating task")
+              new_err = self.class.new("Error on generating tasks: #{err.to_s} (#{err.class})")
               new_err.set_backtrace(err.backtrace)
               raise new_err
             end

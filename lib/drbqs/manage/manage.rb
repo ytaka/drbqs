@@ -3,12 +3,13 @@ require 'drbqs/manage/ssh_execute'
 require 'drbqs/manage/send_signal'
 
 module DRbQS
-  class NotSetURI < StandardError
-  end
   class NoServerRespond < StandardError
   end
 
   class Manage
+    class NotSetURI < StandardError
+    end
+
     extend Forwardable
 
     WAIT_SERVER_TIME = 0.2
@@ -43,7 +44,7 @@ module DRbQS
     def signal_sender
       unless @signal_sender
         unless @opts[:uri]
-          raise DRbQS::NotSetURI, "The uri has not set yet."
+          raise DRbQS::Manage::NotSetURI, "The uri of server to connect has not set."
         end
         obj = DRbObject.new_with_uri(@opts[:uri])
         @signal_sender = DRbQS::Manage::SendSignal.new(obj[:message])
@@ -65,7 +66,7 @@ module DRbQS
       begin
         get_status
         true
-      rescue DRbQS::NotSetURI
+      rescue DRbQS::Manage::NotSetURI
         raise
       rescue
         nil

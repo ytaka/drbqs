@@ -1,10 +1,9 @@
 require 'forwardable'
 
 module DRbQS
-  class InvalidLogLevel < StandardError
-  end
-
   class Setting
+    class InvalidLogLevel < StandardError
+    end
 
     LOG_LEVEL_DEFAULT = Logger::ERROR
 
