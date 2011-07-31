@@ -1,6 +1,6 @@
 require 'drbqs/task/task'
-require 'drbqs/utility/transfer/transfer_client'
 require 'drbqs/utility/temporary'
+require 'drbqs/utility/transfer/transfer_client'
 require 'drbqs/node/connection'
 require 'drbqs/node/task_client'
 require 'drbqs/node/state'
@@ -30,19 +30,13 @@ module DRbQS
     end
 
     def transfer_file
-      if files = DRbQS::FileTransfer.dequeue_all
-        if @transfer
-          begin
-            @transfer.transfer(files, server_on_same_host?)
-          rescue => err
-            @logger.error("Fail to transfer files.") do
-              "Can not send file: #{files.join(", ")}\n#{err.to_s}\n#{err.backtrace.join("\n")}"
-            end
-            raise
-          end
-        else
-          raise "Server does not set transfer settings. Can not send file: #{files.join(", ")}"
+      begin
+        DRbQS::Transfer::Client.transfer_to_server
+      rescue Exception => err
+        @logger.error("Fail to transfer files.") do
+          "#{err.to_s} (#{err.class})\n#{err.backtrace.join("\n")}"
         end
+        raise
       end
     end
     private :transfer_file
@@ -65,7 +59,7 @@ module DRbQS
       @server_key = obj[:key]
       @connection = Node::Connection.new(obj[:message], @logger)
       @task_client = Node::TaskClient.new(@connection.node_number, obj[:queue], obj[:result], @logger)
-      @transfer = obj[:transfer]
+      DRbQS::Transfer::Client.set(obj[:transfer].get_client(server_on_same_host?)) if obj[:transfer]
       if ary = @connection.get_initialization
         execute_task(*ary)
       end

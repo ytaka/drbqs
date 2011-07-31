@@ -10,13 +10,15 @@ class CreateFile
   end
 
   def create
-    DRbQS::FileTransfer.enqueue(output_to_file)
-    nil
+    path = output_to_file
+    DRbQS::FileTransfer.enqueue(path)
+    File.basename(path)
   end
 
   def create_compress
-    DRbQS::FileTransfer.compress_enqueue(output_to_file)
-    nil
+    path = output_to_file
+    DRbQS::FileTransfer.compress_enqueue(path)
+    File.basename(path)
   end
 end
 
@@ -33,12 +35,44 @@ class CreateDirectory
   end
 
   def create
-    DRbQS::FileTransfer.enqueue(output_to_directory)
-    nil
+    dir = output_to_directory
+    DRbQS::FileTransfer.enqueue(dir)
+    File.basename(dir)
   end
 
   def create_compress
-    DRbQS::FileTransfer.compress_enqueue(output_to_directory)
-    nil
+    dir = output_to_directory
+    DRbQS::FileTransfer.compress_enqueue(dir)
+    File.basename(dir)
+  end
+end
+
+class ReceiveFile
+  def initialize(file_list)
+    @file_list = file_list
+  end
+
+  def read_file
+    ret = ''
+    @file_list.path.each do |path|
+      if File.directory?(path)
+        raise "Receive directory, not file."
+      end
+      ret << path << "\t" << File.read(path).strip << "\n"
+    end
+    ret
+  end
+
+  def read_directory
+    ret = ''
+    @file_list.path.each do |dir|
+      unless File.directory?(dir)
+        raise "Receive file, not directory."
+      end
+      Dir.glob("#{dir}/**/*.txt").each do |path|
+        ret << path << "\t" << File.read(path).strip << "\n"
+      end
+    end
+    ret
   end
 end

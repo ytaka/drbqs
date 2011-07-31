@@ -1,75 +1,27 @@
-require 'net/sftp'
+require 'drbqs/utility/transfer/transfer_client_connect.rb'
 
 module DRbQS
   class Transfer
     class Client
-      class ClientBase
-        def initialize(server_directory)
-          @directory = server_directory
-        end
-
-        def upload_name(path)
-          File.join(@directory, File.basename(path))
-        end
-        private :upload_name
-      end
-
-      # Transfer files to directory on DRbQS server over sftp.
-      # Note that after we transfer files we delete the original files.
-      class SFTP < DRbQS::Transfer::Client::ClientBase
-        attr_reader :user, :host, :directory
-
-        def initialize(user, host, directory)
-          super(directory)
-          @user = user
-          @host = host
-        end
-
-        # Transfer and delete +files+.
-        def transfer(files)
-          Net::SFTP.start(@host, @user) do |sftp|
-            files.each do |path|
-              sftp.upload(path, upload_name(path))
-              FileUtils.rm_r(path)
-            end
-          end
-        rescue => err
-          raise err.class, "user=#{@user}, host=#{@host}, directory=#{@directory}; #{err.to_s}", err.backtrace 
-        end
-      end
-
-      class Local < DRbQS::Transfer::Client::ClientBase
-        def transfer(files)
-          files.each do |path|
-            FileUtils.mv(path, upload_name(path))
-          end
-        end
-      end
-
       attr_reader :directory, :local, :sftp
 
-      def initialize(server_directory)
+      def initialize(server_directory, same_host, host, user)
         unless Pathname.new(server_directory).absolute?
           raise ArgumentError, "Directory of server must be absolute."
         end
         @directory = server_directory
+        @same_host = same_host
         @local = DRbQS::Transfer::Client::Local.new(@directory)
-        @sftp = nil
+        if host && user
+          @sftp = DRbQS::Transfer::Client::SFTP.new(user, host, @directory)
+        else
+          @sftp = nil
+        end
       end
 
-      def set_sftp(user, host)
-        @sftp = DRbQS::Transfer::Client::SFTP.new(user, host, @directory)
-      end
-
-      def information
-        info = "directory: #{@directory}"
-        info << ", sftp: #{@sftp.user}@#{@sftp.host}" if @sftp
-        info
-      end
-
-      def transfer(files, on_same_host = nil)
+      def transfer(files)
         transfered = false
-        if on_same_host
+        if @same_host
           begin
             @local.transfer(files)
             transfered = true
@@ -81,6 +33,55 @@ module DRbQS
             raise "Can not transfer files."
           end
           @sftp.transfer(files)
+        end
+      end
+
+      def download(files, readonly = nil)
+        download_files = nil
+        if @same_host
+          begin
+            if readonly
+              download_files = files
+            else
+              download_files = @local.download(files)
+            end
+          rescue
+          end
+        end
+        if !download_files
+          unless @sftp
+            raise "SFTP is not prepared."
+          end
+          download_files = @sftp.download(files)
+        end
+        download_files
+      end
+
+      class << self
+        @transfer = nil
+
+        def get
+          @transfer
+        end
+
+        def set(transfer)
+          @transfer = transfer
+        end
+
+        def transfer_to_server
+          if files = DRbQS::FileTransfer.dequeue_all
+            if @transfer
+              begin
+                @transfer.transfer(files)
+              rescue Exception => err
+                err_new = err.class.new("#{err.to_s} (#{err.class}); Can not send file: #{files.join(", ")}")
+                err_new.set_backtrace(err.backtrace)
+                raise err_new
+              end
+            else
+              raise "Server does not set transfer settings. Can not send file: #{files.join(", ")}"
+            end
+          end
         end
       end
     end

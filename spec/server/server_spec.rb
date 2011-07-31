@@ -72,18 +72,30 @@ describe DRbQS::Server do
     end
 
     it "should set DRbQS::FileTransfer" do
-      server = DRbQS::Server.new(:file_directory => '/tmp', :sftp_user => 'hello', :sftp_host => 'example.com')
-      DRbQS::Transfer::Client::SFTP.should_receive(:new).with('hello', 'example.com', '/tmp')
+      dir = '/tmp/drbqs_transfer_test'
       DRb.should_receive(:start_service).once
+      server = DRbQS::Server.new(:file_directory => dir, :sftp_user => 'hello', :sftp_host => 'example.com')
       server.start
+      transfer = server.instance_variable_get(:@ts)[:transfer]
+      transfer.user.should == 'hello'
+      transfer.host.should == 'example.com'
+      transfer.directory.should == dir
+      File.exist?(dir).should be_true
+      FileUtils.rm_r(dir)
     end
 
     it "should set DRbQS::FileTransfer by DRbQS::Server#set_file_transfer with optional arguments" do
+      dir = '/tmp/drbqs_transfer_test'
       server = DRbQS::Server.new
-      DRbQS::Transfer::Client::SFTP.should_receive(:new).with('hello', 'example.com', '/tmp')
       DRb.should_receive(:start_service).once
-      server.set_file_transfer('/tmp', :user => 'hello', :host => 'example.com')
+      server.set_file_transfer(dir, :user => 'hello', :host => 'example.com')
       server.start
+      transfer = server.instance_variable_get(:@ts)[:transfer]
+      transfer.user.should == 'hello'
+      transfer.host.should == 'example.com'
+      transfer.directory.should == dir
+      File.exist?(dir).should be_true
+      FileUtils.rm_r(dir)
     end
   end
 end

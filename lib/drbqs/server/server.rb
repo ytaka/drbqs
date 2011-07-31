@@ -69,7 +69,7 @@ module DRbQS
     end
 
     def transfer_directory
-      @ts[:transfer] && @ts[:transfer].directory
+      @transfer_setting.prepared_directory
     end
 
     def acl_init(acl_arg)
@@ -256,9 +256,9 @@ module DRbQS
     end
 
     def set_file_transfer(directory, opts = {})
-      if transfer = @transfer_setting.create(directory, opts)
-        @ts[:transfer] = transfer
-        @logger.info("File transfer") { transfer.information }
+      if @transfer_setting.setup_server(directory, opts)
+        @ts[:transfer] = @transfer_setting
+        @logger.info("File transfer") { @transfer_setting.information }
       end
     end
 

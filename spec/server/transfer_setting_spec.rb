@@ -3,35 +3,70 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 require 'drbqs/utility/temporary'
 
 describe DRbQS::Server::TransferSetting do
-  it "should return nil." do
-    setting = DRbQS::Server::TransferSetting.new('example.com', 'user', nil)
-    setting.create(nil).should be_nil
+  context "when setup does not execute" do
+    it "should return nil." do
+      setting = DRbQS::Server::TransferSetting.new('example.com', 'user', nil)
+      setting.setup_server(nil).should be_nil
+    end
   end
 
-  it "should return transfer client." do
-    dir = DRbQS::Temporary.file
-    setting = DRbQS::Server::TransferSetting.new('example.com', 'user', dir)
-    client = setting.create(nil)
-    client.should be_an_instance_of DRbQS::Transfer::Client
-    client.sftp.should be_an_instance_of DRbQS::Transfer::Client::SFTP
-    setting.create(nil).should be_nil
+  context "when setup transfer settings" do
+    it "should return transfer client." do
+      dir = DRbQS::Temporary.file
+      setting = DRbQS::Server::TransferSetting.new('example.com', 'user', dir)
+      setting.setup_server(nil).should be_true
+      setting.user.should == 'user'
+      setting.host.should == 'example.com'
+      setting.directory.should == dir
+    end
+
+    it "should return transfer client with a directory argument." do
+      dir = DRbQS::Temporary.file
+      setting = DRbQS::Server::TransferSetting.new('example.com', 'user', nil)
+      setting.setup_server(dir).should be_true
+      setting.user.should == 'user'
+      setting.host.should == 'example.com'
+      setting.directory.should == dir
+    end
+
+    it "should return transfer client without sftp" do
+      dir = DRbQS::Temporary.file
+      setting = DRbQS::Server::TransferSetting.new(nil, nil, dir)
+      setting.setup_server(nil).should be_true
+      setting.host.should be_nil
+      setting.directory.should == dir
+    end
   end
 
-  it "should return transfer client with a directory argument." do
-    dir = DRbQS::Temporary.file
-    setting = DRbQS::Server::TransferSetting.new('example.com', 'user', nil)
-    client = setting.create(dir)
-    client.should be_an_instance_of DRbQS::Transfer::Client
-    client.sftp.should be_an_instance_of DRbQS::Transfer::Client::SFTP
-    setting.create(dir).should be_nil
+  context "when creating transfer client" do
+    it "should return nil because setup is not executed." do
+      dir = DRbQS::Temporary.file
+      setting = DRbQS::Server::TransferSetting.new('example.com', 'user', dir)
+      setting.get_client(true).should be_nil
+    end
+    
+    it "should return local and sftp transfer client." do
+      dir = DRbQS::Temporary.file
+      setting = DRbQS::Server::TransferSetting.new('example.com', 'user', dir)
+      setting.setup_server(nil).should be_true
+      client = setting.get_client(true)
+      client.directory.should == dir
+      client.local.should be_an_instance_of DRbQS::Transfer::Client::Local
+      client.sftp.should be_an_instance_of DRbQS::Transfer::Client::SFTP
+    end
+    
+    it "should return only local transfer client." do
+      dir = DRbQS::Temporary.file
+      setting = DRbQS::Server::TransferSetting.new(nil, nil, dir)
+      setting.setup_server(nil).should be_true
+      client = setting.get_client(true)
+      client.directory.should == dir
+      client.local.should be_an_instance_of DRbQS::Transfer::Client::Local
+      client.sftp.should be_nil
+    end
   end
 
-  it "should return transfer client without sftp" do
-    dir = DRbQS::Temporary.file
-    setting = DRbQS::Server::TransferSetting.new(nil, nil, dir)
-    client = setting.create(nil)
-    client.should be_an_instance_of DRbQS::Transfer::Client
-    client.sftp.should be_nil
-    setting.create(nil).should be_nil
+  after(:all) do
+    DRbQS::Temporary.delete_all
   end
 end
