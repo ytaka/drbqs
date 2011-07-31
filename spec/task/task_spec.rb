@@ -22,26 +22,13 @@ describe DRbQS::Task do
   end
 end
 
-describe DRbQS::CommandExecute do
-  it "should execute command" do
-    cmd_exec = DRbQS::CommandExecute.new('ls > /dev/null')
-    cmd_exec.exec.should == 0
-  end
-
-  it "should enqueue files" do
-    DRbQS::Transfer.should_receive(:enqueue).exactly(2)
-    cmd_exec = DRbQS::CommandExecute.new('ls > /dev/null', :transfer => ['hello', 'world'])
-    cmd_exec.exec
-  end
-end
-
-describe DRbQS::TaskContainer do
+describe DRbQS::Task::TaskSet::Container do
   it "should dump and load" do
     obj = [[1], [1, 2], [1, 2, 3]]
     tasks = obj.map do |ary|
       DRbQS::Task.new(ary, :size)
     end
-    container = DRbQS::TaskContainer.new(tasks)
+    container = DRbQS::Task::TaskSet::Container.new(tasks)
     dump = Marshal.dump(container)
     Marshal.load(dump).should == container
   end
@@ -51,12 +38,12 @@ describe DRbQS::TaskContainer do
     tasks = obj.map do |ary|
       DRbQS::Task.new(ary, :size)
     end
-    container = DRbQS::TaskContainer.new(tasks)
+    container = DRbQS::Task::TaskSet::Container.new(tasks)
     container.exec.should == [3, 1, 3]
   end
 end
 
-describe DRbQS::TaskSet do
+describe DRbQS::Task::TaskSet do
   it "should execute hooks" do
     server = double('server')
     methods_for_hook = double('hook')
@@ -68,7 +55,7 @@ describe DRbQS::TaskSet do
     tasks << DRbQS::Task.new(obj[0], :size, &methods_for_hook.method(:m0))
     tasks << DRbQS::Task.new(obj[1], :size, &methods_for_hook.method(:m1))
     tasks << DRbQS::Task.new(obj[2], :size, &methods_for_hook.method(:m2))
-    task_set = DRbQS::TaskSet.new(tasks)
+    task_set = DRbQS::Task::TaskSet.new(tasks)
     task_set.hook.call(server, [1, 2, 3])
   end
 end

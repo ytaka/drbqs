@@ -61,7 +61,7 @@ def drbqs_fork_server(uri_arg, opts = {}, &block)
         task_args = [task_args]
       end
       task_args.each do |arg|
-        if DRbQS::TaskGenerator === arg
+        if DRbQS::Task::Generator === arg
           server.add_task_generator(arg)
         else
           server.queue.add(arg)

@@ -2,6 +2,10 @@ require 'net/ssh'
 require 'net/ssh/shell'
 
 module DRbQS
+  class InvalidDestination < StandardError
+  end
+  class GetInvalidExitStatus < StandardError
+  end
 
   class Manage
     # Requirements:
@@ -51,11 +55,6 @@ module DRbQS
            'ls',
            'if which rvm > /dev/null; then rvm info; else ruby -v; fi']
         end
-      end
-
-      class InvalidDestination < StandardError
-      end
-      class GetInvalidExitStatus < StandardError
       end
 
       attr_reader :user, :host, :port, :keys

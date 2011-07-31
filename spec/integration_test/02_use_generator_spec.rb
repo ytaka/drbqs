@@ -5,7 +5,7 @@ require_relative 'definition/task_obj_definition.rb'
 
 describe DRbQS do
   before(:all) do
-    @task_generators = [DRbQS::TaskGenerator.new(:iterate => 3), DRbQS::TaskGenerator.new(:iterate => 4)]
+    @task_generators = [DRbQS::Task::Generator.new(:iterate => 3), DRbQS::Task::Generator.new(:iterate => 4)]
     @task_generators.each do |tg|
       tg.set do
         @iterate.times do |i|

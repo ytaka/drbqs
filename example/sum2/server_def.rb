@@ -13,7 +13,7 @@ DRbQS.option_parser do |opt, hash|
 end
 
 DRbQS.define_server(:finish_exit => true) do |server, argv, opts|
-  tgen = DRbQS::TaskGenerator.new(:start_num => (argv[0] || 10).to_i,
+  tgen = DRbQS::Task::Generator.new(:start_num => (argv[0] || 10).to_i,
                                   :end_num => (argv[1] || 100).to_i,
                                   :step_num => opts[:step] || 10)
   tgen.set do

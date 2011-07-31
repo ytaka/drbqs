@@ -8,7 +8,7 @@ DRbQS.option_parser do |opt, hash|
 end
 
 DRbQS.define_server(:finish_exit => true) do |server, argv, opts|
-  tgen = DRbQS::TaskGenerator.new(:step => opts[:step])
+  tgen = DRbQS::Task::Generator.new(:step => opts[:step])
   tgen.set(:generate => 2) do
     raise "Error raise"
   end

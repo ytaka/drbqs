@@ -25,7 +25,7 @@ DRbQS.define_server(:finish_exit => true) do |server, argv, opts|
     f.puts 'world'
   end
 
-  tgen = DRbQS::TaskGenerator.new(:sleep_time => 2, :dir => server_directory)
+  tgen = DRbQS::Task::Generator.new(:sleep_time => 2, :dir => server_directory)
   tgen.set do
     create_add_task(CreateFile.new(1), :create) do |srv, result|
       path = File.join(@dir, result)

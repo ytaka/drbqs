@@ -1,4 +1,4 @@
-task_generator = DRbQS::TaskGenerator.new(:iterate => 3)
+task_generator = DRbQS::Task::Generator.new(:iterate => 3)
 task_generator.set do
   5.times do |i|
     create_add_task(i, :to_s)

@@ -2,13 +2,13 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 require 'drbqs/task/task'
 
-describe DRbQS::TaskGenerator do
+describe DRbQS::Task::Generator do
   def check_task_ary(tasks, num, cl = DRbQS::Task)
     tasks.should have(num).items
     tasks.all? { |t| cl === t }.should be_true
   end
 
-  subject { DRbQS::TaskGenerator.new(:abc => 'ABC', :def => 123, :data => [1, 2, 3]) }
+  subject { DRbQS::Task::Generator.new(:abc => 'ABC', :def => 123, :data => [1, 2, 3]) }
 
   it "should initialize instance varibles" do
     source = subject.instance_variable_get('@source')
@@ -36,7 +36,7 @@ describe DRbQS::TaskGenerator do
     end
     subject.init
     5.times do |i|
-      check_task_ary(subject.new_tasks, 2, DRbQS::TaskSet)
+      check_task_ary(subject.new_tasks, 2, DRbQS::Task::TaskSet)
     end
     subject.new_tasks.should be_nil
   end

@@ -1,12 +1,13 @@
 require 'drbqs/execute/register'
 
 module DRbQS
-  class ProcessDefinition
-    class InvalidServerDefinition < StandardError
-    end
+  class InvalidServerDefinition < StandardError
+  end
 
-    class InvalidNodeDefinition < StandardError
-    end
+  class InvalidNodeDefinition < StandardError
+  end
+
+  class ProcessDefinition
 
     attr_reader :register
 

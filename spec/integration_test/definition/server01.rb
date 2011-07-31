@@ -8,7 +8,7 @@ DRbQS.option_parser do |opt, hash|
 end
 
 DRbQS.define_server(:finish_exit => true) do |server, argv, opts|
-  tgen = DRbQS::TaskGenerator.new(:step => opts[:step])
+  tgen = DRbQS::Task::Generator.new(:step => opts[:step])
   tgen.set(:generate => 2) do
     1.step(100, 50) do |i|
       create_add_task(TestSum.new, :calc, [i, i + 10, @step]) do |srv, result|

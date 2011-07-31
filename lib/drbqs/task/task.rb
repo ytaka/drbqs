@@ -53,73 +53,71 @@ module DRbQS
       obj = Marshal.load(marshal_obj)
       obj.__send__(method_sym, *args)
     end
-  end
 
-  # Class to group a number of objects to process tasks.
-  class TaskContainer
-    def initialize(task_ary)
-      @data = task_ary.map.with_index do |task, i|
-        task.drb_args(i)
-      end
-    end
+    # Task to group a number of tasks,
+    # which uses Task::TaskSet::Container and manages hooks of the tasks.
+    class TaskSet < Task
 
-    def exec
-      @data.map do |ary|
-        DRbQS::Task.execute_task(*ary[1..-1])
-      end
-    end
+      # Class to group a number of objects to process tasks.
+      class Container
+        def initialize(task_ary)
+          @data = task_ary.map.with_index do |task, i|
+            task.drb_args(i)
+          end
+        end
 
-    def data
-      @data
-    end
-    protected :data
+        def exec
+          @data.map do |ary|
+            DRbQS::Task.execute_task(*ary[1..-1])
+          end
+        end
 
-    def ==(other)
-      other.data.each_with_index.all? do |ary, i|
-        ary == @data[i]
-      end
-    end
-  end
+        def data
+          @data
+        end
+        protected :data
 
-  # Task to group a number of tasks,
-  # which uses TaskContainer and manages hooks of the tasks.
-  class TaskSet < Task
-    attr_reader :original_message
-
-    def initialize(task_ary)
-      @original_hook = []
-      @original_message = []
-      task_ary.each do |task|
-        @original_hook << task.hook
-        @original_message << task.message
-      end
-      @original_message.compact!
-      super(DRbQS::TaskContainer.new(task_ary), :exec) do |srv, result|
-        result.each_with_index do |res, i|
-          if hook = @original_hook[i]
-            hook.call(srv, res)
+        def ==(other)
+          other.data.each_with_index.all? do |ary, i|
+            ary == @data[i]
           end
         end
       end
-      set_message
-    end
 
-    def set_message
-      @message = "TaskSet"
-      unless @original_message.empty?
-        case @original_message.size
-        when 1
-          @message << ": " << @original_message[0]
-        when 2
-          @message << ": " << @original_message.join(", ")
-        else
-          @message << ": " << @original_message[0] << ' - ' << @original_message[-1]
+      attr_reader :original_message
+
+      def initialize(task_ary)
+        @original_hook = []
+        @original_message = []
+        task_ary.each do |task|
+          @original_hook << task.hook
+          @original_message << task.message
+        end
+        @original_message.compact!
+        super(DRbQS::Task::TaskSet::Container.new(task_ary), :exec) do |srv, result|
+          result.each_with_index do |res, i|
+            if hook = @original_hook[i]
+              hook.call(srv, res)
+            end
+          end
+        end
+        set_message
+      end
+
+      def set_message
+        @message = "TaskSet"
+        unless @original_message.empty?
+          case @original_message.size
+          when 1
+            @message << ": " << @original_message[0]
+          when 2
+            @message << ": " << @original_message.join(", ")
+          else
+            @message << ": " << @original_message[0] << ' - ' << @original_message[-1]
+          end
         end
       end
+      private :set_message
     end
-    private :set_message
   end
-
 end
-
-require 'drbqs/task/command_task'
