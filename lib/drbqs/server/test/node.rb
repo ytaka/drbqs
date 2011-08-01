@@ -5,7 +5,7 @@ module DRbQS
     class Node < DRbQS::Node
       def initialize(log_level, transfer, queue)
         super(nil, :log_file => $stdout, :log_level => log_level)
-        @transfer = transfer
+        DRbQS::Transfer::Client.set(transfer.get_client(true)) if transfer
         @task_client = DRbQS::Node::TaskClient.new(nil, queue, nil)
       end
 
