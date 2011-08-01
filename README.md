@@ -1,180 +1,188 @@
-# drbqs
+# DRbQS
 
 Task queuing system over network that is implemented by dRuby.
+Tasks created by a server are distributed to nodes for calculation.
+
+- [http://rubygems.org/gems/drbqs](http://rubygems.org/gems/drbqs)
+- [https://github.com/ytaka/drbqs](https://github.com/ytaka/drbqs)
 
 ## Summary
 
-To use DRbQS, first, we start a server of DRbQS.
-Second, we execute nodes (on same host or other hosts)
-loading libraries required by the server
-and connect the nodes to the server.
+DRbQS is written as server-client system;
+a server creates tasks and puts them into Rinda::TupleSpace;
+nodes for calculation take tasks from Rinda::TupleSpace, calculate them,
+and return their results to the server.
 
-The behavior of nodes requests tasks, gets tasks from a server, processes the tasks,
-and sends results of the tasks to the server.
-The nodes work repeatedly until they get exit signal from server.
-The server prepares tasks and signals to check that nodes are alive.
-If the server does not communicate with the nodes unexpectedly,
-the server deletes the nodes from node list and
-requeues their calculating tasks.
-We can set hooks for tasks.
-The hooks are executed for results of the tasks
-after the server accepts them from nodes.
+DRbQS also provides some utilities to define tasks,
+to execute a server and nodes (over ssh),
+to transfer files between a server and nodes,
+to create temporary files and directories,
+and to test and profile programs of DRbQS.
 
-The tasks are made from objects, an instance method of them, and its arguments.
-Because we use Marshal.dump and Marshal.load for communication of a server and nodes,
-the objects and the arguments must be marshalized.
-And also we tell the server and the nodes the definition of class of the objects and the arguments.
+DRbQS is tested on Ubuntu 11.04 and
+we can install DRbQS easily on Linux.
+Note that due to some requirements, DRbQS does not work probably on Windows.
 
-## Requirements
+## Requirements & Installation
+
+We can install gem of DRbQS.
+
+    gem install drbqs
 
 DRbQS uses Fiber, so ruby requires version 1.9.
-And we use net-ssh and net-ssh-shell to execute servers and nodes over ssh.
+Also, some features of DRbQS does not work on Windows platform
+due to uses of Kernel#fork.
+Because SSH is used to execute processes over network,
+it is desirable that ssh servers on all computers are installed.
 
-## Usage
+DRbQS requires the following gems.
 
-### Preparation
+- [filename](http://rubygems.org/gems/filename)
+- [net-sftp](http://rubygems.org/gems/net-sftp)
+- [net-ssh](http://rubygems.org/gems/net-ssh)
+- [net-ssh-shell](http://rubygems.org/gems/net-ssh-shell)
+- [sys-proctable](http://rubygems.org/gems/sys-proctable)
+- [user_config](http://rubygems.org/gems/user_config)
 
-We prepare a class to send tasks over network,
-which has data and a method to deal with tasks.
+If we want to profile programs for DRbQS
+then we need to install [ruby-prof](http://rubygems.org/gems/ruby-prof).
 
-For example, we make sum.rb as the following.
+    gem install ruby-prof
 
-    class Sum
-      def initialize(start_num, end_num)
-        @num = [start_num, end_num]
-      end
-    
-      def exec
-        (@num[0]..@num[1]).inject(0) { |sum, i| sum += i }
-      end
-    end
+DRbQS saves configuration files in ~/.drbqs.
+To create the directory, we type in a terminal
 
-The Sum class calculates sum of numbers from start_num to end_num.
-The task we want to calculate is summation of numbers.
+    drbqs-manage initialize
 
-### Start server
+## Explanation of DRbQS
 
-We make server.rb as the following.
+### Server of DRbQS
 
-    require_relative 'sum.rb'
+A server works as below.
+
+1. Initialization
+2. Check message from user or nodes
+3. Check connection of nodes
+4. Process result data from nodes
+5. Execute some methods (which is called 'hook')
+   - Process string data sent from user
+   - Add new tasks if queue of the server is empty
+   - and so on
+6. Repeat 2-5 until all tasks are finished
+7. Send finalization signals to nodes
+8. Wait nodes exiting
+9. Exit
+
+### Node of DRbQS
+
+A node works as below.
+
+1. Connect to a server, takes an initialization task from the serve,
+   and execute it
+2. Create two threads: connection of server and calculation of tasks
+3. Thread of connection checks signals from a server by an interval time
+   and get new task if there is no calculating task
+4. Thread of calculation processes a task
+5. Receiving a finalization signal, the node exits
+
+## Commands of DRbQS
+
+### drbqs-server
+
+Execute a server from a file in which the creation of tasks is written.
+
+### drbqs-node
+
+Specifying a file that defines class of tasks,
+execute nodes to connect the server.
+
+### drbqs-manage
+
+Send some signals to a server and get some information.
+
+### drbqs-execute
+
+Execute set of a server and nodes from a file written as DSL,
+which can be over SSH.
+
+## Simple example
+
+### Files
+
+server.rb
+: Definition of server
+
+task.rb
+: Class of tasks
+
+execute.rb
+: DSL to start processes.
+
+### server.rb
+
+    require_relative 'task.rb'
     
     DRbQS.define_server(:finish_exit => true) do |server, argv, opts|
-      10.step(100, 10) do |i|
-        task = DRbQS::Task.new(Sum.new(i - 10, i), :exec)
-        server.queue.add(task)
+      task = DRbQS::Task.new(Sum.new(10, 20, 2), :calc) do |srv, result|
+        puts "Result is #{result}"
+      end
+      server.queue.add(task)
+    end
+
+### task.rb
+
+    class Sum
+      def initialize(a, b, c)
+        @a = a
+        @b = b
+        @c = c
+      end
+    
+      def calc
+        @a + @b + @c
       end
     end
 
-In terminal, we load server.rb and execute server of drbqs.
+### execute.rb
 
-    drbqs-server server.rb -p 13500
-
-### Hook of server
-
-We can use two hooks of server: 'empty_queue' and 'finish'.
-
-    DRbQS.define_server do |server, argv, opts|
-      server.add_hook(:empty_queue) do |srv|
-        srv.queue.add( ... )
-      end
-      
-      server.add_hook(:finish) do |srv|
-        srv.exit
-      end
+    DIR = File.dirname(__FILE__)
+    
+    default :port => 12345
+    
+    server :local, "localhost" do |srv|
+      srv.load File.join(DIR, 'server.rb')
+    end
+    
+    node :local do |nd|
+      nd.load File.join(DIR, 'task.rb')
     end
 
-'finish' hook usually exit server program, but
-an option :finish_exit for DRbQS.define_server or DRbQS.new
-is nearly same.
+### drbqs-server and drbqs-node
 
-We can use 'empty_queue' hook for adding tasks
-when task queue is empty.
+Basic way of execution is how to use the commands drbqs-server and drbqs-node.
+We move the same directory of server.rb and task.rb in a terminal.
+To execute a server, we type the command
 
-### Task generator
+    drbqs-server server.rb
 
-Arguments of DRbQS::TaskGenerator.new define instance variables,
-which is implemented by Fiber and is executed by server's requests.
+To execute a node, we type the command in another terminal
 
-    task_generator = DRbQS::TaskGenerator.new(:abc => 'ABC', :def => 123, :data => [1, 2, 3])
+    drbqs-node druby://:13500 -l task.rb
 
-The above example defines the following instance variables.
+Then, the node connects to the server and calculate a task.
+When the node send the result of the task,
+the result of sum is displayed in the terminal of the server.
 
-    @abc = 'ABC'
-    @def = 123
-    @data = [1, 2, 3]
+### drbqs-execute
 
-Then, DRbQS::TaskGenerator#set method defines generation of tasks.
-The block of the method is evaluated in the context of task_generator.
-We can use @abc, @def, and @data on the above example.
+To run a server and some nodes all together,
+we uses the command drbqs-execute and a definition file.
+In the same directory of execute.rb, we type the command
 
-    task_generator.set do
-      @data.each do |i|
-        create_add_task(i, :to_s)
-      end
-    end
+    drbqs-execute execute.rb
 
-DRbQS::TaskGenerator#create_add_task set a task
-and DRbQS::TaskGenerator#new_tasks actually creates the task.
-The arguments of DRbQS::TaskGenerator#create_add_task is
-the same as DRbQS::Task.new.
-
-To use the generator in DRbQS::Server,
-we set the generator by DRbQS::Server#add_task_generator.
-
-### Start node and connect server
-
-Because nodes need class Sum,
-the nodes load sum.rb when they starts.
-Then, we use '-l' option for command 'drbqs-node'.
-That is, we type in terminal.
-
-    drbqs-node druby://localhost:13500/ -l sum.rb
-
-We execute two processes to use two CPU cores.
-
-    drbqs-node 2 druby://localhost:13500/ -l sum.rb
-
-Then, if it succeeds, the calculation starts.
-If it finishes, the server and node end.
-
-## Provided task
-
-### DRbQS::Task
-
-DRbQS::Task is the basic class to define tasks of DRbQS,
-whose objects are consisted of a object having method to process a task
-and hook for returned result.
-Basically, we define objects of DRbQS::Task and
-give the objects to a server.
-
-### DRbQS::TaskSet
-
-DRbQS::TaskSet is a child class of DRbQS::Task and consists of group a number of tasks.
-Objects of the class are generated when we set the option :collect to DRbQS::TaskGenerator#set
-and therefore we are unaware of the objects of DRbQS::TaskSet
-in many cases.
-
-### DRbQS::CommandTask
-
-DRbQS::CommandTask is a class to create tasks to execute some command.
-
-## Temporary file
-
-We can use temporary directories and files on nodes.
-In methods to calculate tasks,
-DRbQS::Temporary.file returns a name of temporary file and
-DRbQS::Temporary.directory returns a name of temporary directory.
-These temporary files and directories are deleted
-after the task is completed.
-
-## File transfer
-
-When a task is finished on a node,
-we can transfer files from a server to a client.
-To be more precise, we enqueue a file by DRbQS::Transfer.enqueue
-in methods to calculate tasks and
-files in the queue are automatically transferred.
-Then, original files on nodes are deleted after transferring.
+Then, a server and a node run and
+their output is saved to files in the directory 'drbqs\_execute\_log'.
 
 ## Contributing to drbqs
  
