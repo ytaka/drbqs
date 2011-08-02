@@ -19,16 +19,26 @@ HELP
         @server_create = block
       end
 
-      def option_parser(&block)
+      def option_parser(mes = nil, &block)
         if @option_parse
           raise ArgumentError, "The options parser has already defined."
         end
+        @option_message = mes
         @option_parse = block
       end
 
+      def create_parser(&block)
+        mes = HELP_MESSAGE
+        mes += @option_message.gsub(/(^\n+)|(\n+$)/, '') + "\n\n" if @option_message
+        OptionParser.new(mes) do |opt|
+          yield(opt)
+        end
+      end
+      private :create_parser
+
       def parse_option(opt_argv)
         if @option_parse
-          OptionParser.new(HELP_MESSAGE) do |opt|
+          create_parser do |opt|
             @option_parse.call(opt, @opts)
             opt.parse!(opt_argv)
           end
@@ -38,7 +48,7 @@ HELP
 
       def option_help_message
         if @option_parse
-          OptionParser.new(HELP_MESSAGE) do |opt|
+          create_parser do |opt|
             @option_parse.call(opt, @opts)
             return opt.to_s
           end
@@ -74,7 +84,7 @@ HELP
 
       def create_test_server(options)
         require 'drbqs/server/test/server'
-        options[:finish_exit] = true
+        options.delete(:not_exit)
         create_server(options, DRbQS::Test::Server)
       end
     end
