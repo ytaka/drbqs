@@ -1,35 +1,44 @@
 module DRbQS
   class Task
-    class Source
+    class Registrar
+      # @param [Hash] data Set instance variables from the hash.
       def initialize(data)
         data.each do |key, val|
           instance_variable_set("@#{key.to_s}", val)
         end
       end
 
-      def add_task(arg)
+      # Add tasks to server.
+      # @param [DRbQS::Task] arg Add an ojbect of DRbQS::Task.
+      # @param [Array] arg Add all elements of an array of objects of DRbQS::Task.
+      def add(arg)
         case arg
         when DRbQS::Task
           Fiber.yield(arg)
         when Array
           arg.each { |t| Fiber.yield(t) }
         else
-          raise "Invalid type of an argument."
+          raise ArgumentError, "An argument must be DRbQS::Task or an array of DRbQS::Task."
         end
       end
 
-      def create_add_task(*args, &block)
-        add_task(DRbQS::Task.new(*args, &block))
+      # Create an object of DRbQS::Task and add it.
+      # The arguments are same as {DRbQS::Task}.
+      def create_add(*args, &block)
+        add(DRbQS::Task.new(*args, &block))
       end
 
-      def wait_all_tasks
+      # Wait finishes of all tasks in queue of a server.
+      def wait
         Fiber.yield(:wait)
       end
     end
 
     class Generator
+      # @param [Hash] data Names of instance variables and their values,
+      #  which can be accessed in {DRbQS::Task::Generator#set}.
       def initialize(data = {})
-        @source = DRbQS::Task::Source.new(data)
+        @registrar = DRbQS::Task::Registrar.new(data)
         @fiber = nil
         @iterate = nil
         @task_set = nil
@@ -45,10 +54,13 @@ module DRbQS
         @wait
       end
 
-      # The options :generate and :collect are available.
-      # opts[:generate] is the number of tasks per one generation.
-      # The generator creates a task set from opts[:collect] tasks.
+      # @param [Hash] opts The options of task generation
+      # @option opts [Fixnum] :generate Set the number of tasks per one generation
+      # @option opts [Fixnum] :collect The generator creates a task set consisting of opts[:collect] tasks.
       def set(opts = {}, &block)
+        unless block_given?
+          raise ArgumentError, "Creation of a task generator needs block."
+        end
         @iterate = opts[:generate] || 1
         @task_set = opts[:collect]
         if @iterate < 1 || (@task_set && @task_set < 1)
@@ -57,7 +69,7 @@ module DRbQS
         @fiber_init = lambda do
           @fiber = Fiber.new do
             begin
-              @source.instance_eval(&block)
+              @registrar.instance_eval(&block)
             rescue => err
               new_err = self.class.new("Error on generating tasks: #{err.to_s} (#{err.class})")
               new_err.set_backtrace(err.backtrace)
@@ -92,7 +104,7 @@ module DRbQS
                 @wait = true
                 break
               else
-                raise "Invalid type of new task."
+                raise RuntimeError, "Invalid object created by fiber to create tasks."
               end
             else
               @fiber = nil
@@ -122,7 +134,7 @@ module DRbQS
         while ary = new_tasks
           ary.each do |t|
             unless DRbQS::Task === t
-              raise "Invalid #{i}th task: #{t.inspect}"
+              raise RuntimeError, "Invalid #{i}th task: #{t.inspect}"
             end
             task_number += 1
             if progress && (task_number % DEBUG_TASK_PROGRESS == 0)

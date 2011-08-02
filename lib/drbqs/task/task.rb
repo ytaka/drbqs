@@ -6,15 +6,18 @@ module DRbQS
 
   # The tasks defined by this class are sent to nodes and
   # calculated by the nodes.
-  # After the node returns the result of calculation to server,
-  # the server execute the hook.
   class Task
     attr_reader :hook
     attr_accessor :message
 
-    # Nodes execute obj.method_sym(*args).
-    # Server executes &hook with a server instance and an object of result
-    # after the server accepts the results from nodes.
+    # Nodes calculate by obj.method_sym(*args) and send the result to their server.
+    # Then the server executes &hook with a server instance and an object of result.
+    # For the communication of a server and nodes we must convert obj to a string
+    # by Marshal.dump.
+    # @param [Object] obj An object that has a method "method_sym"
+    # @param [Symbol] method_sym Method name of calculation
+    # @param [String] message Message for a task
+    # @param [Proc] hook A server execute hook as a callback when the server receive the result
     def initialize(obj, method_sym, args = [], message = nil, &hook)
       begin
         @marshal_obj = Marshal.dump(obj)
@@ -54,8 +57,9 @@ module DRbQS
       obj.__send__(method_sym, *args)
     end
 
-    # Task to group a number of tasks,
-    # which uses Task::TaskSet::Container and manages hooks of the tasks.
+    # DRbQS::Task::TaskSet is a child class of DRbQS::Task and consists of group of a number of tasks.
+    # Objects of the class are generated when we set the option :collect to {DRbQS::Task::Generator#set}
+    # and therefore we are unaware of the objects of DRbQS::TaskSet in many cases.
     class TaskSet < Task
 
       # Class to group a number of objects to process tasks.

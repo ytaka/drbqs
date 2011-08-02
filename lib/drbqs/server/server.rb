@@ -106,6 +106,15 @@ module DRbQS
       @task_generator << task_generator
     end
 
+    # Create new task generator and add it.
+    # The arguments are same as {DRbQS::Task::Generator#set}.
+    def task_generator(opts = {}, &block)
+      gen = DRbQS::Task::Generator.new
+      gen.set(opts, &block)
+      add_task_generator(gen)
+      nil
+    end
+
     # If current task generator waits for finish of created tasks,
     # this method returns true.
     def generator_waiting?
