@@ -8,8 +8,6 @@ require 'drbqs/server/server_hook'
 
 module DRbQS
 
-  # When we set both empty_queue_hook and task_generator,
-  # empty_queue_hook is prior to task_generator.
   class Server
     include DRbQS::Misc
 
@@ -19,31 +17,19 @@ module DRbQS
 
     attr_reader :queue, :uri
 
-    # :port
-    #   Set the port of server.
-    # :unix
-    #   Set the path of unix domain socket.
-    #   If :port is specified, :port is preceded.
-    # :acl
-    #   Set the ACL instance.
-    # :log_file
-    #   Set the path of log files.
-    # :log_level
-    #   Set the level of logging.
-    # :check_alive
-    #   Set the time interval of checking alive nodes.
-    # :finish_exit
-    #   Exit programs in finish_hook.
-    # :shutdown_unused_nodes
-    #   Shutdown unused nodes.
-    # :signal_trap
-    #   Set trapping signal.
-    # :sftp_user
-    #   Set user of sftp.
-    # :sftp_host
-    #   Set host of sftp.
-    # :file_directory
-    #   Set the setting of file directory.
+    # @param [Hash] opts The options of server
+    # @option opts [Hash] :port Set the port of server.
+    # @option opts [Hash] :unix Set the path of unix domain socket. If :port is specified then :port is preceded.
+    # @option opts [Hash] :acl Set the ACL instance.
+    # @option opts [Hash] :log_file Set the path of log files.
+    # @option opts [Hash] :log_level Set the level of logging.
+    # @option opts [Hash] :check_alive Set the time interval of checking alive nodes.
+    # @option opts [Hash] :not_exit Not exit programs when all tasks are finished.
+    # @option opts [Hash] :shutdown_unused_nodes Shutdown unused nodes.
+    # @option opts [Hash] :signal_trap Set trapping signal. Default is true.
+    # @option opts [Hash] :sftp_user Set user of sftp.
+    # @option opts [Hash] :sftp_host Set host of sftp.
+    # @option opts [Hash] :file_directory Set the directory for nodes to send files.
     def initialize(opts = {})
       @uri = DRbQS::Misc.create_uri(opts)
       @acl = acl_init(opts[:acl])
@@ -60,8 +46,8 @@ module DRbQS
       @queue= DRbQS::Server::Queue.new(@ts[:queue], @ts[:result], @logger)
       @check_alive = DRbQS::Server::CheckAlive.new(opts[:check_alive])
       @task_generator = []
-      hook_init(opts[:finish_exit], opts[:shutdown_unused_nodes])
-      set_signal_trap if opts[:signal_trap]
+      hook_init(!opts[:not_exit], opts[:shutdown_unused_nodes])
+      set_signal_trap if !opts.has_key?(:signal_trap) || opts[:signal_trap]
       @finalization_task = nil
       @data_storage = []
       @transfer_setting = DRbQS::Server::TransferSetting.new(opts[:sftp_host], opts[:sftp_user], opts[:file_directory])
@@ -96,6 +82,7 @@ module DRbQS
     end
     private :server_data
 
+    # Initialize and start druby service.
     def start
       set_file_transfer(nil)
       DRb.install_acl(@acl) if @acl
@@ -114,6 +101,7 @@ module DRbQS
     end
     private :check_connection
 
+    # @param [DRbQS::Task::Generator] task_generator
     def add_task_generator(task_generator)
       @task_generator << task_generator
     end
@@ -147,17 +135,23 @@ module DRbQS
     end
     private :all_tasks_assigned?
 
+    # @param [DRbQS::task] task
     def set_initialization_task(task)
       @message.set_initialization(task)
     end
 
+    # @param [DRbQS::task] task
     def set_finalization_task(task)
       @finalization_task = task
       @message.set_finalization(@finalization_task)
     end
 
-    # +key+ is :empty_queue, :process_data, or :finish_exit.
-    # &block takes self as an argument.
+    # Set a hook of server.
+    # @note When we set both :empty_queue and task generators,
+    #  hook of :empty_queue is prior to task generators.
+    # @param [:empty_queue,:process_data,:finish_exit] key Set the type of hook.
+    # @param [String] name Name of the hook. If the value is nil then the name is automatically created.
+    # @param [Proc] &block block is obligatory and takes server itself as an argument.
     def add_hook(key, name = nil, &block)
       if key == :process_data
         if @hook.number_of_hook(:process_data) != 0
@@ -167,6 +161,8 @@ module DRbQS
       @hook.add(key, name, &block)
     end
 
+    # @param [:empty_queue,:process_data,:finish_exit] key Set the type of hook.
+    # @param [String] name Name of the hook. If the value is nil then all hooks of the key is deleted.
     def delete_hook(key, name = nil)
       @hook.delete(key, name)
     end
@@ -251,10 +247,15 @@ module DRbQS
 
     def set_signal_trap
       Signal.trap(:TERM) do
+        @logger.error("Get TERM signal.")
         self.exit
       end
     end
 
+    # @param [String] directory Set the directory to save files from nodes.
+    # @param [Hash] opts The options for SFTP.
+    # @option opts [Symbol] :host Hostname for SFTP.
+    # @option opts [Symbol] :user User name for SFTP.
     def set_file_transfer(directory, opts = {})
       if @transfer_setting.setup_server(directory, opts)
         @ts[:transfer] = @transfer_setting
@@ -264,6 +265,7 @@ module DRbQS
 
     # Set *args to data storage, which must be string objects.
     # The data is processed by hook of :process_data.
+    # @param [Array] args An array of data strings.
     def set_data(*args)
       args.each do |s|
         if String === s

@@ -27,6 +27,9 @@ module DRbQS
       private :create_proc_name
 
       def add(key, name = nil, &block)
+        unless block_given?
+          raise ArgumentError, "The main part of hook must be specified as a block."
+        end
         if (n = @argument_number[key]) && (block.arity != n)
           raise ArgumentError, "Invalid argument number of hook of #{key.inspect}."
         end
