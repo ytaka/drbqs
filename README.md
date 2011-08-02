@@ -100,6 +100,10 @@ execute nodes to connect the server.
 
 Send some signals to a server and get some information.
 
+### drbqs-ssh
+
+Run processes of a server and a node over ssh.
+
 ### drbqs-execute
 
 Execute set of a server and nodes from a file written as DSL,
@@ -109,14 +113,9 @@ which can be over SSH.
 
 ### Files
 
-server.rb
-: Definition of server
-
-task.rb
-: Class of tasks
-
-execute.rb
-: DSL to start processes.
+- **server.rb** : Definition of server
+- **task.rb** : Class of tasks
+- **execute.rb** : DSL to start processes.
 
 ### server.rb
 

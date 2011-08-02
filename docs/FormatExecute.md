@@ -1,11 +1,15 @@
 # Format of File for drbqs-execute
 
-## Explanation
+## Outline
 
 drbqs-execute evaluates files in the context of an object of
 {DRbQS::ProcessDefinition::Register}.
 Therefore, we can use methods of {DRbQS::ProcessDefinition::Register}
 in files given to drbqs-execute.
+
+drbqs-execute execute a server of which uri is made from hostname and port.
+Moreover, drbqs-execute make nodes connecting to the uri of server.
+The server and nodes can be over SSH.
 
 ## Example: execute.rb
 
@@ -66,12 +70,26 @@ The following methods are available.
 ### server
 
 "server" method corresponds to commands "drbqs-server" and "drbqs-ssh server".
+This method takes two arguments (server name and hostname),
+options set by hash and a block.
+If the block takes only one argument then the server is on localhost.
+If there are two block arguments then the server is executed over SSH.
+The first argument of block has methods similar to
+the options of command "drbqs-server".
+The second argument has methods similar to the options of command "drbqs-ssh".
+We can set the settings of servers by these methods.
 
 See {DRbQS::ProcessDefinition::Register#server}
 
 ### node
 
-"node" method corresponds to commands "drbqs-node" and "drbqs-ssh node".
+"node" method corresponds to commands "drbqs-node" and "drbqs-ssh node",
+which takes node name and options set by hash as arguments.
+As the same way of method "server" we can define nodes by method "node"
+The block taking one argument defines a node on localhost and
+the block taking two arguments defines a node over SSH.
+The first argument has methods similar to the options of command "drbqs-node" and
+the second argument has methods similar to the options of command "drbqs-ssh".
 
 See {DRbQS::ProcessDefinition::Register#node}
 
@@ -85,6 +103,9 @@ See {DRbQS::ProcessDefinition::Register#clear\_node}
 
 ### default
 
+We can set default server, default nodes, default port number of server
+by method "default".
+
 See {DRbQS::ProcessDefinition::Register#default}
 
 ### default_clear
@@ -92,5 +113,7 @@ See {DRbQS::ProcessDefinition::Register#default}
 See {DRbQS::ProcessDefinition::Register#default\_clear}
 
 ### usage
+
+We can set help messages for "drbqs-execute --help <some_file>".
 
 See {DRbQS::ProcessDefinition::Register#usage}
