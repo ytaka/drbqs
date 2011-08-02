@@ -3,10 +3,10 @@ require 'drbqs/manage/ssh_execute'
 require 'drbqs/manage/send_signal'
 
 module DRbQS
-  class NoServerRespond < StandardError
-  end
-
   class Manage
+    class NoServerRespond < StandardError
+    end
+
     class NotSetURI < StandardError
     end
 
