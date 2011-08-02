@@ -1,15 +1,18 @@
 module DRbQS
   class ProcessDefinition
     class Register
-      attr_reader :__server__, :__node__, :__default__, :__usage__
-
-      # @__server__ and @__node__ are arrays of hash.
+      # @return [Array] an array of pair [name symbol, definition hash]
       # Keys of the hash are :type, :template, :ssh, :setting, and :args.
+      attr_reader :__server__, :__node__
+
+      # @return [Array] a hash of key and value
+      attr_reader :__default__, :__usage__
+
       def initialize
         @__server__ = []
         @__node__ = []
         @__default__ = {}
-        @__usage__ = nil
+        @__usage__ = {}
       end
 
       def __register__(type, setting, name, template, args, &block)
@@ -85,34 +88,38 @@ module DRbQS
       # and set a ssh server by 'connect' method.
       # If we omit the 'connect' method then the program tries to connect
       # the name specified as first argument.
-      # We can set :template and :load as an option.
       # 
-      # * Example of a server on localhost
-      # server(:server_local, "example.com") do |server|
-      #   server.load "server_definition.rb"
-      #   server.acl "/path/to/acl"
-      #   server.log_file "/path/to/log"
-      #   server.log_level Logger::ERROR
-      #   server.sftp_user "username"
-      #   server.sftp_host "example.com"
-      # end
+      # @param [Symbol,String] name Server name
+      # @param [Hash] opts The options of server
+      # @option opts [true,false] :template Template for other servers to load, not actual server
+      # @option opts [Symbol] :load Inherit definition of other server
       # 
-      # * Example of a server over ssh
-      # server(:server_ssh, "example.co.jp") do |server, ssh|
-      #   server.load "server_definition.rb"
-      #   server.acl "/path/to/acl"
-      #   server.log_level Logger::ERROR
-      #   server.sftp_user "username"
-      #   server.sftp_host "example.com"
+      # @example A server on localhost
+      #  server :server_local, "example.com" do |srv|
+      #    srv.load "server_definition.rb"
+      #    srv.acl "/path/to/acl"
+      #    srv.log_file "/path/to/log"
+      #    srv.log_level Logger::ERROR
+      #    srv.sftp_user "username"
+      #    srv.sftp_host "example.com"
+      #  end
       # 
-      #   ssh.connect "hostname"
-      #   ssh.directory "/path/to/dir"
-      #   ssh.shell "bash"
-      #   ssh.rvm "ruby-head"
-      #   ssh.rvm_init "/path/to/scripts/rvm"
-      #   ssh.output "/path/to/output"
-      #   ssh.nice 10
-      # end
+      # @example A server over ssh
+      #  server :server_ssh, "example.co.jp" do |srv, ssh|
+      #    srv.load "server_definition.rb"
+      #    srv.acl "/path/to/acl"
+      #    srv.log_level Logger::ERROR
+      #    srv.sftp_user "username"
+      #    srv.sftp_host "example.com"
+      #  
+      #    ssh.connect "hostname"
+      #    ssh.directory "/path/to/dir"
+      #    ssh.shell "bash"
+      #    ssh.rvm "ruby-head"
+      #    ssh.rvm_init "/path/to/scripts/rvm"
+      #    ssh.output "/path/to/output"
+      #    ssh.nice 10
+      #  end
       def server(name, *args, &block)
         name = name.intern
         if ind = @__server__.index { |n, data| name == n }
@@ -163,30 +170,38 @@ module DRbQS
       # Exceptionally, we can set a ssh server by 'connect' method.
       # If we omit the 'connect' method then the program tries to connect
       # the name specified as first argument.
-      # We can set :template, :load, and :group as options.
       # 
-      # * Example of nodes on localhost
-      # node(:node_local) do |node|
-      #   node.process 3
-      #   node.load "load_lib.rb"
-      #   node.log_prefix "/path/to/log"
-      #   node.log_level Logger::DEBUG
-      # end
+      # @param [Symbol,String] name Node name
+      # @param [Hash] opts The options of node
+      # @option opts [true,false] :template Template for other nodes to load, not actual node
+      # @option opts [Symbol] :load Inherit definition of other node
+      # @option opts [true,false] :group Define the group of node
       # 
-      # * Example of nodes over ssh
-      # node(:node_ssh) do |node, ssh|
-      #   node.process 3
-      #   node.load "load_lib.rb"
-      #   node.log_level Logger::DEBUG
+      # @example Nodes on localhost
+      #  node :node_local do |nd|
+      #    nd.process 3
+      #    nd.load "load_lib.rb"
+      #    nd.log_prefix "/path/to/log"
+      #    nd.log_level Logger::DEBUG
+      #  end
       # 
-      #   ssh.connect "hostname"
-      #   ssh.directory "/path/to/dir"
-      #   ssh.shell "bash"
-      #   ssh.rvm "ruby-head"
-      #   ssh.rvm_init "/path/to/scripts/rvm"
-      #   ssh.output "/path/to/output"
-      #   ssh.nice 10
-      # end
+      # @example Nodes over ssh
+      #  node :node_ssh do |nd, ssh|
+      #    nd.process 3
+      #    nd.load "load_lib.rb"
+      #    nd.log_level Logger::DEBUG
+      #  
+      #    ssh.connect "hostname"
+      #    ssh.directory "/path/to/dir"
+      #    ssh.shell "bash"
+      #    ssh.rvm "ruby-head"
+      #    ssh.rvm_init "/path/to/scripts/rvm"
+      #    ssh.output "/path/to/output"
+      #    ssh.nice 10
+      #  end
+      # 
+      # @example Node group
+      #  node :node_group, :group => [:node_local, :node_ssh]
       def node(name, opts = {}, &block)
         name = name.intern
         load_def = opts[:load]
@@ -218,6 +233,9 @@ module DRbQS
         end
       end
 
+      # @param [Array] *args Symbols of servers
+      # @example Clear server definitions
+      #  clear_server :server1, :server2
       def clear_server(*args)
         args.each do |arg|
           @__server__.delete_if do |name, data|
@@ -226,6 +244,9 @@ module DRbQS
         end
       end
 
+      # @param [Array] *args Symbols of nodes
+      # @example Clear node definitions
+      #  clear_node :node1, :node2
       def clear_node(*args)
         args.each do |arg|
           @__node__.delete_if do |name, data|
@@ -235,8 +256,12 @@ module DRbQS
       end
 
       # We can set default server, default port, and default directory to output log.
-      # * Example of usage
-      #   default :port => 13456, :server => :server_local, :log => "/tmp/drbqs_execute_log"
+      # @param [Hash] val the pair of key and value
+      # @option val [Fixnum] :port Port number of a server
+      # @option val [Symbol] :server Server executed by default
+      # @option val [String] :log Path of log of a server and nods on localhost
+      # @example Set default value
+      #  default :port => 13456, :server => :server_local, :log => "/tmp/drbqs_execute_log"
       def default(val = {})
         val.delete_if { |key, v| !v }
         if val[:server]
@@ -250,18 +275,22 @@ module DRbQS
         @__default__.merge!(val)
       end
 
+      # @example Clear default value
+      #  default_clear :port, :server, :log
       def default_clear(*keys)
         keys.each do |key|
           @__default__.delete(key)
         end
       end
 
-      # We can set messages of usage and path of definition file of server
-      # to output help of server on showing help.
-      # * Example of usage
-      # usage(:message => 'Calculate some value', :server => 'server.rb')
+      # We can set some messages shown by drbqs-execute -h.
+      # @param [Hash] opts
+      # @option opts [String] :message Simple message strings
+      # @option opts [String] :server Path of server definition to output as help of server
+      # @example Set usage
+      #  usage :message => 'Calculate some value', :server => 'server.rb'
       def usage(opts = {})
-        @__usage__ = opts
+        @__usage__.merge!(opts)
       end
 
       def __load__(path)
