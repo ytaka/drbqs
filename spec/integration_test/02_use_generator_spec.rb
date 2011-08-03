@@ -9,7 +9,7 @@ describe DRbQS do
     @task_generators.each do |tg|
       tg.set do
         @iterate.times do |i|
-          create_add_task(Test1.new, :echo, [i])
+          create_add(Test1.new, :echo, [i])
         end
       end
     end

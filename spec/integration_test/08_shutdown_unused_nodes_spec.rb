@@ -6,7 +6,7 @@ require 'drbqs/command_line/command_line'
 describe DRbQS::Server do
   before(:all) do
     @max_wait_time = 10
-    @server_process_id, @uri = drbqs_fork_server(14080, :continue => true, :opts => { :shutdown_unused_nodes => true })
+    @server_process_id, @uri = drbqs_fork_server(14080, :opts => { :shutdown_unused_nodes => true, :not_exit => true })
     @manage = DRbQS::Manage.new(:uri => @uri)
   end
 

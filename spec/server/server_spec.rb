@@ -59,7 +59,7 @@ describe DRbQS::Server do
       server_hook = mock
       DRbQS::Server::Hook.stub!(:new).and_return(server_hook)
       server_hook.should_receive(:set_finish_exit)
-      DRbQS::Server.new(:finish_exit => true)
+      DRbQS::Server.new
     end
   end
 

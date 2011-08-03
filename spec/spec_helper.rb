@@ -69,12 +69,6 @@ def drbqs_fork_server(uri_arg, opts = {}, &block)
       end
     end
 
-    unless opts[:continue]
-      server.add_hook(:finish) do |serv|
-        serv.exit
-      end
-    end
-
     server.set_signal_trap
     server.start
     server.wait
