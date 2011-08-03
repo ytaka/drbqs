@@ -1,5 +1,6 @@
 require 'drbqs/utility/transfer/transfer_file_list'
 require 'drbqs/utility/transfer/transfer'
+require 'drbqs/task/registrar'
 require 'drbqs/task/task_generator'
 
 module DRbQS
@@ -24,11 +25,11 @@ module DRbQS
       rescue
         raise "Can not dump an instance of #{obj.class}."
       end
-      unless Array === args
-        raise "Arguments of task must be an array."
-      end
       @method_sym = method_sym.intern
       @args = args || []
+      unless Array === @args
+        raise "Arguments of task must be an array."
+      end
       @message = message
       @hook = hook
     end
