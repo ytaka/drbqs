@@ -158,7 +158,7 @@ module DRbQS
     # Set a hook of server.
     # @note When we set both :empty_queue and task generators,
     #  hook of :empty_queue is prior to task generators.
-    # @param [:empty_queue,:process_data,:finish_exit] key Set the type of hook.
+    # @param [:empty_queue,:process_data,:finish] key Set the type of hook.
     # @param [String] name Name of the hook. If the value is nil then the name is automatically created.
     # @param [Proc] &block block is obligatory and takes server itself as an argument.
     def add_hook(key, name = nil, &block)
@@ -170,7 +170,7 @@ module DRbQS
       @hook.add(key, name, &block)
     end
 
-    # @param [:empty_queue,:process_data,:finish_exit] key Set the type of hook.
+    # @param [:empty_queue,:process_data,:finish] key Set the type of hook.
     # @param [String] name Name of the hook. If the value is nil then all hooks of the key is deleted.
     def delete_hook(key, name = nil)
       @hook.delete(key, name)
@@ -312,11 +312,15 @@ module DRbQS
           else
             task_ids = @queue.calculating[node_id].to_a
             s << "task: "
-            s << messages[node_id].map do |task_id, mes|
-              calc_task = task_id.to_s
-              calc_task << ": " << mes.to_s if mes
-              calc_task
-            end.join(', ')
+            if messages[node_id]
+              s << messages[node_id].map do |task_id, mes|
+                calc_task = task_id.to_s
+                calc_task << ": " << mes.to_s if mes
+                calc_task
+              end.join(', ')
+            else
+              s << "none"
+            end
             s << " (#{time_to_history_string2(connect[0])})\n"
           end
         end

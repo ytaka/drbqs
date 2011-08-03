@@ -43,7 +43,7 @@ module DRbQS
         else
           @mode = nil
         end
-        if !@output_help && !@definition
+        if @mode != :help && !@definition
           raise DRbQS::Setting::InvalidArgument, "Definition file must be specified."
         end
       end

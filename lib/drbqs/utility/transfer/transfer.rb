@@ -1,11 +1,15 @@
 module DRbQS
   # To compress files, we use gzip and tar command.
-  # Note that if we compress files then we delete the source files.
+  # Note that if we compress files then we delete the original files.
   class Transfer
     @files = Queue.new
 
     class << self
-      # If opts[:compress] is true then the file of +path+ is compressed before tranfering.
+      # Add path to queue of which files is going to be transfered to server.
+      # @param [String] path The file path that we want to send to a server.
+      # @param [Hash] opts The options for transfering a file.
+      # @option opts [true,false] :compress Compress the file by gzip before transfering.
+      # @option opts [String] :rename Change basename to the specified name.
       def enqueue(path, opts = {})
         if opts[:rename]
           new_path = FileName.create(File.join(File.dirname(path), opts[:rename]), :directory => :parent)
@@ -54,6 +58,9 @@ module DRbQS
         files.empty? ? nil : files
       end
 
+      # Decompress a file in the file directory of a server.
+      # @param [DRbQS::Server] server Current server
+      # @param [String] filename File path to decompress
       def decompress(server, filename)
         dir = server.transfer_directory
         path = File.join(dir, filename)

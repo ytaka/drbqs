@@ -22,8 +22,13 @@ module DRbQS
     end
 
     # Return new path of temporary file.
-    def self.file
-      filename.create(:add => :always)
+    # @param [String] basename Set the basename of created filename
+    def self.file(basename = nil)
+      if basename
+        File.join(self.directory, basename)
+      else
+        filename.create(:add => :always)
+      end
     end
 
     # Make root of temporary directory empty.

@@ -165,7 +165,7 @@ module DRbQS
               io.print "\n" << mes
             end
           rescue => err
-            new_err = err.class.new("Error in loading #{path}: #{err.to_s}")
+            new_err = err.class.new("Error in loading: #{err.to_s}")
             new_err.set_backtrace(err.backtrace)
             raise new_err
           end
