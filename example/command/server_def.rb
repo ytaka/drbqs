@@ -3,12 +3,11 @@
 #  drbqs-server server_def.rb
 # 
 
-DRbQS.define_server(:finish_exit => true) do |server, argv, opts|
-  tgen = DRbQS::Task::Generator.new(:sleep_time => 2)
-  tgen.set do
+DRbQS.define_server do |server, argv, opts|
+  sleep_time = 2
+  server.task_generator do |reg|
     3.times do |i|
-      add_task(DRbQS::CommandTask.new(["sleep #{@sleep_time}", 'echo hello world']))
+      reg.add(DRbQS::CommandTask.new(["sleep #{sleep_time}", 'echo hello world']))
     end
   end
-  server.add_task_generator(tgen)
 end
