@@ -117,11 +117,13 @@ which can be over SSH.
 - **task.rb** : Class of tasks
 - **execute.rb** : DSL to start processes.
 
+The above examples are in the directory example/simple.
+
 ### server.rb
 
     require_relative 'task.rb'
     
-    DRbQS.define_server(:finish_exit => true) do |server, argv, opts|
+    DRbQS.define_server do |server, argv, opts|
       task = DRbQS::Task.new(Sum.new(10, 20, 2), :calc) do |srv, result|
         puts "Result is #{result}"
       end
@@ -146,7 +148,7 @@ which can be over SSH.
 
     DIR = File.dirname(__FILE__)
     
-    default :port => 12345
+    default port: 12345
     
     server :local, "localhost" do |srv|
       srv.load File.join(DIR, 'server.rb')
