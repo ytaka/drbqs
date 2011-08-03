@@ -28,7 +28,7 @@ module DRbQS
         @logger.info("New task: #{@task_id}")
         @cache[@task_id] = task
         queue_task(@task_id)
-        @history.set(@task_id, :add, task.message)
+        @history.set(@task_id, :add, task.note)
         @task_id
       end
 

@@ -8,54 +8,85 @@ module DRbQS
   # The tasks defined by this class are sent to nodes and
   # calculated by the nodes.
   class Task
+    attr_reader :obj
+    attr_reader :args
+    attr_reader :method_name
     attr_reader :hook
-    attr_accessor :message
+    attr_accessor :note
 
-    # Nodes calculate by obj.method_sym(*args) and send the result to their server.
+    # Nodes calculate by obj.method_name(*opts[:args]) and send the result to their server.
     # Then the server executes &hook with a server instance and an object of result.
     # For the communication of a server and nodes we must convert obj to a string
     # by Marshal.dump.
-    # @param [Object] obj An object that has a method "method_sym"
-    # @param [Symbol] method_sym Method name of calculation
-    # @param [String] message Message for a task
+    # If we set both opts[:hook] and &hook then &hook is prior to opts[:hook].
+    # @param [Object] obj An object that has a method "method_name"
+    # @param [Symbol] method_name Method name of calculation
+    # @param [Hash] opts The options of tasks.
+    # @option opts [Array] :args An array of arguments of method "method_name"
+    # @option opts [String] :note Note for a task
+    # @option opts [Symbol] :hook Method name for hook
+    #  that takes two arguments server and the result object.
     # @param [Proc] hook A server execute hook as a callback when the server receive the result
-    def initialize(obj, method_sym, args = [], message = nil, &hook)
+    # @note Changes of obj on a node are not sent to a server.
+    #  That is, opts[:hook] must not depend on changes of instance variables on a node.
+    def initialize(obj, method_name, opts = {}, &hook)
+      @obj = obj
       begin
-        @marshal_obj = Marshal.dump(obj)
+        @marshal_obj = Marshal.dump(@obj)
       rescue
-        raise "Can not dump an instance of #{obj.class}."
+        raise "Can not dump #{@obj.inspect}."
       end
-      @method_sym = method_sym.intern
-      @args = args || []
+      @method_name = method_name.intern
+      @args = opts[:args] || []
       unless Array === @args
         raise "Arguments of task must be an array."
       end
-      @message = message
-      @hook = hook
+      begin
+        @marshal_args = Marshal.dump(@args)
+      rescue
+        raise "Can not dump #{@args.inspect}."
+      end
+      @note = opts[:note]
+      @hook = hook || opts[:hook]
     end
 
     def drb_args(task_id)
-      [task_id, @marshal_obj, @method_sym, @args]
-    end
-
-    def same_target?(other)
-      @marshal_obj == other.instance_variable_get(:@marshal_obj) &&
-        @method_sym == other.instance_variable_get(:@method_sym) &&
-        @args == other.instance_variable_get(:@args)
+      [task_id, @marshal_obj, @method_name, @marshal_args]
     end
 
     def exec_hook(server, result)
-      if @hook
+      case @hook
+      when Proc
         @hook.call(server, result)
-        true
+      when Symbol, String
+        @obj.__send__(@hook, server, result)
       else
-        nil
+        return nil
+      end
+      true
+    end
+
+    def ==(other)
+      if @marshal_obj == other.instance_variable_get(:@marshal_obj) &&
+          @method_name == other.instance_variable_get(:@method_name) &&
+          @marshal_args == other.instance_variable_get(:@marshal_args)
+        if Proc === @hook && Proc === other.hook
+          # Return false at this time.
+          false
+        else
+          @hook == other.hook
+        end
+      else
+        false
       end
     end
 
-    def self.execute_task(marshal_obj, method_sym, args)
-      obj = Marshal.load(marshal_obj)
-      obj.__send__(method_sym, *args)
+    def self.call_task_method(obj, method_name, args)
+      obj.__send__(method_name, *args)
+    end
+
+    def self.execute_task(marshal_obj, method_name, marshal_args)
+      self.call_task_method(Marshal.load(marshal_obj), method_name, Marshal.load(marshal_args))
     end
 
     # DRbQS::Task::TaskSet is a child class of DRbQS::Task and consists of group of a number of tasks.
@@ -63,20 +94,7 @@ module DRbQS
     # and therefore we are unaware of the objects of DRbQS::TaskSet in many cases.
     class TaskSet < Task
 
-      # Class to group a number of objects to process tasks.
       class Container
-        def initialize(task_ary)
-          @data = task_ary.map.with_index do |task, i|
-            task.drb_args(i)
-          end
-        end
-
-        def exec
-          @data.map do |ary|
-            DRbQS::Task.execute_task(*ary[1..-1])
-          end
-        end
-
         def data
           @data
         end
@@ -89,40 +107,74 @@ module DRbQS
         end
       end
 
-      attr_reader :original_message
+      class ContainerTask < DRbQS::Task::TaskSet::Container
+        def initialize(task_ary)
+          @data = task_ary
+        end
+
+        def exec
+          @data.map do |task|
+            DRbQS::Task.call_task_method(task.obj, task.method_name, task.args)
+          end
+        end
+
+        def exec_all_hooks(srv, result)
+          result.each_with_index do |res, i|
+            @data[i].exec_hook(srv, res)
+          end
+        end
+      end
+
+      # Class to group a number of objects to process tasks.
+      class ContainerWithoutHook < DRbQS::Task::TaskSet::Container
+        def initialize(task_ary)
+          @data = task_ary.map.with_index do |task, i|
+            task.drb_args(i)
+          end
+        end
+
+        def exec
+          @data.map do |ary|
+            DRbQS::Task.execute_task(*ary[1..-1])
+          end
+        end
+      end
+
+      attr_reader :original_note
 
       def initialize(task_ary)
-        @original_hook = []
-        @original_message = []
-        task_ary.each do |task|
-          @original_hook << task.hook
-          @original_message << task.message
-        end
-        @original_message.compact!
-        super(DRbQS::Task::TaskSet::Container.new(task_ary), :exec) do |srv, result|
-          result.each_with_index do |res, i|
-            if hook = @original_hook[i]
-              hook.call(srv, res)
+        @original_note = task_ary.map do |task|
+          task.note
+        end.compact!
+        if task_ary.all? { |task| !(Proc === task.hook) }
+          container = DRbQS::Task::TaskSet::ContainerTask.new(task_ary)
+          super(container, :exec, hook: :exec_all_hooks, note: note_string)
+        else
+          container = DRbQS::Task::TaskSet::ContainerWithoutHook.new(task_ary)
+          @original_task = task_ary
+          super(container, :exec, note: note_string) do |srv, result|
+            result.each_with_index do |res, i|
+              @original_task[i].exec_hook(srv, res)
             end
           end
         end
-        set_message
       end
 
-      def set_message
-        @message = "TaskSet"
-        unless @original_message.empty?
-          case @original_message.size
+      def note_string
+        str = "TaskSet"
+        unless @original_note.empty?
+          case @original_note.size
           when 1
-            @message << ": " << @original_message[0]
+            str << ": " << @original_note[0]
           when 2
-            @message << ": " << @original_message.join(", ")
+            str << ": " << @original_note.join(", ")
           else
-            @message << ": " << @original_message[0] << ' - ' << @original_message[-1]
+            str << ": " << @original_note[0] << ' - ' << @original_note[-1]
           end
         end
+        str
       end
-      private :set_message
+      private :note_string
     end
   end
 end

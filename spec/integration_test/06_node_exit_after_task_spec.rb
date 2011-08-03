@@ -7,7 +7,7 @@ describe DRbQS::Server do
   before(:all) do
     @wait = 2
     @tasks = 10.times.map do |i|
-      DRbQS::Task.new(Test2.new, :echo_wait, [@wait])
+      DRbQS::Task.new(Test2.new, :echo_wait, args: [@wait])
     end
     @server_process_id, @uri = drbqs_fork_server(14060, :task => @tasks, :opts => { :not_exit => true })
     @manage = DRbQS::Manage.new(:uri => @uri)

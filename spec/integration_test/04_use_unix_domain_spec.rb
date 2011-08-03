@@ -6,7 +6,7 @@ require_relative 'definition/task_obj_definition.rb'
 describe DRbQS::Server do
   before(:all) do
     @tasks = 2.times.map do |i|
-      DRbQS::Task.new(Test1.new, :echo, [i])
+      DRbQS::Task.new(Test1.new, :echo, args: [i])
     end
     path = "/tmp/drbqs"
     @process_id, @uri = drbqs_fork_server(path, :task => @tasks)

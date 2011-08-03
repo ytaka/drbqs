@@ -18,7 +18,7 @@ describe DRbQS::Server::Queue do
   end
 
   before(:all) do
-    @task = { :obj => DRbQS::Task.new([1, 2, 3], :size, []), :id => nil }
+    @task = { :obj => DRbQS::Task.new([1, 2, 3], :size), :id => nil }
   end
 
   context "when initializing queue" do
@@ -222,9 +222,9 @@ describe DRbQS::Server::Queue do
     before(:all) do
       object_init
       @node_ids = [200, 300]
-      @tasks = [DRbQS::Task.new([1, 2, 3], :size, []),
-                DRbQS::Task.new([-1, -2], :size, []),
-                DRbQS::Task.new([8, 9, 10, 11], :size, [])]
+      @tasks = [DRbQS::Task.new([1, 2, 3], :size),
+                DRbQS::Task.new([-1, -2], :size),
+                DRbQS::Task.new([8, 9, 10, 11], :size)]
       @task_ids = @tasks.map do |t|
         subject.add(t)
       end
@@ -287,9 +287,9 @@ describe DRbQS::Server::Queue do
 
   context "when managing some tasks" do
     before(:all) do
-      @task_ary = [DRbQS::Task.new([1, 2, 3], :size, [], 'task1'),
-                   DRbQS::Task.new([1, 3], :size, [], 'task2'),
-                   DRbQS::Task.new([2, 1, 2, 3], :size, [], 'task3')]
+      @task_ary = [DRbQS::Task.new([1, 2, 3], :size, note: 'task1'),
+                   DRbQS::Task.new([1, 3], :size, note: 'task2'),
+                   DRbQS::Task.new([2, 1, 2, 3], :size, note: 'task3')]
       object_init
       @node_id = 100
       @task_id_ary = @task_ary.map do |task|
@@ -327,9 +327,9 @@ describe DRbQS::Server::Queue do
 
   context "when creating messages of calculating tasks" do
     before(:all) do
-      @task_ary = [DRbQS::Task.new([1, 2, 3], :size, [], 'task1'),
-                   DRbQS::Task.new([1, 3], :size, [], 'task2'),
-                   DRbQS::Task.new([2, 1, 2, 3], :size, [], 'task3')]
+      @task_ary = [DRbQS::Task.new([1, 2, 3], :size, note: 'task1'),
+                   DRbQS::Task.new([1, 3], :size, note: 'task2'),
+                   DRbQS::Task.new([2, 1, 2, 3], :size, note: 'task3')]
       object_init
       @node_id = 100
       @task_id_ary = @task_ary.map do |task|
