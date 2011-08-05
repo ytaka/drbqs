@@ -17,6 +17,8 @@ module DRbQS
 
       # If +file+ exists then this method returns false.
       # Otherwise, return true.
+      # @param [String] file Set path under the data directory.
+      # @param [Object] data Set the save data that is converted to YAML.
       def save_file(file, data)
         path = path_under_directory(file)
         if File.exist?(path)

@@ -100,10 +100,11 @@ module DRbQS
       end
       private :parse_condition
 
-      # :check
-      # :add
-      # :bool
-      # :default
+      # @param [String,Symbol] key Set a key of a parameter value.
+      # @option opts [Array,Fixnum] :check Set the condition of value.
+      # @option opts [Boolean] :add The value is an array to set multiple values.
+      # @option opts [Boolean] :bool If opts[:bool] is true then the value is boolean.
+      # @option opts [Array] :default Set the default value.
       def register_key(key, opts = {})
         k = key.intern
         if registered_key?(k)

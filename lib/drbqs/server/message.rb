@@ -11,14 +11,17 @@ module DRbQS
         @logger = logger
       end
 
-      # Returned values:
-      # [:exit_server, nil]
-      # [:request_status, nil]
-      # [:request_history, nil]
-      # [:exit_after_task, node_id]
-      # [:wake_node, node_id]
-      # [:sleep_node, node_id]
-      # [:node_error, [node_id, error_message]]
+      # One of the following messages is returned.
+      # 
+      # * [:exit_server, nil]
+      # * [:request_status, nil]
+      # * [:request_history, nil]
+      # * [:exit_after_task, node_id]
+      # * [:wake_node, node_id]
+      # * [:sleep_node, node_id]
+      # * [:node_error, [node_id, error_message]]
+      # 
+      # @return [Array] Message array
       def get_message
         begin
           mes = @message.take([:server, Symbol, nil], 0)

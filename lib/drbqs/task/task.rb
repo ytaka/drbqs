@@ -27,6 +27,7 @@ module DRbQS
     # @option opts [Symbol] :hook Method name for hook
     #  that takes two arguments server and the result object.
     # @param [Proc] hook A server execute hook as a callback when the server receive the result
+    #  hook take two arguments: a DRbQS::Server object and a result of task.
     # @note Changes of obj on a node are not sent to a server.
     #  That is, opts[:hook] must not depend on changes of instance variables on a node.
     def initialize(obj, method_name, opts = {}, &hook)

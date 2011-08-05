@@ -1,7 +1,7 @@
 module DRbQS
   class Node
-    # Value of state is :sleep, :wait, or :calculate.
     class State
+      # Value of state is :sleep, :wait, or :calculate.
       attr_reader :state
 
       ALL_STATES = [:sleep, :wait, :calculate]

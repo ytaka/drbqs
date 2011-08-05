@@ -21,8 +21,7 @@ module DRbQS
       end
       private :queue_task
 
-      # &hook take two arguments: a DRbQS::Server::Queue object and a result of task.
-      # Return task ID (for debug).
+      # @return [Fixnum] task ID (for debug)
       def add(task)
         @task_id += 1
         @logger.info("New task: #{@task_id}")

@@ -20,6 +20,7 @@ module DRbQS
         @wait
       end
 
+      # Specify how to generate tasks.
       # @param [Hash] opts The options of task generation
       # @option opts [Fixnum] :generate Set the number of tasks per one generation
       # @option opts [Fixnum] :collect The generator creates a task set consisting of opts[:collect] tasks.

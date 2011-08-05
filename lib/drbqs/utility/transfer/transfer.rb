@@ -8,7 +8,7 @@ module DRbQS
       # Add path to queue of which files is going to be transfered to server.
       # @param [String] path The file path that we want to send to a server.
       # @param [Hash] opts The options for transfering a file.
-      # @option opts [true,false] :compress Compress the file by gzip before transfering.
+      # @option opts [Boolean] :compress Compress the file by gzip before transfering.
       # @option opts [String] :rename Change basename to the specified name.
       def enqueue(path, opts = {})
         if opts[:rename]

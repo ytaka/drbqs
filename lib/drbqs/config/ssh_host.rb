@@ -28,7 +28,7 @@ module DRbQS
         name.size > 0 && find_file(name)
       end
 
-      # +name+ is file name without extension.
+      # @param [String] name File name without extension.
       def get_options(name)
         if path = get_path(name)
           return [path, YAML.load_file(path)]

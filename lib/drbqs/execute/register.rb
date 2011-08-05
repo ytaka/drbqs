@@ -91,7 +91,7 @@ module DRbQS
       # 
       # @param [Symbol,String] name Server name
       # @param [Hash] opts The options of server
-      # @option opts [true,false] :template Template for other servers to load, not actual server
+      # @option opts [Boolean] :template Template for other servers to load, not actual server
       # @option opts [Symbol] :load Inherit definition of other server
       # 
       # @example A server on localhost
@@ -173,9 +173,9 @@ module DRbQS
       # 
       # @param [Symbol,String] name Node name
       # @param [Hash] opts The options of node
-      # @option opts [true,false] :template Template for other nodes to load, not actual node
+      # @option opts [Boolean] :template Template for other nodes to load, not actual node
       # @option opts [Symbol] :load Inherit definition of other node
-      # @option opts [true,false] :group Define the group of node
+      # @option opts [Boolean] :group Define the group of node
       # 
       # @example Nodes on localhost
       #  node :node_local do |nd|

@@ -14,7 +14,10 @@ module DRbQS
 
       attr_reader :source
 
-      # The keys of options are :all_keys_defined, :log_level, and :daemon
+      # The keys of options are
+      # @option opts [Boolean] :all_keys_defined Check existences of keys on setting values.
+      # @option opts [Boolean] :log_level Use the option of log level.
+      # @option opts [Boolean] :daemon Use the option of daemon.
       def initialize(opts = {}, &block)
         @source = DRbQS::Setting::Source.new(opts[:all_keys_defined])
         @source.register_key(:debug, :bool => true)

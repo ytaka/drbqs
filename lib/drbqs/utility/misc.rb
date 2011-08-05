@@ -16,9 +16,10 @@ module DRbQS
       end
     end
 
-    # :port
-    # :host
-    # :unix
+    # @param [Hash] opts The arguments of URI of server
+    # @option opts [Fixnum] :port Port number of a server
+    # @option opts [String] :host Hostname of a server
+    # @option opts [String] :unix Path for unix domain socket of a server 
     def create_uri(opts = {})
       if opts[:port] || !opts[:unix]
         port = opts[:port] || ROOT_DEFAULT_PORT
@@ -73,6 +74,7 @@ module DRbQS
 
     # If process of +pid+ does not exist or its state is zombie then the method return false.
     # If +pid+ is invalid then the method also returns false.
+    # @param [Fixnum] pid PID of process
     def process_running_normally?(pid)
       Integer === pid && (ps_table = Sys::ProcTable.ps(pid)) && (ps_table.state != 'Z')
     end

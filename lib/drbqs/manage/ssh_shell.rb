@@ -4,17 +4,19 @@ require 'net/ssh/shell'
 module DRbQS
   class Manage
     # Requirements:
-    #   bash
+    # 
+    # * bash
     class SSHShell
       class RubyEnvironment
         DEFAULT_RVM_SCRIPT = '$HOME/.rvm/scripts/rvm'
 
         attr_reader :directory, :rvm, :rvm_init, :env
 
-        # :directory
-        # :rvm
-        # :rvm_init
-        # :env
+        # @param [Hash] opts The options of ruby environment.
+        # @option opts [String] :directory Directory when we execute commands.
+        # @option opts [String] :rvm       Set ruby implementation on rvm.
+        # @option opts [String] :rvm_init  Set the path of init script of rvm.
+        # @option opts [Hash]   :env       Set pair of environmental variables and their values.
         def initialize(opts = {})
           @directory = opts[:directory]
           @rvm = opts[:rvm]
@@ -54,20 +56,24 @@ module DRbQS
 
       attr_reader :user, :host, :port, :keys
 
-      # :shell     shell to use
-      # :env       a hash of environmental variables and their values
-      # :dir       base directory of ssh server
-      # :rvm       version of ruby on rvm
-      # :rvm_init  path of script to initialize rvm
-      # :keys      path of a ssh key
-      # :io        IO to output results of commands
+      DEFAULT_SHELL = 'bash'
+
+      # @param [String] dest Destination of SSH.
+      # @param [Hash] opts The options of SSH shell.
+      # @option opts [String] :shell     The shell to use.
+      # @option opts [String] :keys      Path of a ssh key.
+      # @option opts [IO]     :io        IO to output results of commands.
+      # @option opts [Hash]   :env       Same as options DRbQS::Manage::SSHShell::RubyEnvironment.
+      # @option opts [String] :directory Same as options DRbQS::Manage::SSHShell::RubyEnvironment.
+      # @option opts [String] :rvm       Same as options DRbQS::Manage::SSHShell::RubyEnvironment.
+      # @option opts [String] :rvm_init  Same as options DRbQS::Manage::SSHShell::RubyEnvironment.
       def initialize(dest, opts = {})
         @user, @host, @port = split_destination(dest)
         if !(@host && @user)
           raise ArgumentError, "Invalid ssh server: host=#{@host.inspect}, user=#{@user.inspect}."
         end
         @keys = opts.delete(:keys)
-        @shell = opts[:shell] || 'bash'
+        @shell = opts.delete(:shell) || DEFAULT_SHELL
         @ruby_environment = DRbQS::Manage::SSHShell::RubyEnvironment.new(opts)
         @out = opts[:io]
         @ssh = nil
@@ -163,7 +169,9 @@ module DRbQS
         @ssh = nil
       end
 
-      # :check
+      # @param [Array] commands An array of list of commands.
+      # @param [Hash]  opts     Options
+      # @option opts [Boolean] :check Check exit codes of commands.
       def execute_all(commands, opts = {})
         results = []
         start do |ssh_shell|
