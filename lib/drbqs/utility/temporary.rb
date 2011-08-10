@@ -9,7 +9,7 @@ module DRbQS
     def self.filename
       unless @@filename
         pid = Process.pid
-        @@root = File.join(Dir.tmpdir, "drbqs.#{ENV['USER']}", sprintf("drbqs_%d_%d", pid, rand(10000)))
+        @@root = File.join(Dir.tmpdir, sprintf("drbqs_%s_%d_%d", ENV['USER'], pid, rand(10000)))
         FileUtils.mkdir_p(@@root, :mode => 0700)
         @@filename = FileName.new(File.join(@@root, sprintf("temp_%d_%d", pid, rand(10000))))
       end
