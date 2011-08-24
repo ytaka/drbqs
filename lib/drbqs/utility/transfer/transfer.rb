@@ -11,31 +11,35 @@ module DRbQS
       # @option opts [Boolean] :compress Compress the file by gzip before transfering.
       # @option opts [String] :rename Change basename to the specified name.
       def enqueue(path, opts = {})
-        if opts[:rename]
-          new_path = FileName.create(File.join(File.dirname(path), opts[:rename]), :directory => :parent)
-          FileUtils.mv(path, new_path)
-          path = new_path
-        end
-        if opts[:compress]
-          if File.directory?(path)
-            gz_path = "#{path.sub(/\/$/, '')}.tar.gz"
-            cmd = "tar czf #{gz_path} -C #{File.dirname(path)} #{File.basename(path)} > /dev/null 2>&1"
+        if File.exist?(path)
+          if opts[:rename]
+            new_path = FileName.create(File.join(File.dirname(path), opts[:rename]), :directory => :parent)
+            FileUtils.mv(path, new_path)
+            path = new_path
+          end
+          if opts[:compress]
+            if File.directory?(path)
+              gz_path = "#{path.sub(/\/$/, '')}.tar.gz"
+              cmd = "tar czf #{gz_path} -C #{File.dirname(path)} #{File.basename(path)} > /dev/null 2>&1"
+            else
+              gz_path = path + '.gz'
+              cmd = "gzip --best #{path} > /dev/null 2>&1"
+            end
+            if File.exist?(gz_path)
+              raise "File has already existed: #{gz_path}"
+            elsif !system(cmd)
+              raise "Can not compress: #{path}"
+            end
+            FileUtils.rm_r(path) if File.exist?(path)
+            path_to_send = gz_path
           else
-            gz_path = path + '.gz'
-            cmd = "gzip --best #{path} > /dev/null 2>&1"
+            path_to_send = path
           end
-          if File.exist?(gz_path)
-            raise "File has already existed: #{gz_path}"
-          elsif !system(cmd)
-            raise "Can not compress: #{path}"
-          end
-          FileUtils.rm_r(path) if File.exist?(path)
-          path_to_send = gz_path
+          @files.enq(path_to_send)
+          File.basename(path_to_send)
         else
-          path_to_send = path
+          nil
         end
-        @files.enq(path_to_send)
-        File.basename(path_to_send)
       end
 
       def compress_enqueue(path)
