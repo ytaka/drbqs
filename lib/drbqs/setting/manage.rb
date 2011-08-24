@@ -103,7 +103,7 @@ module DRbQS
       end
       private :command_status
 
-      def command_history
+      def command_history(io)
         request_to_server(io, :get_history)
       end
       private :command_history
