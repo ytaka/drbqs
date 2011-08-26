@@ -38,7 +38,7 @@ module DRbQS
             begin
               @registrar.instance_eval(&block)
             rescue => err
-              new_err = self.class.new("Error on generating tasks: #{err.to_s} (#{err.class})")
+              new_err = err.class.new("Error on generating tasks: #{err.to_s} (#{err.class})")
               new_err.set_backtrace(err.backtrace)
               raise new_err
             end
