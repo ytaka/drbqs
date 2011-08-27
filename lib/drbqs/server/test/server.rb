@@ -30,7 +30,7 @@ module DRbQS
             end
           end
         rescue Exception => err
-          $stdout.puts "*** Error occurs in calculation roop ***"
+          $stdout.puts "*** Error occurs in calculation loop ***"
           b = err.backtrace
           $stdout.puts "#{b[0]}: #{err.to_s} (#{err.class})"
           $stdout.puts b[1..-1].join("\n") if b.size > 1
