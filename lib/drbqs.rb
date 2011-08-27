@@ -9,6 +9,7 @@ require 'fileutils'
 
 require 'filename'
 
+require 'drbqs/version'
 require 'drbqs/execute/server_define'
 require 'drbqs/utility/misc'
 
@@ -19,6 +20,4 @@ module DRbQS
   autoload :Setting, 'drbqs/setting/setting'
 
   ROOT_DEFAULT_PORT = 13500
-
-  VERSION = '0.0.16'
 end
