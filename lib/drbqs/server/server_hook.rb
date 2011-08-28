@@ -26,15 +26,15 @@ module DRbQS
       end
       private :create_proc_name
 
-      def add(key, name = nil, &block)
+      def add(key, opts = {}, &block)
         unless block_given?
           raise ArgumentError, "The main part of hook must be specified as a block."
         end
         if (n = @argument_number[key]) && (block.arity != n)
           raise ArgumentError, "Invalid argument number of hook of #{key.inspect}."
         end
-        name ||= create_proc_name(key)
-        @hook[key] << [name, block]
+        name = opts[:name] || create_proc_name(key)
+        @hook[key] << [name, block, opts[:repeat]]
         name
       end
 
@@ -68,10 +68,24 @@ module DRbQS
         @hook[key].map { |a| a[0] }
       end
 
+      def delete_unused_hook
+        @hook.keys.each do |key|
+          @hook[key].delete_if do |ary|
+            ary[2] && ary[2] == 0
+          end
+        end
+      end
+      private :delete_unused_hook
+
       def exec(key, *args, &cond)
+        delete_unused_hook
         @hook[key].each do |ary|
-          if !cond || cond.call(ary[0])
-            ary[1].call(*args)
+          name, proc, repeat = ary
+          if !cond || cond.call(name)
+            if !repeat || repeat > 0
+              proc.call(*args)
+              ary[2] -= 1 if repeat
+            end
           else
             return nil
           end

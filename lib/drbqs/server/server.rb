@@ -173,15 +173,17 @@ module DRbQS
     # @note When we set both :empty_queue and task generators,
     #  hook of :empty_queue is prior to task generators.
     # @param [:empty_queue,:process_data,:finish] key Set the type of hook.
-    # @param [String] name Name of the hook. If the value is nil then the name is automatically created.
+    # @option opts [Fixnum] :repeat If we execute the hook specified times then the hook is deleted.
+    #   If the value is nil, the hook is repeated without limit.
+    # @option opts [String] :name Name of the hook. If the value is nil then the name is automatically created.
     # @param [Proc] &block block is obligatory and takes server itself as an argument.
-    def add_hook(key, name = nil, &block)
+    def add_hook(key, opts = {}, &block)
       if key == :process_data
         if @hook.number_of_hook(:process_data) != 0
           raise "Hook :process_data has already set."
         end
       end
-      @hook.add(key, name, &block)
+      @hook.add(key, opts, &block)
     end
 
     # @param [:empty_queue,:process_data,:finish] key Set the type of hook.
