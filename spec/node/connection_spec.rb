@@ -20,9 +20,9 @@ describe DRbQS::Node::Connection do
   end
 
   it "should get initialization." do
-    ary = DRbQS::Task.new([1, 2], :size).drb_args(:initialize)
-    @message.write(ary)
-    @connection.get_initialization.should == ary[2..-1]
+    ary = DRbQS::Task.new([1, 2], :size).simple_drb_args
+    @message.write([:initialize, ary])
+    @connection.get_initialization.should == ary
   end
 
   it "should get no finalization method." do
@@ -30,9 +30,9 @@ describe DRbQS::Node::Connection do
   end
 
   it "should get finalization." do
-    ary = DRbQS::Task.new([1, 2], :size).drb_args(:finalize)
-    @message.write(ary)
-    @connection.get_finalization.should == ary[2..-1]
+    ary = DRbQS::Task.new([1, 2], :size).simple_drb_args
+    @message.write([:finalize, ary])
+    @connection.get_finalization.should == ary
   end
 
   it "should raise error for invalid signal." do

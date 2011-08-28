@@ -54,8 +54,12 @@ module DRbQS
       @group = opts[:group] || DRbQS::Task::DEFAULT_GROUP
     end
 
+    def simple_drb_args
+      [@marshal_obj, @method_name, @marshal_args]
+    end
+
     def drb_args(task_id)
-      [@group, task_id, @marshal_obj, @method_name, @marshal_args]
+      [@group, task_id] + simple_drb_args
     end
 
     def exec_hook(server, result)

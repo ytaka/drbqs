@@ -62,8 +62,10 @@ module DRbQS
       @task_client = DRbQS::Node::TaskClient.new(@connection.node_number, obj[:queue], obj[:result],
                                                  node_group_for_task, @logger)
       DRbQS::Transfer::Client.set(obj[:transfer].get_client(server_on_same_host?)) if obj[:transfer]
-      if ary = @connection.get_initialization
-        execute_task(*ary)
+      if ary_initialization = @connection.get_initialization
+        ary_initialization.each do |ary|
+          execute_task(*ary)
+        end
       end
       @config.list.node.save(Process.pid, node_data)
     end
@@ -104,8 +106,10 @@ module DRbQS
     private :process_exit
 
     def execute_finalization
-      if ary = @connection.get_finalization
-        execute_task(*ary)
+      if ary_finalization = @connection.get_finalization
+        ary_finalization.each do |ary|
+          execute_task(*ary)
+        end
       end
     rescue => err
       output_error(err, "On finalization")

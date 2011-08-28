@@ -20,6 +20,8 @@ module DRbQS
       # * [:wake_node, node_id]
       # * [:sleep_node, node_id]
       # * [:node_error, [node_id, error_message]]
+      # * [:initialize, Array]
+      # * [:finalize, Array]
       # 
       # @return [Array] Message array
       def get_message
@@ -148,23 +150,27 @@ module DRbQS
         @node_list.exist?(node_id)
       end
 
-      def set_special_task(label, task)
+      def set_special_task(label, *tasks)
+        task_ary = []
         begin
-          @message.take([label, nil, nil, Symbol, nil], 0)
+          task_ary = @message.take([label, Array], 0)[1]
         rescue Rinda::RequestExpiredError
         end
-        @message.write(task.drb_args(label))
+        tasks.each do |task|
+          task_ary << task.simple_drb_args
+        end
+        @message.write([label, task_ary])
       end
       private :set_special_task
 
       # If the task has already set,
       # the method overwrite old task of initialization by new task.
-      def set_initialization(task)
-        set_special_task(:initialize, task)
+      def set_initialization_tasks(task_ary)
+        set_special_task(:initialize, *task_ary)
       end
 
-      def set_finalization(task)
-        set_special_task(:finalization, task)
+      def set_finalization_tasks(task_ary)
+        set_special_task(:finalize, *task_ary)
       end
 
       def shutdown_unused_nodes(calculating_nodes)

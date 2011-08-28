@@ -22,10 +22,12 @@ module DRbQS
         nil
       end
 
-      def finalize(finalization_task)
-        if finalization_task
-          args = finalization_task.drb_args(nil)[1..-1]
-          execute_task(*args)
+      def finalize(finalization_task_ary)
+        if finalization_task_ary
+          finalization_task_ary.each do |task|
+            args = task.simple_drb_args
+            execute_task(*args)
+          end
         end
         clear_node_files
       end

@@ -62,7 +62,7 @@ module DRbQS
       @task_generator = []
       hook_init(!opts[:not_exit], opts[:shutdown_unused_nodes])
       set_signal_trap if !opts.has_key?(:signal_trap) || opts[:signal_trap]
-      @finalization_task = nil
+      @finalization_task = []
       @data_storage = []
       @transfer_setting = DRbQS::Server::TransferSetting.new(opts[:sftp_host], opts[:sftp_user], opts[:file_directory])
       @config = DRbQS::Config.new
@@ -159,14 +159,13 @@ module DRbQS
     private :all_tasks_assigned?
 
     # @param [DRbQS::task] task
-    def set_initialization_task(task)
-      @message.set_initialization(task)
+    def set_initialization_task(*tasks)
+      @message.set_initialization_tasks(tasks)
     end
 
     # @param [DRbQS::task] task
-    def set_finalization_task(task)
-      @finalization_task = task
-      @message.set_finalization(@finalization_task)
+    def set_finalization_task(*tasks)
+      @finalization_task.concat(tasks)
     end
 
     # Set a hook of server.
@@ -254,7 +253,8 @@ module DRbQS
     private :shutdown_unused_nodes
 
     def exit
-      if @finalization_task
+      if !@finalization_task.empty?
+        @message.set_finalization_tasks(@finalization_task)
         @message.send_finalization
         wait_time = WAIT_TIME_NODE_FINALIZE
       else

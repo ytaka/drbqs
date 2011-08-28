@@ -28,7 +28,7 @@ module DRbQS
 
       def get_special_task(label)
         begin
-          @message.read([nil, label, nil, Symbol, nil], 0)[2..-1]
+          @message.read([label, Array], 0)[1]
         rescue Rinda::RequestExpiredError
           nil
         end
