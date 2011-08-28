@@ -150,7 +150,7 @@ module DRbQS
 
       def set_special_task(label, task)
         begin
-          @message.take([label, nil, Symbol, nil], 0)
+          @message.take([label, nil, nil, Symbol, nil], 0)
         rescue Rinda::RequestExpiredError
         end
         @message.write(task.drb_args(label))

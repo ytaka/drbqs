@@ -122,19 +122,21 @@ describe DRbQS::Server::Message do
 
   context "when setting special tasks" do
     it "should set initialization task" do
+      initialization_pattern = [DRbQS::Task::DEFAULT_GROUP, :initialize, nil, Symbol, nil]
       lambda do
-        @message.take([:initialize, nil, Symbol, nil], 0)
+        @message.take(initialization_pattern, 0)
       end.should raise_error Rinda::RequestExpiredError
       @message_server.set_initialization(DRbQS::Task.new(Object.new, :object_id))
-      @message.take([:initialize, nil, Symbol, nil], 0).should be_true
+      @message.take(initialization_pattern, 0).should be_true
     end
 
     it "should set finalization task" do
+      finalization_pattern = [DRbQS::Task::DEFAULT_GROUP, :finalization, nil, Symbol, nil]
       lambda do
-        @message.take([:finalization, nil, Symbol, nil], 0)
+        @message.take(finalization_pattern, 0)
       end.should raise_error Rinda::RequestExpiredError
       @message_server.set_finalization(DRbQS::Task.new(Object.new, :object_id))
-      @message.take([:finalization, nil, Symbol, nil], 0).should be_true
+      @message.take(finalization_pattern, 0).should be_true
     end
   end
 

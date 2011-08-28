@@ -30,6 +30,20 @@ module DRbQS
     # @option opts [Hash] :sftp_user Set user of sftp.
     # @option opts [Hash] :sftp_host Set host of sftp.
     # @option opts [Hash] :file_directory Set the directory for nodes to send files.
+    # 
+    # :nodoc:
+    # * Note of tuple spaces
+    # @ts[:message]
+    #  - used in node/connection.rb
+    #  - some messages to both server and node
+    #  - special tasks from server to nodes
+    # @ts[:queue]
+    #  - used in node/task_client.rb
+    #  - tasks from server to nodes
+    # @ts[:result]
+    #  - used in node/task_client.rb
+    #  - accept signal from nodes
+    #  - results from nodes
     def initialize(opts = {})
       @uri = DRbQS::Misc.create_uri(opts)
       @acl = acl_init(opts[:acl])

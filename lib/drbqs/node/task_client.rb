@@ -11,6 +11,7 @@ module DRbQS
         @exit_after_task = nil
         @task_queue = Queue.new
         @result_queue = Queue.new
+        @access_task_group = []
         @logger = logger
       end
 
@@ -40,12 +41,21 @@ module DRbQS
         @task_queue.deq
       end
 
-      def get_task
+      def get_task_by_group(grp)
         begin
-          @queue.take([Fixnum, nil, Symbol, nil], 0)
+          @queue.take([grp, Fixnum, nil, Symbol, nil], 0)[1..-1]
         rescue Rinda::RequestExpiredError
           nil
         end
+      end
+
+      def get_task
+        @access_task_group.each do |grp|
+          if task = get_task_by_group(grp)
+            return task
+          end
+        end
+        get_task_by_group(DRbQS::Task::DEFAULT_GROUP)
       end
 
       def set_exit_after_task

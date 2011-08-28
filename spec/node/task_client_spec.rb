@@ -10,12 +10,12 @@ describe DRbQS::Node::TaskClient do
     @task_client = DRbQS::Node::TaskClient.new(@node_number, @ts_queue, @ts_result)
   end
 
-  def add_task_to_tuplespace(task_id, task_ary)
-    @ts_queue.write([task_id] + task_ary)
+  def add_task_to_tuplespace(task_id, task_ary, group = DRbQS::Task::DEFAULT_GROUP)
+    @ts_queue.write([group, task_id] + task_ary)
   end
 
   def check_empty_queue_tuplespace
-    @ts_queue.read_all([nil, nil, nil, nil]).size.should == 0
+    @ts_queue.read_all([nil, nil, nil, nil, nil]).size.should == 0
   end
 
   subject do

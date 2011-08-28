@@ -4,6 +4,8 @@ require 'drbqs/server/queue'
 require 'drbqs/task/task'
 
 describe DRbQS::Server::Queue do
+  QUEUE_OBJECT_PATTERN = [nil, nil, nil, nil, nil]
+
   def object_init
     @ts = {
       :queue => Rinda::TupleSpace.new,
@@ -86,7 +88,7 @@ describe DRbQS::Server::Queue do
     end
 
     it "should take objects from queue." do
-      @ts[:queue].take([nil, nil, nil, nil]).should be_true
+      @ts[:queue].take(QUEUE_OBJECT_PATTERN).should be_true
     end
 
     it "should return an array of calculating nodes." do
@@ -208,9 +210,10 @@ describe DRbQS::Server::Queue do
       subject.should_not be_finished
     end
 
-    it "should return task ID." do
-      (ary = @ts[:queue].take([nil, nil, nil, nil])).should be_true
-      ary[0].should == @task_id
+    it "should return task group and task ID." do
+      (ary = @ts[:queue].take(QUEUE_OBJECT_PATTERN)).should be_true
+      ary[0].should == DRbQS::Task::DEFAULT_GROUP
+      ary[1].should == @task_id
     end
 
     it "should return an array of calculating nodes." do

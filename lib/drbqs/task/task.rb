@@ -8,11 +8,13 @@ module DRbQS
   # The tasks defined by this class are sent to nodes and
   # calculated by the nodes.
   class Task
+    DEFAULT_GROUP = :default
+
     attr_reader :obj
     attr_reader :args
     attr_reader :method_name
     attr_reader :hook
-    attr_accessor :note
+    attr_accessor :note, :group
 
     # Nodes calculate by obj.method_name(*opts[:args]) and send the result to their server.
     # Then the server executes &hook with a server instance and an object of result.
@@ -49,10 +51,11 @@ module DRbQS
       end
       @note = opts[:note]
       @hook = hook || opts[:hook]
+      @group = opts[:group] || DRbQS::Task::DEFAULT_GROUP
     end
 
     def drb_args(task_id)
-      [task_id, @marshal_obj, @method_name, @marshal_args]
+      [@group, task_id, @marshal_obj, @method_name, @marshal_args]
     end
 
     def exec_hook(server, result)
@@ -130,13 +133,13 @@ module DRbQS
       class ContainerWithoutHook < DRbQS::Task::TaskSet::Container
         def initialize(task_ary)
           @data = task_ary.map.with_index do |task, i|
-            task.drb_args(i)
+            task.drb_args(i)[2..-1]
           end
         end
 
         def exec
           @data.map do |ary|
-            DRbQS::Task.execute_task(*ary[1..-1])
+            DRbQS::Task.execute_task(*ary)
           end
         end
       end
@@ -147,19 +150,31 @@ module DRbQS
         @original_note = task_ary.map do |task|
           task.note
         end.compact!
+        group_sym = get_group_sym(task_ary)
         if task_ary.all? { |task| !(Proc === task.hook) }
           container = DRbQS::Task::TaskSet::ContainerTask.new(task_ary)
-          super(container, :exec, hook: :exec_all_hooks, note: note_string)
+          super(container, :exec, hook: :exec_all_hooks, note: note_string, group: group_sym)
         else
           container = DRbQS::Task::TaskSet::ContainerWithoutHook.new(task_ary)
           @original_task = task_ary
-          super(container, :exec, note: note_string) do |srv, result|
+          super(container, :exec, note: note_string, group: group_sym) do |srv, result|
             result.each_with_index do |res, i|
               @original_task[i].exec_hook(srv, res)
             end
           end
         end
       end
+
+      def get_group_sym(task_ary)
+        group_names = task_ary.map do |task|
+          task.group
+        end
+        group_names.compact!
+        group_names.uniq!
+        raise ArgumentError, "Can not collect tasks with different groups." if group_names.size > 1
+        group_names[0]
+      end
+      private :get_group_sym
 
       def note_string
         str = "TaskSet"
