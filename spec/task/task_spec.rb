@@ -92,6 +92,17 @@ describe DRbQS::Task do
       Marshal.dump(task)
     end.should raise_error
   end
+
+  it "should get default group." do
+    task = DRbQS::Task.new([1, 2, 3], :size)
+    task.group.should == DRbQS::Task::DEFAULT_GROUP
+  end
+
+  it "should set group." do
+    group = :local
+    task = DRbQS::Task.new([1, 2, 3], :size, group: group)
+    task.group.should == group
+  end
 end
 
 describe DRbQS::Task::TaskSet::ContainerTask do
@@ -172,12 +183,38 @@ describe DRbQS::Task::TaskSet do
 
   it "should execute hooks of symbols." do
     server = mock('server')
-    obj = [TestTask.new(100), TestTask.new(200), TestTask.new(300)]
-    tasks = []
-    tasks << DRbQS::Task.new(obj[0], :some_method, hook: :test_hook)
-    tasks << DRbQS::Task.new(obj[1], :some_method, hook: :test_hook)
-    tasks << DRbQS::Task.new(obj[2], :some_method, hook: :test_hook)
+    args = [100, 200, 300]
+    tasks = args.map do |a|
+      DRbQS::Task.new(TestTask.new(a), :some_method, hook: :test_hook)
+    end
     task_set = DRbQS::Task::TaskSet.new(tasks)
-    task_set.exec_hook(server, [100, 200, 300])
+    task_set.exec_hook(server, args)
+  end
+
+  it "should get default group." do
+    tasks = 10.times.map do |a|
+      DRbQS::Task.new(TestTask.new(a), :some_method)
+    end
+    task_set = DRbQS::Task::TaskSet.new(tasks)
+    task_set.group.should == DRbQS::Task::DEFAULT_GROUP
+  end
+
+  it "should set group." do
+    group = :local
+    tasks = 10.times.map do |a|
+      DRbQS::Task.new(TestTask.new(a), :some_method, group: group)
+    end
+    task_set = DRbQS::Task::TaskSet.new(tasks)
+    task_set.group.should == group
+  end
+
+  it "should raise error for different groups." do
+    group = :local
+    tasks = 10.times.map do |a|
+      DRbQS::Task.new(TestTask.new(a), :some_method, group: "group#{a}".intern)
+    end
+    lambda do
+      DRbQS::Task::TaskSet.new(tasks)  
+    end.should raise_error ArgumentError
   end
 end
