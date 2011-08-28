@@ -11,7 +11,9 @@ drbqs-execute execute a server of which uri is made from hostname and port.
 Moreover, drbqs-execute make nodes connecting to the uri of server.
 The server and nodes can be over SSH.
 
-## Example: execute.rb
+## Example
+
+### execute.rb
 
     #!/usr/bin/env drbqs-execute
     # -*-ruby-*-
@@ -55,13 +57,53 @@ The server and nodes can be over SSH.
     node :even, group: [:node02, :node04, :node06]
     node :odd, group: [:node01, :node03, :node05]
 
-## Help message
+### Execution
+
+In the above example, there is the shebang line
+
+    #!/usr/bin/env drbqs-execute
+
+and therefore we can execute by
+
+    ./execute.rb
+
+If there is no shebang line, we type
+
+    drbqs-execute execute.rb
+
+### Help message
 
 If we run the following command
 
     drbqs-execute -h execute.rb
 
 then help message of server.rb is displayed in addition to that of drbqs-execute.
+
+### Information of server and nodes
+
+The command
+
+    drbqs-execute -i
+
+shows information of server and nodes.
+The output is
+
+    Server:
+     * server1    ssh
+       local      local
+    Node:
+     - node_base  ssh,template
+       node01     ssh
+       node02     ssh
+       node03     ssh
+       node04     ssh
+       node05     ssh
+       node06     ssh
+     - even       group: node02,node04,node06
+     - odd        group: node01,node03,node05
+    Port: 12345
+
+The character "*"  means default and "-" means virtual nodes (template or group).
 
 ## Methods
 
