@@ -1,9 +1,9 @@
 module DRbQS
   class Node
     class TaskClient
-      attr_reader :node_number, :calculating_task
+      attr_reader :node_number, :calculating_task, :group
 
-      def initialize(node_number, queue, result, logger = DRbQS::Misc::LoggerDummy.new)
+      def initialize(node_number, queue, result, group, logger = DRbQS::Misc::LoggerDummy.new)
         @node_number = node_number
         @queue = queue
         @result = result
@@ -11,7 +11,7 @@ module DRbQS
         @exit_after_task = nil
         @task_queue = Queue.new
         @result_queue = Queue.new
-        @access_task_group = []
+        @group = group || []
         @logger = logger
       end
 
@@ -50,7 +50,7 @@ module DRbQS
       end
 
       def get_task
-        @access_task_group.each do |grp|
+        @group.each do |grp|
           if task = get_task_by_group(grp)
             return task
           end

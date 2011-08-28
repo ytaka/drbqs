@@ -3,11 +3,11 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 require 'drbqs/node/task_client'
 
 describe DRbQS::Node::TaskClient do
-  def init_task_client(node_number = 10)
-    @node_number = node_number
+  def init_task_client(opts = {})
+    @node_number = opts[:number] || 10
     @ts_queue = Rinda::TupleSpace.new
     @ts_result = Rinda::TupleSpace.new
-    @task_client = DRbQS::Node::TaskClient.new(@node_number, @ts_queue, @ts_result)
+    @task_client = DRbQS::Node::TaskClient.new(@node_number, @ts_queue, @ts_result, opts[:group])
   end
 
   def add_task_to_tuplespace(task_id, task_ary, group = DRbQS::Task::DEFAULT_GROUP)
@@ -39,8 +39,12 @@ describe DRbQS::Node::TaskClient do
       subject.calculating_task.should be_nil
     end
 
-    it "should return no task" do
+    it "should return no task." do
       subject.get_task.should be_nil
+    end
+
+    it "should not have group." do
+      subject.group.should == []
     end
   end
 
@@ -61,9 +65,35 @@ describe DRbQS::Node::TaskClient do
     end
   end
 
+  context "when getting task by group" do
+    before(:all) do
+      init_task_client(:group => [:grp1])
+      @task_id = 3
+      @task_ary = ["hello world", :size, []]
+      add_task_to_tuplespace(@task_id, @task_ary, :grp1)
+    end
+
+    it "should not return task." do
+      client = DRbQS::Node::TaskClient.new(100, @ts_queue, @ts_result, nil)
+      client.get_task.should be_nil
+    end
+
+    it "should return task." do
+      subject.get_task.should == @task_ary.dup.unshift(@task_id)
+    end
+
+    it "should take out task from tuplespace." do
+      check_empty_queue_tuplespace
+    end
+
+    it "should have group." do
+      subject.group.should == [:grp1]
+    end
+  end
+
   context "when getting new task" do
     before(:all) do
-      init_task_client(7)
+      init_task_client(:number => 7)
     end
 
     it "should return nil" do
@@ -78,7 +108,7 @@ describe DRbQS::Node::TaskClient do
 
   context "when adding new task" do
     before(:all) do
-      init_task_client(7)
+      init_task_client(:number => 7)
       @task_id = 3
       @task_ary = [[1, 3, 5, 7], :size, []]
       add_task_to_tuplespace(@task_id, @task_ary)
@@ -108,7 +138,7 @@ describe DRbQS::Node::TaskClient do
 
   context "when dequeueing a task" do
     before(:all) do
-      init_task_client(14)
+      init_task_client(:number => 14)
       @task_id = 8
       @task_ary = [[1, 3, 5, 7], :size, []]
       add_task_to_tuplespace(@task_id, @task_ary)
@@ -135,7 +165,7 @@ describe DRbQS::Node::TaskClient do
 
   context "when queueing result" do
     before(:all) do
-      init_task_client(2)
+      init_task_client(:number => 2)
       @task_id = 27
       @task_ary = ["abcdef", :size, []]
       add_task_to_tuplespace(@task_id, @task_ary)
@@ -159,7 +189,7 @@ describe DRbQS::Node::TaskClient do
 
   context "when sending result" do
     before(:all) do
-      init_task_client(2)
+      init_task_client(:number => 2)
       @task_id = 27
       @task_ary = ["abcdef", :size, []]
       add_task_to_tuplespace(@task_id, @task_ary)
@@ -192,7 +222,7 @@ describe DRbQS::Node::TaskClient do
 
   context "when setting exit_after_task" do
     before(:all) do
-      init_task_client(2)
+      init_task_client(:number => 2)
       @task_id = 27
       @task_ary = ["abcdef", :size, []]
       add_task_to_tuplespace(@task_id, @task_ary)
@@ -209,7 +239,7 @@ describe DRbQS::Node::TaskClient do
 
   context "when dumping result queue" do
     before(:all) do
-      init_task_client(2)
+      init_task_client(:number => 2)
     end
 
     it "should return nil for empty result queue." do

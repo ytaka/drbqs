@@ -14,6 +14,7 @@ module DRbQS
     OUTPUT_NOT_SEND_RESULT = 'not_send_result'
     DEFAULT_LOG_FILE = 'drbqs_client.log'
     INTERVAL_TIME_DEFAULT = 1
+    SAME_HOST_GROUP = :local
 
     # :continue
     # :max_loadavg
@@ -57,8 +58,9 @@ module DRbQS
     def connect
       obj = DRbObject.new_with_uri(@access_uri)
       @server_key = obj[:key]
-      @connection = Node::Connection.new(obj[:message], @logger)
-      @task_client = Node::TaskClient.new(@connection.node_number, obj[:queue], obj[:result], @logger)
+      @connection = DRbQS::Node::Connection.new(obj[:message], @logger)
+      @task_client = DRbQS::Node::TaskClient.new(@connection.node_number, obj[:queue], obj[:result],
+                                                 node_group_for_task, @logger)
       DRbQS::Transfer::Client.set(obj[:transfer].get_client(server_on_same_host?)) if obj[:transfer]
       if ary = @connection.get_initialization
         execute_task(*ary)
@@ -66,8 +68,18 @@ module DRbQS
       @config.list.node.save(Process.pid, node_data)
     end
 
+    def node_group_for_task
+      group = []
+      if server_on_same_host?
+        group << DRbQS::Node::SAME_HOST_GROUP
+      end
+      group
+    end
+    private :node_group_for_task
+
     def server_on_same_host?
-      @config.list.server.server_of_key_exist?(@access_uri, @server_key)
+      @server_on_same_host ||
+        (@server_on_same_host = @config.list.server.server_of_key_exist?(@access_uri, @server_key))
     end
 
     def dump_not_send_result_to_file
