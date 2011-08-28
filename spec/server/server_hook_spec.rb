@@ -21,7 +21,7 @@ describe DRbQS::Server::Hook do
   it "should add a hook with name." do
     n = subject.number_of_hook(:finish)
     name = 'hello'
-    name_new = subject.add(:finish, name) do |server|
+    name_new = subject.add(:finish, name: name) do |server|
       3 + 4
     end
     name_new.should == name
@@ -69,6 +69,33 @@ describe DRbQS::Server::Hook do
     subject.exec(:finish)
     exec_flag[:first].should be_true
     exec_flag[:second].should be_true
+  end
+
+  it "should execute a hook repeatedly." do
+    exec_flag = {}
+    subject.add(:finish) do |server|
+      exec_flag[:exec] = true
+    end
+    10.times do |i|
+      exec_flag[:exec] = nil
+      subject.exec(:finish)
+      exec_flag[:exec].should be_true
+    end
+  end
+
+  it "should execute a hook three times." do
+    exec_flag = {}
+    subject.add(:finish, repeat: 3) do |server|
+      exec_flag[:exec] = true
+    end
+    3.times do |i|
+      exec_flag[:exec] = nil
+      subject.exec(:finish)
+      exec_flag[:exec].should be_true
+    end
+    exec_flag[:exec] = nil
+    subject.exec(:finish)
+    exec_flag[:exec].should be_nil
   end
 
   it "should execute finish_exit that is special proc." do
