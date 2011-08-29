@@ -8,7 +8,9 @@ DRbQS.option_parser do |opt, hash|
 end
 
 DRbQS.define_server do |server, argv, opts|
-  server.task_generator(:generate => 2) do
-    raise "Error raise"
+  server.task_generator do |tgen|
+    tgen.set(:generate => 2) do
+      raise "Error raise"
+    end
   end
 end

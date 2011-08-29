@@ -25,28 +25,30 @@ DRbQS.define_server do |server, argv, opts|
     f.puts 'world'
   end
 
-  server.task_generator do |reg|
-    create_add(CreateFile.new(1), :create) do |srv, result|
-      path = File.join(server_directory, result)
-      puts "#{path} exist? #{File.exist?(path).inspect}"
-    end
-    create_add(CreateFile.new(2), :create_compress) do |srv, result|
-      path = File.join(server_directory, result + '.gz')
-      puts "#{path} exist? #{File.exist?(path).inspect}"
-    end
-    create_add(CreateDirectory.new(3), :create) do |srv, result|
-      path = File.join(server_directory, result)
-      puts "#{path} exist? #{File.exist?(path).inspect}"
-    end
-    create_add(CreateDirectory.new(4), :create_compress) do |srv, result|
-      path = File.join(server_directory, result + '.tar.gz')
-      puts "#{path} exist? #{File.exist?(path).inspect}"
-    end
-    create_add(ReceiveFile.new(DRbQS::Transfer::FileList.new(test_file)), :read_file) do |srv, result|
-      puts result
-    end
-    create_add(ReceiveFile.new(DRbQS::Transfer::FileList.new(test_dir)), :read_directory) do |srv, result|
-      puts result
+  server.task_generator do |tgen|
+    tgen.set do
+      create_add(CreateFile.new(1), :create) do |srv, result|
+        path = File.join(server_directory, result)
+        puts "#{path} exist? #{File.exist?(path).inspect}"
+      end
+      create_add(CreateFile.new(2), :create_compress) do |srv, result|
+        path = File.join(server_directory, result + '.gz')
+        puts "#{path} exist? #{File.exist?(path).inspect}"
+      end
+      create_add(CreateDirectory.new(3), :create) do |srv, result|
+        path = File.join(server_directory, result)
+        puts "#{path} exist? #{File.exist?(path).inspect}"
+      end
+      create_add(CreateDirectory.new(4), :create_compress) do |srv, result|
+        path = File.join(server_directory, result + '.tar.gz')
+        puts "#{path} exist? #{File.exist?(path).inspect}"
+      end
+      create_add(ReceiveFile.new(DRbQS::Transfer::FileList.new(test_file)), :read_file) do |srv, result|
+        puts result
+      end
+      create_add(ReceiveFile.new(DRbQS::Transfer::FileList.new(test_dir)), :read_directory) do |srv, result|
+        puts result
+      end
     end
   end
   server.set_file_transfer(server_directory)
