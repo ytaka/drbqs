@@ -1,7 +1,8 @@
 module DRbQS
   class Task
     class Generator
-      # @param [Hash] data Names of instance variables and their values,
+      # @param [Hash] data This argument is unnecessary and so deprecated
+      #  Names of instance variables and their values,
       #  which can be accessed in {DRbQS::Task::Generator#set}.
       def initialize(data = {})
         @registrar = DRbQS::Task::Registrar.new(data)

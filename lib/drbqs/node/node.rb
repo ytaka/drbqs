@@ -16,9 +16,12 @@ module DRbQS
     INTERVAL_TIME_DEFAULT = 1
     SAME_HOST_GROUP = :local
 
-    # :continue
-    # :max_loadavg
-    # :sleep_time
+    # @param [String] acces_uri Set the uri of server
+    # @param [Hash] opts Options of a node
+    # @option opts [Array] :group An array of group symbols
+    # @option opts [Boolean] :continue If we set true then the node process does not exit
+    # @option opts [Fixnum] :sleep_time Time interval during sleep of the node
+    # @option opts [String] :max_loadavg Note that this optiono is experimental
     def initialize(access_uri, opts = {})
       @access_uri = access_uri
       @logger = DRbQS::Misc.create_logger(opts[:log_file] || DEFAULT_LOG_FILE, opts[:log_level])
@@ -26,6 +29,7 @@ module DRbQS
       @task_client = nil
       @state = DRbQS::Node::State.new(:wait, :max_loadavg => opts[:max_loadavg], :sleep_time => opts[:sleep_time])
       @process_continue = opts[:continue]
+      @group = opts[:group] || []
       @signal_queue = Queue.new
       @config = DRbQS::Config.new
     end
@@ -55,12 +59,14 @@ module DRbQS
     end
     private :node_data
 
+    # Connect to the server and finish initialization of the node.
     def connect
       obj = DRbObject.new_with_uri(@access_uri)
       @server_key = obj[:key]
       @connection = DRbQS::Node::Connection.new(obj[:message], @logger)
+      set_node_group_for_task
       @task_client = DRbQS::Node::TaskClient.new(@connection.node_number, obj[:queue], obj[:result],
-                                                 node_group_for_task, @logger)
+                                                 @group, @logger)
       DRbQS::Transfer::Client.set(obj[:transfer].get_client(server_on_same_host?)) if obj[:transfer]
       if ary_initialization = @connection.get_initialization
         ary_initialization.each do |ary|
@@ -70,14 +76,13 @@ module DRbQS
       @config.list.node.save(Process.pid, node_data)
     end
 
-    def node_group_for_task
-      group = []
+    # This method must be executed after @connection is set.
+    def set_node_group_for_task
       if server_on_same_host?
-        group << DRbQS::Node::SAME_HOST_GROUP
+        @group << DRbQS::Node::SAME_HOST_GROUP
       end
-      group
     end
-    private :node_group_for_task
+    private :set_node_group_for_task
 
     def server_on_same_host?
       @server_on_same_host ||

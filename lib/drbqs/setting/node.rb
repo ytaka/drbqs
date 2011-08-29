@@ -7,6 +7,7 @@ module DRbQS
         super(:all_keys_defined => true, :log_level => true, :daemon => true) do
           register_key(:load, :check => [:>, 0], :add => true)
           register_key(:process, :check => 1, :default => [1])
+          register_key(:group, :add => true)
           register_key(:loadavg, :check => 1)
           register_key(:log_prefix, :check => 1, :default => [LOG_PREFIX_DEFAULT])
           register_key(:log_stdout, :bool => true)
@@ -28,6 +29,7 @@ module DRbQS
       def parse!
         super
         parse_load
+        parse_group
         parse_loadavg
         if !get(:log_stdout)
           @options[:log_prefix] = get_first(:log_prefix) do |val|
@@ -49,7 +51,7 @@ module DRbQS
       private :parse_load
 
       def parse_loadavg
-        @options[:node_opts] = {}
+        @options[:node_opts] ||= {}
         if args = get(:loadavg)
           max_loadavg, sleep_time = args[0].split(':', -1)
           @options[:node_opts][:max_loadavg] = max_loadavg && max_loadavg.size > 0 ? max_loadavg.to_f : nil
@@ -57,6 +59,14 @@ module DRbQS
         end
       end
       private :parse_loadavg
+
+      def parse_group
+        if args = get(:group)
+          @options[:node_opts] ||= {}
+          @options[:node_opts][:group] = args.map { |a| a.intern }
+        end
+      end
+      private :parse_group
 
       def exec(io = nil)
         return true if exec_as_daemon

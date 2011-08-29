@@ -15,6 +15,7 @@ HELP
         argv = option_parser_base(argv, :log_level => true, :daemon => true, :debug => true) do
           set(:load, '-l', '--load FILE', String, 'Add a file to load.')
           set(:process, '-P', '--process NUM', Integer, 'Set the number of node processes to execute.')
+          set(:group, '--group STR', String, 'Set the group of node.')
           set(:loadavg, '--loadavg STR', String, 'Set the threshold load average to sleep.')
           set(:log_prefix, '--log-prefix STR', String, "Set the prefix of log files. The default is '#{setting.default[:log_prefix][0]}'.")
           set(:log_stdout, '--log-stdout', 'Use stdout for outputting logs. This option cancels --log-prefix.')
