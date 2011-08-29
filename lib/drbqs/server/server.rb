@@ -121,7 +121,9 @@ module DRbQS
     end
 
     # Create new task generator and add it.
-    # The arguments are same as {DRbQS::Task::Generator#set}.
+    # @param [Hash] opts An argument is same as {DRbQS::Task::Generator#set}
+    # @yield [tgen] Block is same as {DRbQS::Task::Generator#set}
+    # @yieldparam [DRbQS::TaskGenerator] tgen Task generator to add to the server
     def task_generator(opts = {}, &block)
       gen = DRbQS::Task::Generator.new
       gen.set(opts, &block)
