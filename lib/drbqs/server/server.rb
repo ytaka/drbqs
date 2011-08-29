@@ -121,15 +121,10 @@ module DRbQS
     end
 
     # Create new task generator and add it.
-    # @param [Hash] data An argument is same as {DRbQS::Task::Generator#new}
-    # @yield [tgen] Set how to generate tasks
-    # @yieldparam [DRbQS::TaskGenerator] tgen Task generator to add to the server
-    def task_generator(data = {}, &block)
-      unless block_given?
-        raise ArgumentError, "There is no block."
-      end
-      gen = DRbQS::Task::Generator.new(data)
-      yield(gen)
+    # The arguments are same as {DRbQS::Task::Generator#set}.
+    def task_generator(opts = {}, &block)
+      gen = DRbQS::Task::Generator.new
+      gen.set(opts, &block)
       add_task_generator(gen)
       nil
     end

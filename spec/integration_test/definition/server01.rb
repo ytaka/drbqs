@@ -9,12 +9,10 @@ end
 
 DRbQS.define_server do |server, argv, opts|
   step = opts[:step]
-  server.task_generator do |tgen|
-    tgen.set(:generate => 2) do
-      1.step(100, 50) do |i|
-        create_add(TestSum.new, :calc, args: [i, i + 10, step]) do |srv, result|
-          puts result
-        end
+  server.task_generator(:generate => 2) do |reg|
+    1.step(100, 50) do |i|
+      reg.create_add(TestSum.new, :calc, args: [i, i + 10, step]) do |srv, result|
+        puts result
       end
     end
   end
