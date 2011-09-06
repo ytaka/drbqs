@@ -18,18 +18,19 @@ module DRbQS
     attr_reader :queue, :uri
 
     # @param [Hash] opts The options of server
-    # @option opts [Hash] :port Set the port of server.
-    # @option opts [Hash] :unix Set the path of unix domain socket. If :port is specified then :port is preceded.
-    # @option opts [Hash] :acl Set the ACL instance.
-    # @option opts [Hash] :log_file Set the path of log files.
-    # @option opts [Hash] :log_level Set the level of logging.
-    # @option opts [Hash] :check_alive Set the time interval of checking alive nodes.
-    # @option opts [Hash] :not_exit Not exit programs when all tasks are finished.
-    # @option opts [Hash] :shutdown_unused_nodes Shutdown unused nodes.
-    # @option opts [Hash] :signal_trap Set trapping signal. Default is true.
-    # @option opts [Hash] :sftp_user Set user of sftp.
-    # @option opts [Hash] :sftp_host Set host of sftp.
-    # @option opts [Hash] :file_directory Set the directory for nodes to send files.
+    # @option opts [Fixnum] :port Set the port of server.
+    # @option opts [String] :unix Set the path of unix domain socket. If :port is specified then :port is preceded.
+    # @option opts [Array] :acl Set the array of ACL.
+    # @option opts [String] :acl Set the file path of ACL.
+    # @option opts [String] :log_file Set the path of log files.
+    # @option opts [Fixnum] :log_level Set the level of logging.
+    # @option opts [Fixnum] :check_alive Set the time interval of checking alive nodes.
+    # @option opts [Boolean] :not_exit Not exit programs when all tasks are finished.
+    # @option opts [Boolean] :shutdown_unused_nodes Shutdown unused nodes.
+    # @option opts [Boolean] :signal_trap Set trapping signal. Default is true.
+    # @option opts [String] :sftp_user Set user of sftp.
+    # @option opts [String] :sftp_host Set host of sftp.
+    # @option opts [String] :file_directory Set the directory for nodes to send files.
     # 
     # :nodoc:
     # * Note of tuple spaces
@@ -281,8 +282,8 @@ module DRbQS
 
     # @param [String] directory Set the directory to save files from nodes.
     # @param [Hash] opts The options for SFTP.
-    # @option opts [Symbol] :host Hostname for SFTP.
-    # @option opts [Symbol] :user User name for SFTP.
+    # @option opts [String] :host Hostname for SFTP.
+    # @option opts [String] :user User name for SFTP.
     def set_file_transfer(directory, opts = {})
       if @transfer_setting.setup_server(directory, opts)
         @ts[:transfer] = @transfer_setting
