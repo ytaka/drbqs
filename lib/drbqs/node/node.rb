@@ -34,9 +34,9 @@ module DRbQS
       @config = DRbQS::Config.new
     end
 
-    def transfer_file
+    def transfer_file(files)
       begin
-        DRbQS::Transfer::Client.transfer_to_server
+        DRbQS::Transfer::Client.transfer_to_server(files)
       rescue Exception => err
         @logger.error("Fail to transfer files.") do
           "#{err.to_s} (#{err.class})\n#{err.backtrace.join("\n")}"
@@ -48,7 +48,9 @@ module DRbQS
 
     def execute_task(marshal_obj, method_sym, args)
       result = DRbQS::Task.execute_task(marshal_obj, method_sym, args)
-      transfer_file
+      if files = DRbQS::Transfer.dequeue_all
+        transfer_file(files)
+      end
       DRbQS::Temporary.delete
       result
     end

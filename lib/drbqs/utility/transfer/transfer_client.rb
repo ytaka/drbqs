@@ -68,19 +68,17 @@ module DRbQS
           @transfer = transfer
         end
 
-        def transfer_to_server
-          if files = DRbQS::Transfer.dequeue_all
-            if @transfer
-              begin
-                @transfer.transfer(files)
-              rescue Exception => err
-                err_new = err.class.new("#{err.to_s} (#{err.class}); Can not send file: #{files.join(", ")}")
-                err_new.set_backtrace(err.backtrace)
-                raise err_new
-              end
-            else
-              raise "Server does not set transfer settings. Can not send file: #{files.join(", ")}"
+        def transfer_to_server(files)
+          if files && @transfer
+            begin
+              @transfer.transfer(files)
+            rescue Exception => err
+              err_new = err.class.new("#{err.to_s} (#{err.class}); Can not send file: #{files.join(", ")}")
+              err_new.set_backtrace(err.backtrace)
+              raise err_new
             end
+          else
+            raise "Server does not set transfer settings. Can not send file: #{files.join(", ")}"
           end
         end
       end
