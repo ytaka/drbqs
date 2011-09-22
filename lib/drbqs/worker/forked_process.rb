@@ -46,17 +46,26 @@ module DRbQS
           end
         end
 
-        while ary = @queue.pop
-          task_id, marshal_obj, method_sym, args = ary
-          DRbQS::Temporary.set_sub_directory(subdirectory_name(task_id))
-          begin
-            result_hash = calculate(marshal_obj, method_sym, args)
-            if subdir = DRbQS::Temporary.subdirectory
-              result_hash[:tmp] = subdir
+        loop do
+          obj = @queue.pop
+          case obj
+          when Array
+            task_id, marshal_obj, method_sym, args = obj
+            DRbQS::Temporary.set_sub_directory(subdirectory_name(task_id))
+            begin
+              result_hash = calculate(marshal_obj, method_sym, args)
+              if subdir = DRbQS::Temporary.subdirectory
+                result_hash[:tmp] = subdir
+              end
+              result_hash[:id] = task_id
+              send_response([:result, result_hash])
+            rescue => err
+              send_response([:node_error, err])
             end
-            send_response([:result, task_id, result_hash])
-          rescue => err
-            send_response([:node_error, err])
+          when :prepare_to_exit
+            send_response([:finish_preparing_to_exit])
+            @queue.pop          # :exit
+            break
           end
         end
       end

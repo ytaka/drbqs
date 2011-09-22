@@ -49,11 +49,15 @@ module DRbQS
       @process[key]
     end
 
-    def send_object(key, obj, detach = nil)
+    def output_to_io(io, obj)
+      io.print Serialize.dump(obj)
+      io.flush
+    end
+    private :output_to_io
+
+    def send_object(key, obj)
       if h = get_process(key)
-        Process.detach(h[:pid]) if detach
-        h[:out].print Serialize.dump(obj)
-        h[:out].flush
+        output_to_io(h[:out], obj)
         h
       else
         nil
@@ -85,51 +89,80 @@ module DRbQS
       end
     end
 
-    def each_response(&block)
-      @process.each do |key, h|
-        unless h[:task].empty?
-          begin
-            data = h[:in].read_nonblock(READ_BYTE_SIZE)
-            h[:unpacker].feed_each(data) do |ary|
-              task_num, response = ary
-              h[:task].delete(task_num)
-              yield(key, response)
+    def prepare_to_exit(key = nil)
+      if key
+        if h = send_object(key, :prepare_to_exit)
+          h[:exit] = true
+        end
+      else
+        @process.each do |key, h|
+          prepare_to_exit(key)
+        end
+      end
+    end
+
+    def delete_process(key)
+      if h = get_process(key)
+        Process.detach(h[:pid])
+        output_to_io(h[:out], :exit)
+      else
+        nil
+      end
+    end
+    private :delete_process
+
+    def respond_signal(&block)
+      if block_given?
+        num = 0
+        to_be_deleted = []
+        @process.each do |key, h|
+          if !h[:task].empty? || h[:exit]
+            begin
+              data = h[:in].read_nonblock(READ_BYTE_SIZE)
+              h[:unpacker].feed_each(data) do |ary|
+                num += 1
+                response_type, response = ary
+                case response_type
+                when :result
+                  h[:task].delete(response[:id])
+                  yield(key, response)
+                when :finish_preparing_to_exit
+                  delete_process(key)
+                  to_be_deleted << key
+                end
+              end
+            rescue IO::WaitReadable
             end
-          rescue IO::WaitReadable
           end
         end
-      end
-    end
-
-    def kill_process(key)
-      if send_object(key, nil, true)
-        @process.delete(key)
-      end
-    end
-
-    def kill_all_processes(force = nil)
-      if force
-        @process.each do |key, h|
-          Process.detach(h[:pid])
-          Process.kill("KILL", h[:pid])
+        to_be_deleted.each do |key|
+          @process.delete(key)
         end
-        @process.clear
+        to_be_deleted.clear
+        num > 0
       else
-        @process.keys.each do |key|
-          kill_process(key)
-        end
+        to_enum(:respond_signal)
       end
+    end
+
+    def kill_all_processes
+      @process.each do |key, h|
+        Process.detach(h[:pid])
+        Process.kill("KILL", h[:pid])
+      end
+      @process.clear
     end
 
     WAITALL_INTERVAL_TIME = 0.1
 
     def waitall
       unless @process.empty?
-        raise "Process will not exit."
+        return nil
       end
       until Process.waitall == []
         sleep(WAITALL_INTERVAL_TIME)
       end
+      true
     end
   end
 end
