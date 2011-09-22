@@ -24,6 +24,7 @@ describe DRbQS do
     end
 
     it "should raise error in server." do
+      puts "**** This test output errors to stdout ****"
       @path = File.expand_path(File.join(File.dirname(__FILE__), 'definition/server02.rb'))
       @port = 14071
       lambda do
