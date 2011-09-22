@@ -16,7 +16,7 @@ module DRbQS
       def calc
         if ary = @task_client.get_task
           task_id, marshal_obj, method_sym, args = ary
-          result = execute_task(marshal_obj, method_sym, args)
+          result = execute_task(task_id, marshal_obj, method_sym, args)
           return [task_id, result]
         end
         nil
