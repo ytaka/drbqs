@@ -193,7 +193,7 @@ module DRbQS
     private :communicate_with_server
 
     def calculate_task
-      marshal_obj, method_sym, args = @task_client.dequeue_task
+      task_id, marshal_obj, method_sym, args = @task_client.dequeue_task
       @task_client.queue_result(execute_task(marshal_obj, method_sym, args))
     end
     private :calculate_task

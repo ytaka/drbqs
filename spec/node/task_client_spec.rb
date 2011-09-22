@@ -147,7 +147,7 @@ describe DRbQS::Node::TaskClient do
     end
 
     it "should get a task" do
-      @dequeued_task.should == @task_ary
+      @dequeued_task.should == [@task_id] + @task_ary
     end
 
     it "should have empty task queue." do

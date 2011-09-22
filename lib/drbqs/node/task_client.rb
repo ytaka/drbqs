@@ -32,8 +32,9 @@ module DRbQS
       end
       private :dequeue_result
 
-      def queue_task(task_id, ary)
-        @calculating_task = task_id
+      # @param [Array] ary An array is [task_id, obj, method_name, args]
+      def queue_task(ary)
+        @calculating_task = ary[0]
         @task_queue.enq(ary)
       end
 
@@ -64,10 +65,10 @@ module DRbQS
 
       def add_new_task
         if !@calculating_task && !@exit_after_task && (ary = get_task)
-          task_id, obj, method_sym, args = ary
+          task_id = ary[0]
           @logger.info("Send accept signal: node #{@node_number} caluclating #{task_id}")
           @result.write([:accept, task_id, @node_number])
-          queue_task(task_id, [obj, method_sym, args])
+          queue_task(ary)
           return true
         end
         nil
