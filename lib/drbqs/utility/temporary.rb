@@ -3,15 +3,36 @@ require 'tmpdir'
 module DRbQS
   module Temporary
     @@root = nil
+    @@subdir = nil
     @@filename = nil
+
+    def self.set_root_directory
+      if !@@root
+        pid = Process.pid
+        @@root = File.join(Dir.tmpdir, sprintf("drbqs_%s_%d_%d", ENV['USER'], pid, rand(10000)))
+        FileUtils.mkdir_p(@@root, :mode => 0700)
+      end
+    end
+
+    def self.set_sub_directory(dir)
+      self.set_root_directory
+      @@filename = nil
+      @@subdir = File.join(@@root, dir)
+    end
+
+    def self.subdirectory
+      @@subdir && File.exist?(@@subdir) ? @@subdir : nil
+    end
 
     # Return FileName object to generate names of temporary files on DRbQS nodes.
     def self.filename
       unless @@filename
-        pid = Process.pid
-        @@root = File.join(Dir.tmpdir, sprintf("drbqs_%s_%d_%d", ENV['USER'], pid, rand(10000)))
-        FileUtils.mkdir_p(@@root, :mode => 0700)
-        @@filename = FileName.new(File.join(@@root, sprintf("temp_%d_%d", pid, rand(10000))))
+        self.set_root_directory
+        if @@subdir
+          @@filename = FileName.new(File.join(@@subdir, sprintf("temp_%d", rand(10000))))
+        else
+          @@filename = FileName.new(File.join(@@root, sprintf("temp_%d", rand(10000))))
+        end
       end
       @@filename
     end
@@ -27,7 +48,7 @@ module DRbQS
       if basename
         File.join(self.directory, basename)
       else
-        filename.create(:add => :always)
+        filename.create(:add => :always, :directory => :parent)
       end
     end
 
@@ -35,7 +56,7 @@ module DRbQS
     def self.delete
       if @@root
         FileUtils.rm_r(@@root)
-        FileUtils.mkdir_p(@@root)
+        FileUtils.mkdir_p(@@root, :mode => 0700)
       end
     end
 

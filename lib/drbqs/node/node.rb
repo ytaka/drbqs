@@ -32,6 +32,7 @@ module DRbQS
       @group = opts[:group] || []
       @signal_queue = Queue.new
       @config = DRbQS::Config.new
+      @special_task_number = 0
     end
 
     def transfer_file(files)
@@ -46,12 +47,24 @@ module DRbQS
     end
     private :transfer_file
 
-    def execute_task(marshal_obj, method_sym, args)
+    def subdirectory_name(task_id)
+      if task_id
+        sprintf("T%08d", task_id)
+      else
+        sprintf("S%08d", (@special_task_number += 1))
+      end
+    end
+    private :subdirectory_name
+
+    def execute_task(task_id, marshal_obj, method_sym, args)
+      DRbQS::Temporary.set_sub_directory(subdirectory_name(task_id))
       result = DRbQS::Task.execute_task(marshal_obj, method_sym, args)
       if files = DRbQS::Transfer.dequeue_all
         transfer_file(files)
       end
-      DRbQS::Temporary.delete
+      if subdir = DRbQS::Temporary.subdirectory
+        FileUtils.rm_r(subdir)
+      end
       result
     end
     private :execute_task
@@ -72,7 +85,7 @@ module DRbQS
       DRbQS::Transfer::Client.set(obj[:transfer].get_client(server_on_same_host?)) if obj[:transfer]
       if ary_initialization = @connection.get_initialization
         ary_initialization.each do |ary|
-          execute_task(*ary)
+          execute_task(nil, *ary)
         end
       end
       @config.list.node.save(Process.pid, node_data)
@@ -115,7 +128,7 @@ module DRbQS
     def execute_finalization
       if ary_finalization = @connection.get_finalization
         ary_finalization.each do |ary|
-          execute_task(*ary)
+          execute_task(nil, *ary)
         end
       end
     rescue => err
@@ -196,7 +209,7 @@ module DRbQS
 
     def calculate_task
       task_id, marshal_obj, method_sym, args = @task_client.dequeue_task
-      @task_client.queue_result(execute_task(marshal_obj, method_sym, args))
+      @task_client.queue_result(execute_task(task_id, marshal_obj, method_sym, args))
     end
     private :calculate_task
 

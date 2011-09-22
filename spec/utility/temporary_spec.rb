@@ -7,18 +7,22 @@ describe DRbQS::Temporary do
     DRbQS::Temporary.file
   end
 
+  subject do
+    DRbQS::Temporary
+  end
+
   it "should create base directory." do
-    File.exist?(DRbQS::Temporary.root).should be_true
+    File.exist?(subject.root).should be_true
   end
 
   it "should create empty directory." do
-    dir = DRbQS::Temporary.directory
+    dir = subject.directory
     File.directory?(dir).should be_true
     Dir.entries(dir).should have(2).items
   end
 
   it "should return new path of file." do
-    path = DRbQS::Temporary.file
+    path = subject.file
     File.exist?(path).should_not be_true
     open(path, 'w') do |f|
       f.puts 'hello'
@@ -26,14 +30,33 @@ describe DRbQS::Temporary do
   end
 
   it "should make directory empty." do
-    Dir.entries(DRbQS::Temporary.root).size.should > 2
-    DRbQS::Temporary.delete
-    Dir.entries(DRbQS::Temporary.root).should have(2).items
+    Dir.entries(subject.root).size.should > 2
+    subject.delete
+    Dir.entries(subject.root).should have(2).items
   end
 
-  it "should all directories." do
-    root = DRbQS::Temporary.root
-    DRbQS::Temporary.delete_all
+  it "should set subdirectory." do
+    subject.set_sub_directory('abc')
+    subject.subdirectory.should be_nil
+  end
+
+  it "should get directory in subdirectory." do
+    subject.set_sub_directory('ABCD')
+    dir = subject.directory
+    File.exist?(subject.subdirectory).should be_true
+    dir.should match(/\/ABCD/)
+  end
+
+  it "should get file name in subdirectory." do
+    subject.set_sub_directory('EFGH')
+    file = subject.file
+    File.exist?(subject.subdirectory).should be_true
+    file.should match(/\/EFGH\//)
+  end
+
+  it "should delete all directories." do
+    root = subject.root
+    subject.delete_all
     File.exist?(root).should_not be_true
   end
 end
