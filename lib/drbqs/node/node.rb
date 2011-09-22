@@ -140,7 +140,7 @@ module DRbQS
 
     def send_result
       flag_finilize_exit = @task_client.send_result
-      if @state.calculate? && !@task_client.calculating_task
+      if @state.calculate? && @task_client.waiting?
         @state.change_to_finish_calculating
       end
       flag_finilize_exit

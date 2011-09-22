@@ -36,7 +36,7 @@ describe DRbQS::Node::TaskClient do
     end
 
     it "should not have calculating task." do
-      subject.calculating_task.should be_nil
+      subject.calculating_task.should be_empty
     end
 
     it "should return no task." do
@@ -124,7 +124,7 @@ describe DRbQS::Node::TaskClient do
     end
 
     it "should have calculating task" do
-      subject.calculating_task.should == @task_id
+      subject.calculating_task.should be_include(@task_id)
     end
 
     it "should take out task from tuplespace." do
@@ -159,7 +159,7 @@ describe DRbQS::Node::TaskClient do
     end
 
     it "should have calculating task." do
-      subject.calculating_task.should == @task_id      
+      subject.calculating_task.should be_include(@task_id)
     end
   end
 
@@ -183,7 +183,7 @@ describe DRbQS::Node::TaskClient do
     end
 
     it "should have calculating task." do
-      subject.calculating_task.should == @task_id
+      subject.calculating_task.should be_include(@task_id)
     end
   end
 
@@ -212,7 +212,7 @@ describe DRbQS::Node::TaskClient do
     end
 
     it "should not have calculating task." do
-      subject.calculating_task.should be_nil
+      subject.calculating_task.should be_empty
     end
 
     it "should get result from tuplespace." do

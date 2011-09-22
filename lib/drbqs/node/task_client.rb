@@ -7,7 +7,7 @@ module DRbQS
         @node_number = node_number
         @queue = queue
         @result = result
-        @calculating_task = nil
+        @calculating_task = []
         @exit_after_task = nil
         @task_queue = Queue.new
         @result_queue = Queue.new
@@ -16,7 +16,11 @@ module DRbQS
       end
 
       def calculating?
-        !!@calculating_task
+        !@calculating_task.empty?
+      end
+
+      def waiting?
+        !calculating?
       end
 
       def task_empty?
@@ -34,7 +38,7 @@ module DRbQS
 
       # @param [Array] ary An array is [task_id, obj, method_name, args]
       def queue_task(ary)
-        @calculating_task = ary[0]
+        @calculating_task << ary[0]
         @task_queue.enq(ary)
       end
 
@@ -64,7 +68,7 @@ module DRbQS
       end
 
       def add_new_task
-        if !@calculating_task && !@exit_after_task && (ary = get_task)
+        if waiting? && !@exit_after_task && (ary = get_task)
           task_id = ary[0]
           @logger.info("Send accept signal: node #{@node_number} caluclating #{task_id}")
           @result.write([:accept, task_id, @node_number])
@@ -78,11 +82,11 @@ module DRbQS
       def send_result
         if !result_empty?
           result = dequeue_result
-          @logger.info("Send result: #{@calculating_task}") { result.inspect }
-          @result.write([:result, @calculating_task, @node_number, result])
-          @calculating_task = nil
+          @logger.info("Send result: #{@calculating_task[0]}") { result.inspect }
+          @result.write([:result, @calculating_task[0], @node_number, result])
+          @calculating_task.delete_at(0)
         end
-        !@calculating_task && @exit_after_task
+        waiting? && @exit_after_task
       end
 
       def queue_result(result)
