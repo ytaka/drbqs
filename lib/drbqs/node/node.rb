@@ -4,6 +4,7 @@ require 'drbqs/utility/transfer/transfer_client'
 require 'drbqs/node/connection'
 require 'drbqs/node/task_client'
 require 'drbqs/node/state'
+require 'drbqs/worker/worker'
 
 module DRbQS
 
@@ -13,7 +14,7 @@ module DRbQS
     PRIORITY_CALCULATE = 0
     OUTPUT_NOT_SEND_RESULT = 'not_send_result'
     DEFAULT_LOG_FILE = 'drbqs_client.log'
-    INTERVAL_TIME_DEFAULT = 1
+    INTERVAL_TIME_DEFAULT = 0.1
     SAME_HOST_GROUP = :local
 
     # @param [String] acces_uri Set the uri of server
@@ -33,6 +34,7 @@ module DRbQS
       @signal_queue = Queue.new
       @config = DRbQS::Config.new
       @special_task_number = 0
+      @worker = DRbQS::Worker.new
     end
 
     def transfer_file(files)
@@ -47,32 +49,26 @@ module DRbQS
     end
     private :transfer_file
 
-    def subdirectory_name(task_id)
-      if task_id
-        sprintf("T%08d", task_id)
-      else
-        sprintf("S%08d", (@special_task_number += 1))
-      end
-    end
-    private :subdirectory_name
-
-    def execute_task(task_id, marshal_obj, method_sym, args)
-      DRbQS::Temporary.set_sub_directory(subdirectory_name(task_id))
-      result = DRbQS::Task.execute_task(marshal_obj, method_sym, args)
-      if files = DRbQS::Transfer.dequeue_all
+    def queue_result(result_hash)
+      if files = result_hash[:transfer]
         transfer_file(files)
       end
-      if subdir = DRbQS::Temporary.subdirectory
-        FileUtils.rm_r(subdir)
+      if subdir = result_hash[:tmp]
+        FileUtils.rm_r(result_hash[:tmp])
       end
-      result
+      @task_client.queue_result(result_hash[:result])
     end
-    private :execute_task
+    private :queue_result
 
     def node_data
       { :uri => @access_uri }
     end
     private :node_data
+
+    def worker_key
+      @task_client.node_number
+    end
+    private :worker_key
 
     # Connect to the server and finish initialization of the node.
     def connect
@@ -83,9 +79,10 @@ module DRbQS
       @task_client = DRbQS::Node::TaskClient.new(@connection.node_number, obj[:queue], obj[:result],
                                                  @group, @logger)
       DRbQS::Transfer::Client.set(obj[:transfer].get_client(server_on_same_host?)) if obj[:transfer]
+      @worker.create_process(worker_key)
       if ary_initialization = @connection.get_initialization
         ary_initialization.each do |ary|
-          execute_task(nil, *ary)
+          @worker.send_task(worker_key, [nil] + ary)
         end
       end
       @config.list.node.save(Process.pid, node_data)
@@ -117,18 +114,10 @@ module DRbQS
     end
     private :output_error
 
-    def process_exit
-      dump_not_send_result_to_file
-      unless @process_continue
-        Kernel.exit
-      end
-    end
-    private :process_exit
-
     def execute_finalization
       if ary_finalization = @connection.get_finalization
         ary_finalization.each do |ary|
-          execute_task(nil, *ary)
+          @worker.send_task(worker_key, [nil] + ary)
         end
       end
     rescue => err
@@ -163,12 +152,18 @@ module DRbQS
     private :send_result
 
     def send_signal
+      flag_finilize_exit = nil
       until @signal_queue.empty?
         signal, obj = @signal_queue.pop
         case signal
         when :node_error
           send_error(obj, "Communicating with server")
-          process_exit
+          dump_not_send_result_to_file
+          flag_finilize_exit = true
+        when :signal_kill
+          flag_finilize_exit = true
+        else
+          raise "Not implemented"
         end
       end
     end
@@ -192,12 +187,12 @@ module DRbQS
     end
     private :process_signal
 
+    # If the method returns true, the node finishes.
     def communicate_with_server
       get_new_task
       sig = process_signal
       return nil if sig == :exit
-      flag_finilize_exit = send_result
-      send_signal
+      flag_finilize_exit = send_result || send_signal
       if sig == :finalize || flag_finilize_exit
         execute_finalization
         return nil
@@ -207,11 +202,15 @@ module DRbQS
     end
     private :communicate_with_server
 
-    def calculate_task
-      task_id, marshal_obj, method_sym, args = @task_client.dequeue_task
-      @task_client.queue_result(execute_task(task_id, marshal_obj, method_sym, args))
+    def send_task
+      if ary = @task_client.dequeue_task
+        @worker.send_task(worker_key, ary)
+        true
+      else
+        nil
+      end
     end
-    private :calculate_task
+    private :send_task
 
     def clear_node_files
       DRbQS::Temporary.delete_all
@@ -224,52 +223,58 @@ module DRbQS
     end
     private :wait_interval_of_connection
 
-    def thread_communicate
-      Thread.new do
-        begin
-          loop do
-            unless communicate_with_server
-              clear_node_files
-              break
-            end
-            wait_interval_of_connection
-          end
-        rescue => err
-          send_error(err, "Calculating thread")
-        ensure
-          process_exit
-        end
-      end
-    end
-    private :thread_communicate
-
-    def thread_calculate
-      Thread.new do
-        begin
-          loop do
-            calculate_task
-          end
-        rescue => err
-          @signal_queue.push([:node_error, err])
-        end
-      end
-    end
-    private :thread_calculate
-
     def set_signal_trap
       Signal.trap(:TERM) do
-        process_exit
+        @signal_queue.push([:signal_kill])
       end
     end
+
+    MAX_WAIT_FINISH = 3
+    WAIT_INTERVAL = 0.1
+
+    def respond_signal
+      @worker.respond_signal do |k, type, res|
+        case type
+        when :result
+          queue_result(res)
+        when :node_error
+          @signal_queue.push([:node_error, res])
+        end
+      end
+    end
+    private :respond_signal
+
+    def wait_process_finish
+      @worker.prepare_to_exit
+      total_wait_time = 0.0
+      loop do
+        respond_signal
+        if @worker.process.empty? || total_wait_time > MAX_WAIT_FINISH
+          break
+        end
+        sleep(WAIT_INTERVAL)
+        total_wait_time += WAIT_INTERVAL
+      end
+    end
+    private :wait_process_finish
 
     def calculate(opts = {})
       set_signal_trap
-      cn = thread_communicate
-      exec = thread_calculate
-      cn.priority = PRIORITY_RESPOND
-      exec.priority = PRIORITY_CALCULATE
-      cn.join
+      begin
+        loop do
+          unless communicate_with_server
+            break
+          end
+          send_task
+          respond_signal
+          wait_interval_of_connection
+        end
+      rescue => err
+        send_error(err, "Node error occurs.")
+      end
+      wait_process_finish
+      send_result
+      clear_node_files
     end
   end
-
 end

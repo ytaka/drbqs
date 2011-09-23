@@ -43,7 +43,11 @@ module DRbQS
       end
 
       def dequeue_task
-        @task_queue.deq
+        if @task_queue.empty?
+          nil
+        else
+          @task_queue.deq
+        end
       end
 
       def get_task_by_group(grp)

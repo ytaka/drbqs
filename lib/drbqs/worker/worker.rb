@@ -125,7 +125,9 @@ module DRbQS
                 case response_type
                 when :result
                   h[:task].delete(response[:id])
-                  yield(key, response)
+                  yield(key, response_type, response)
+                when :node_error
+                  yield(key, response_type, response)
                 when :finish_preparing_to_exit
                   delete_process(key)
                   to_be_deleted << key
