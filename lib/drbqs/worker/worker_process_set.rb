@@ -69,6 +69,12 @@ module DRbQS
         !calculating?(key)
       end
 
+      def waiting_process
+        @process.keys.select do |key|
+          @process[key][:task].empty?
+        end
+      end
+
       def output_to_io(io, obj)
         io.print Serialize.dump(obj)
         io.flush
@@ -88,7 +94,9 @@ module DRbQS
       # @param [Array] dumped_task_ary is [task_id, obj, method_name, args].
       def send_task(key, dumped_task_ary)
         if h = send_object(key, dumped_task_ary)
-          h[:task] << dumped_task_ary[0]
+          if dumped_task_ary[0]
+            h[:task] << dumped_task_ary[0]
+          end
         else
           raise "Process #{key.inspect} does not exist."
         end
@@ -130,7 +138,7 @@ module DRbQS
                 when :result
                   task_id, result = response
                   h[:task].delete(task_id)
-                  @on_result.call(key, result)
+                  @on_result.call(key, [task_id, result])
                 when :node_error
                   @on_error.call(key, response)
                 when :finish_preparing_to_exit

@@ -36,7 +36,8 @@ module DRbQS
       @special_task_number = 0
       @worker = DRbQS::Worker::ProcessSet.new(DRbQS::Worker::ForkedProcess)
       @worker.on_result do |proc_key, res|
-        queue_result(res)
+        task_id, h = res
+        queue_result(h)
       end
       @worker.on_error do |proc_key, res|
         @signal_queue.push([:node_error, res])

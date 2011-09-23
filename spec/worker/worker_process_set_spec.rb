@@ -36,6 +36,7 @@ describe DRbQS::Worker::ProcessSet do
         subject.exist?(:proc0).should be_true
         subject.waiting?(:proc0).should be_true
         subject.calculating?(:proc0).should be_false
+        subject.waiting_process.should == [:proc0]
       end
 
       it "should create new process automatically and execute a task." do
