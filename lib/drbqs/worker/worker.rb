@@ -17,6 +17,10 @@ module DRbQS
       @task_num = 0
     end
 
+    def calculating?
+      !@task_pool.empty?
+    end
+
     def sleep(*keys)
       keys.each do |key|
         @state[key][:sleep] = true
@@ -55,6 +59,7 @@ module DRbQS
       task_id = (@task_num += 1)
       @task_pool[task_id] = { :task => task }
       @task_group[task.group] << task_id
+      task_id
     end
 
     def step
@@ -82,19 +87,18 @@ module DRbQS
       @process.respond_signal
     end
 
-      # def send_task_to_waiting_process(dumped_task_ary)
-      #   key_not_working = nil
-      #   @process.each do |key, h|
-      #     if h[:task].empty?
-      #       key_not_working = key
-      #     end
-      #   end
-      #   if key_not_working
-      #     send_task(key_not_working, dumped_task_ary)
-      #     key_not_working
-      #   else
-      #     nil
-      #   end
-      # end
+    def wait(task_id, interval_time)
+      while @task_pool[task_id]
+        step
+        sleep(interval_time)
+      end
+    end
+
+    def waitall(interval_time)
+      while calculating?
+        step
+        sleep(interval_time)
+      end
+    end
   end
 end

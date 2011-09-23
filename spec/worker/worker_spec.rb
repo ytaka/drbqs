@@ -28,6 +28,7 @@ describe DRbQS::Worker do
     @worker.group(:gr1, :proc1)
     @worker.group(:gr3, :proc3)
     @n = 0
+    @interval_time = 0.1
   end
 
   subject do
@@ -49,14 +50,8 @@ describe DRbQS::Worker do
 
   it "should execute a task." do
     task_key = :task
-    send_task(task_key)
-    loop do
-      subject.step
-      unless @result.empty?
-        break
-      end
-      sleep(0.1)
-    end
+    task_id = send_task(task_key)
+    subject.wait(task_id, @interval_time)
     File.read(file_path(task_key)).lines.to_a[-1].strip.to_i.should == @result[0][1][1]
   end
 
@@ -66,13 +61,7 @@ describe DRbQS::Worker do
     task_keys.each do |key|
       send_task(key, :gr3)
     end
-    loop do
-      subject.step
-      if @result.size == 2
-        break
-      end
-      sleep(0.1)
-    end
+    subject.waitall(@interval_time)
     task_keys.each do |key|
       File.read(file_path(key)).lines.to_a[-1].strip.to_i.should == pid
     end
@@ -85,13 +74,7 @@ describe DRbQS::Worker do
     task_keys.each do |key|
       send_task(key)
     end
-    loop do
-      subject.step
-      if @result.size == 2
-        break
-      end
-      sleep(0.1)
-    end
+    subject.waitall(@interval_time)
     task_keys.each do |key|
       File.read(file_path(key)).lines.to_a[-1].strip.to_i.should == pid
     end
@@ -106,13 +89,7 @@ describe DRbQS::Worker do
     task_keys.each do |key|
       send_task(key)
     end
-    loop do
-      subject.step
-      if @result.size == 2
-        break
-      end
-      sleep(0.1)
-    end
+    subject.waitall(@interval_time)
     task_keys.each do |key|
       File.read(file_path(key)).lines.to_a[-1].strip.to_i.should == pid
     end
