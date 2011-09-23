@@ -1,5 +1,9 @@
 DIR = File.dirname(__FILE__)
 
+current_dir = File.expand_path(File.dirname(__FILE__))
+
+usage :message => "Calculate Mandelbrot set", :server => File.join(current_dir, 'server.rb')
+
 server :local_server, "localhost" do |srv|
   srv.load File.join(DIR, 'server.rb')
 end
