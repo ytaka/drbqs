@@ -39,13 +39,13 @@ describe DRbQS::Worker do
     File.join(File.dirname(__FILE__), "test_worker", "#{key}.txt")
   end
 
-  def send_task(key, group = nil)
+  def send_task(key, group = nil, broadcast = nil)
     path = file_path(key)
     FileUtils.mkdir(File.dirname(path)) unless File.exist?(File.dirname(path))
     task = DRbQS::Task.new(SavePID.new, :output, args: [path], group: group) do |wk, res|
       puts "Hook: receive #{res}"
     end
-    subject.add_task(task)
+    subject.add_task(task, broadcast)
   end
 
   it "should execute a task." do
@@ -94,6 +94,17 @@ describe DRbQS::Worker do
       File.read(file_path(key)).lines.to_a[-1].strip.to_i.should == pid
     end
     subject.wakeup(:proc1, :proc3)
+  end
+
+  it "should send to all processes." do
+    ary_pid = subject.process.all_processes.map do |proc_key|
+      subject.process.process[proc_key][:pid]
+    end
+    key = :all
+    send_task(key, nil, true)
+    sleep(1)
+    result_pid = File.read(file_path(key)).lines.map(&:to_i).sort
+    result_pid.should == ary_pid.sort
   end
 
   after(:each) do

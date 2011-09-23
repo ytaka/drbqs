@@ -22,7 +22,9 @@ module DRbQS
         task_id, marshal_obj, method_sym, args = obj
         begin
           res = calculate(marshal_obj, method_sym, args)
-          send_response([:result, [task_id, res]])
+          if task_id
+            send_response([:result, [task_id, res]])
+          end
         rescue => err
           send_response([:node_error, err])
         end

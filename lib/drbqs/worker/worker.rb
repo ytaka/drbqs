@@ -55,15 +55,27 @@ module DRbQS
       @process.on_error(&block)
     end
 
-    def add_task(task)
-      task_id = (@task_num += 1)
-      @task_pool[task_id] = { :task => task }
-      @task_group[task.group] << task_id
-      task_id
+    def send_task(proc_key, task_id, task)
+      dumped = [task_id] + task.simple_drb_args
+      @process.send_task(proc_key, dumped)
+    end
+    private :send_task
+
+    def add_task(task, broadcast = nil)
+      if broadcast
+        @process.all_processes.each do |proc_key|
+          send_task(proc_key, nil, task)
+        end
+      else
+        task_id = (@task_num += 1)
+        @task_pool[task_id] = { :task => task }
+        @task_group[task.group] << task_id
+        task_id
+      end
     end
 
     def step
-      if waiting = @process.waiting_process
+      if waiting = @process.waiting_processes
         waiting.each do |proc_key|
           if @state[proc_key][:sleep]
             next
@@ -74,8 +86,7 @@ module DRbQS
               @task_group[gr].each do |task_id|
                 task_data = @task_pool[task_id]
                 if !task_data[:calculate]
-                  dumped = [task_id] + task_data[:task].simple_drb_args
-                  @process.send_task(proc_key, dumped)
+                  send_task(proc_key, task_id, task_data[:task])
                   @task_pool[task_id][:calculate] = true
                   throw :add
                 end

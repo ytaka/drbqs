@@ -69,10 +69,14 @@ module DRbQS
         !calculating?(key)
       end
 
-      def waiting_process
+      def waiting_processes
         @process.keys.select do |key|
           @process[key][:task].empty?
         end
+      end
+
+      def all_processes
+        @process.keys
       end
 
       def output_to_io(io, obj)
