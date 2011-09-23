@@ -1,14 +1,26 @@
-class Test1
-  @@execute_echo_number = 0
+class TestCount
+  @@file = File.join(File.dirname(__FILE__), 'count.txt')
 
   def echo(*args)
-    puts "execute Test1#echo(*#{args.inspect.strip})"
-    @@execute_echo_number += 1
+    open(@@file, 'a+') do |f|
+      f.puts "count"
+    end
     args
   end
 
   def self.get_execute_echo_number
-    @@execute_echo_number
+    File.read(@@file).lines.to_a.size
+  end
+
+  def self.clear
+    FileUtils.rm(@@file) if File.exist?(@@file)
+  end
+end
+
+class Test1
+  def echo(*args)
+    puts "execute Test1#echo(*#{args.inspect.strip})"
+    args
   end
 end
 
@@ -48,7 +60,7 @@ class TestSum
   end
 end
 
-class TestCount
+class TestCountCalc
   @@count = 0
 
   def calc

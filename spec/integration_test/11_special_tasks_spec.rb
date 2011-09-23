@@ -5,14 +5,25 @@ require_relative 'definition/task_obj_definition.rb'
 
 describe DRbQS do
   class TestValue
-    @val = {}
+    @file = File.join(File.dirname(__FILE__), 'value.txt')
 
     def self.set(k, v)
-      @val[k] = v
+      open(@file, 'a+') do |f|
+        f.puts "#{k.to_s}\t#{v.to_s}"
+      end
     end
 
-    def self.get
-      @val
+    def self.get(val)
+      File.read(@file).each_line do |l|
+        if /^#{val.to_s}/ =~ l
+          return l.split[1].to_i
+        end
+      end
+      nil
+    end
+
+    def self.clear
+      FileUtils.rm(@file) if File.exist?(@file)
     end
   end
 
@@ -28,17 +39,18 @@ describe DRbQS do
 
   it "should execute initialization tasks." do
     @node.connect
-    TestValue.get[:first].should == 1
-    TestValue.get[:second].should == 2
+    TestValue.get(:first).should == 1
+    TestValue.get(:second).should == 2
   end
 
   it "should execute finalization tasks" do
     @node.calculate
-    TestValue.get[:third].should == 3
-    TestValue.get[:fourth].should == 4
+    TestValue.get(:third).should == 3
+    TestValue.get(:fourth).should == 4
   end
 
   after(:all) do
+    TestValue.clear
     lambda do
       drbqs_wait_kill_server(@process_id, 30)
     end.should_not raise_error

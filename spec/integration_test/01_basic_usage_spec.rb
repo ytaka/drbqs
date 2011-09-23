@@ -6,7 +6,7 @@ require_relative 'definition/task_obj_definition.rb'
 describe DRbQS do
   before(:all) do
     @tasks = 5.times.map do |i|
-      DRbQS::Task.new(Test1.new, :echo, args: [i])
+      DRbQS::Task.new(TestCount.new, :echo, args: [i])
     end
     @process_id, @uri = drbqs_fork_server(14010, :task => @tasks)
     @node = DRbQS::Node.new(@uri, :log_file => $stdout, :continue => true)
@@ -42,10 +42,11 @@ describe DRbQS do
     lambda do
       @node.calculate
     end.should_not raise_error
-    Test1.get_execute_echo_number.should == @tasks.size
+    TestCount.get_execute_echo_number.should == @tasks.size
   end
 
   after(:all) do
+    TestCount.clear
     lambda do
       drbqs_wait_kill_server(@process_id)
     end.should_not raise_error
