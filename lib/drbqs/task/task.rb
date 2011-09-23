@@ -28,6 +28,7 @@ module DRbQS
     # @option opts [String] :note Note for a task
     # @option opts [Symbol] :hook Method name for hook
     #  that takes two arguments server and the result object.
+    # @option opts [Symbol] :group Group of nodes to execute the task.
     # @param [Proc] hook A server execute hook as a callback when the server receive the result
     #  hook take two arguments: a DRbQS::Server object and a result of task.
     # @note Changes of obj on a node are not sent to a server.

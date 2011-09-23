@@ -14,9 +14,11 @@ describe DRbQS do
     end
 
     def self.get(val)
-      File.read(@file).each_line do |l|
-        if /^#{val.to_s}/ =~ l
-          return l.split[1].to_i
+      if File.exist?(@file)
+        File.read(@file).each_line do |l|
+          if /^#{val.to_s}/ =~ l
+            return l.split[1].to_i
+          end
         end
       end
       nil

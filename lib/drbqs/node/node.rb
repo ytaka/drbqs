@@ -34,7 +34,13 @@ module DRbQS
       @signal_queue = Queue.new
       @config = DRbQS::Config.new
       @special_task_number = 0
-      @worker = DRbQS::Worker.new
+      @worker = DRbQS::Worker::ProcessSet.new(DRbQS::Worker::ForkedProcess)
+      @worker.on_result do |proc_key, res|
+        queue_result(res)
+      end
+      @worker.on_error do |proc_key, res|
+        @signal_queue.push([:node_error, res])
+      end
     end
 
     def transfer_file(files)
@@ -233,14 +239,7 @@ module DRbQS
     WAIT_INTERVAL = 0.1
 
     def respond_signal
-      @worker.respond_signal do |k, type, res|
-        case type
-        when :result
-          queue_result(res)
-        when :node_error
-          @signal_queue.push([:node_error, res])
-        end
-      end
+      @worker.respond_signal
     end
     private :respond_signal
 
@@ -255,6 +254,7 @@ module DRbQS
         sleep(WAIT_INTERVAL)
         total_wait_time += WAIT_INTERVAL
       end
+      send_result
     end
     private :wait_process_finish
 
@@ -273,7 +273,6 @@ module DRbQS
         send_error(err, "Node error occurs.")
       end
       wait_process_finish
-      send_result
       clear_node_files
     end
   end

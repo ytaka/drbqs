@@ -79,11 +79,15 @@ module DRbQS
         DRbQS::Temporary.set_sub_directory(subdirectory_name(task_id))
         begin
           result_hash = calculate(marshal_obj, method_sym, args)
-          if subdir = DRbQS::Temporary.subdirectory
-            result_hash[:tmp] = subdir
+          # If task_id is nil then the task is initialization or finalization.
+          # So we do not return results.
+          if task_id
+            if subdir = DRbQS::Temporary.subdirectory
+              result_hash[:tmp] = subdir
+            end
+            result_hash[:id] = task_id
+            send_response([:result, [task_id, result_hash]])
           end
-          result_hash[:id] = task_id
-          send_response([:result, [task_id, result_hash]])
         rescue => err
           send_response([:node_error, err])
         end
