@@ -31,9 +31,11 @@ describe DRbQS::Node do
       task_client.stub(:node_number).and_return(node_number)
       worker = mock('worker')
       worker.stub(:create_process)
+      worker.stub(:on_error)
+      worker.stub(:on_result)
       DRbQS::Node::Connection.should_receive(:new).and_return(node_connection)
       DRbQS::Node::TaskClient.should_receive(:new).and_return(task_client)
-      DRbQS::Worker.should_receive(:new).and_return(worker)
+      DRbQS::Worker::ProcessSet.should_receive(:new).and_return(worker)
       subject.connect
     end
   end

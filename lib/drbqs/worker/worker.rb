@@ -1,4 +1,3 @@
-require 'drbqs/task/task'
 require 'drbqs/worker/worker_process_set'
 
 module DRbQS
