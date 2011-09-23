@@ -1,6 +1,8 @@
 module DRbQS
   class Worker
     class Serialize
+      HEADER_BYTE_SIZE = 4
+
       class Unpacker
         def initialize
           @chunk = ''
@@ -10,8 +12,6 @@ module DRbQS
         def feed(data)
           @chunk << data
         end
-
-        HEADER_BYTE_SIZE = 4
 
         def next_object
           unless @next_size
@@ -54,6 +54,12 @@ module DRbQS
       def self.dump(obj)
         str = Marshal.dump(obj)
         [str.size].pack('N') << str
+      end
+
+      def self.load(s)
+        size = s[0, HEADER_BYTE_SIZE].unpack('N')[0]
+        data = s[HEADER_BYTE_SIZE, size]
+        Marshal.load(data)
       end
     end
   end

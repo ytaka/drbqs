@@ -1,17 +1,15 @@
 module DRbQS
   class Worker
-    class ForkedProcess
+    class SimpleForkedProcess
       def initialize(io_r, io_w)
         @io_r = io_r
         @io_w = io_w
-        @queue = Queue.new
+        @queue = []
         @special_task_number = 0
       end
 
       def calculate(marshal_obj, method_sym, args)
-        result = DRbQS::Task.execute_task(marshal_obj, method_sym, args)
-        transfer_files = DRbQS::Transfer.dequeue_all
-        { :result => result, :transfer => transfer_files }
+        DRbQS::Task.execute_task(marshal_obj, method_sym, args)
       end
 
       def send_response(obj)
@@ -19,6 +17,53 @@ module DRbQS
         @io_w.flush
       end
       private :send_response
+
+      def handle_task(obj)
+        task_id, marshal_obj, method_sym, args = obj
+        begin
+          res = calculate(marshal_obj, method_sym, args)
+          send_response([:result, [task_id, res]])
+        rescue => err
+          send_response([:node_error, err])
+        end
+      end
+      private :handle_task
+
+      def start
+        unpacker = DRbQS::Worker::Serialize::Unpacker.new
+        loop do
+          if @queue.empty?
+            begin
+              chunk = @io_r.readpartial(READ_BYTE_SIZE)
+              unpacker.feed_each(chunk) do |ary|
+                @queue << ary
+              end
+            rescue EOFError
+              break
+            end
+          else
+            obj = @queue.shift
+            case obj
+            when Array
+              handle_task(obj)
+            when :prepare_to_exit
+              send_response([:finish_preparing_to_exit])
+            when :exit
+              break
+            else
+              send_response([:node_error, "Invalid object from server."])
+            end  
+          end
+        end
+      end
+    end
+
+    class ForkedProcess < DRbQS::Worker::SimpleForkedProcess
+      def calculate(marshal_obj, method_sym, args)
+        result = super(marshal_obj, method_sym, args)
+        transfer_files = DRbQS::Transfer.dequeue_all
+        { :result => result, :transfer => transfer_files }
+      end
 
       def subdirectory_name(task_id)
         if task_id
@@ -29,46 +74,21 @@ module DRbQS
       end
       private :subdirectory_name
 
-      def start
-        Thread.abort_on_exception = true
-        th = Thread.new do
-          unpacker = DRbQS::Worker::Serialize::Unpacker.new
-          loop do
-            begin
-              chunk = @io_r.readpartial(READ_BYTE_SIZE)
-              unpacker.feed_each(chunk) do |ary|
-                @queue.push(ary)
-              end
-            rescue EOFError
-              @queue.push(nil)
-              break
-            end
+      def handle_task(obj)
+        task_id, marshal_obj, method_sym, args = obj
+        DRbQS::Temporary.set_sub_directory(subdirectory_name(task_id))
+        begin
+          result_hash = calculate(marshal_obj, method_sym, args)
+          if subdir = DRbQS::Temporary.subdirectory
+            result_hash[:tmp] = subdir
           end
-        end
-
-        loop do
-          obj = @queue.pop
-          case obj
-          when Array
-            task_id, marshal_obj, method_sym, args = obj
-            DRbQS::Temporary.set_sub_directory(subdirectory_name(task_id))
-            begin
-              result_hash = calculate(marshal_obj, method_sym, args)
-              if subdir = DRbQS::Temporary.subdirectory
-                result_hash[:tmp] = subdir
-              end
-              result_hash[:id] = task_id
-              send_response([:result, result_hash])
-            rescue => err
-              send_response([:node_error, err])
-            end
-          when :prepare_to_exit
-            send_response([:finish_preparing_to_exit])
-            @queue.pop          # :exit
-            break
-          end
+          result_hash[:id] = task_id
+          send_response([:result, [task_id, result_hash]])
+        rescue => err
+          send_response([:node_error, err])
         end
       end
+      private :handle_task
     end
   end
 end
