@@ -28,7 +28,9 @@ module DRbQS
       def process_create(key)
         io_r, io_w = IO.pipe('BINARY')
         io_r2, io_w2 = IO.pipe('BINARY')
+        parent_pid = Process.pid
         pid = fork do
+          $PROGRAM_NAME = "[worker:#{key.to_s}] #{$PROGRAM_NAME} (#{parent_pid})"
           io_w.close
           io_r2.close
           worker = @process_class.new(io_r, io_w2)
