@@ -171,16 +171,17 @@ module DRbQS
 
       WAITALL_INTERVAL_TIME = 0.1
 
-      def waitall
+      def waitall(interval_time = nil)
         unless @process.all? { |key, h| h[:exit] }
           return nil
         end
+        t = interval_time || WAITALL_INTERVAL_TIME
         until @process.empty?
           respond_signal
-          sleep(WAITALL_INTERVAL_TIME)
+          sleep(t)
         end
         until Process.waitall == []
-          sleep(WAITALL_INTERVAL_TIME)
+          sleep(t)
         end
         true
       end

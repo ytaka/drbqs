@@ -107,6 +107,12 @@ describe DRbQS::Worker do
     result_pid.should == ary_pid.sort
   end
 
+  it "should finish." do
+    subject.process.create_process(:proc4, :proc5)
+    subject.finish
+    Process.waitall.should == []
+  end
+
   after(:each) do
     @result.clear
     @error.clear

@@ -111,5 +111,10 @@ module DRbQS
         sleep(interval_time)
       end
     end
+
+    def finish(interval_time = nil)
+      @process.prepare_to_exit
+      @process.waitall(interval_time)
+    end
   end
 end
