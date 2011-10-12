@@ -249,7 +249,11 @@ module DRbQS
       total_wait_time = 0.0
       loop do
         respond_signal
-        if @worker.process.empty? || total_wait_time > MAX_WAIT_FINISH
+        if @worker.process.empty?
+          break
+        elsif total_wait_time > MAX_WAIT_FINISH
+          # Kill worker processes forcibly.
+          @worker.kill_all_processes
           break
         end
         sleep(WAIT_INTERVAL)
