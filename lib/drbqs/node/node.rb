@@ -150,25 +150,25 @@ module DRbQS
     private :get_new_task
 
     def send_result
-      flag_finilize_exit = @task_client.send_result
+      flag_finalize_exit = @task_client.send_result
       if @state.calculate? && @task_client.waiting?
         @state.change_to_finish_calculating
       end
-      flag_finilize_exit
+      flag_finalize_exit
     end
     private :send_result
 
     def send_signal
-      flag_finilize_exit = nil
+      flag_finalize_exit = nil
       until @signal_queue.empty?
         signal, obj = @signal_queue.pop
         case signal
         when :node_error
           send_error(obj, "Communicating with server")
           dump_not_send_result_to_file
-          flag_finilize_exit = true
+          flag_finalize_exit = true
         when :signal_kill
-          flag_finilize_exit = true
+          flag_finalize_exit = true
         else
           raise "Not implemented"
         end
@@ -199,8 +199,8 @@ module DRbQS
       get_new_task
       sig = process_signal
       return nil if sig == :exit
-      flag_finilize_exit = send_result || send_signal
-      if sig == :finalize || flag_finilize_exit
+      flag_finalize_exit = send_result || send_signal
+      if sig == :finalize || flag_finalize_exit
         execute_finalization
         return nil
       end
