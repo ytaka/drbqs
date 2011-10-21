@@ -1,6 +1,9 @@
 require 'drbqs/worker/worker_process_set'
 
 module DRbQS
+  # We can use DRbQS::Worker to send some child processes.
+  # Note that DRbQS::Worker is not used in DRbQS::Node class and then
+  # is not included in main part of DRbQS.
   class Worker
     attr_reader :process
 
@@ -74,22 +77,22 @@ module DRbQS
       end
     end
 
+    # This method sends a stored task for each process that is not calculating a task
+    # and responds signals from child processes.
     def step
-      if waiting = @process.waiting_processes
-        waiting.each do |proc_key|
-          if @state[proc_key][:sleep]
-            next
-          end
-          catch(:add) do
-            grps = (@state[proc_key][:group] || []) + [DRbQS::Task::DEFAULT_GROUP]
-            grps.each do |gr|
-              @task_group[gr].each do |task_id|
-                task_data = @task_pool[task_id]
-                if !task_data[:calculate]
-                  send_task(proc_key, task_id, task_data[:task])
-                  @task_pool[task_id][:calculate] = true
-                  throw :add
-                end
+      @process.waiting_processes.each do |proc_key|
+        if @state[proc_key][:sleep]
+          next
+        end
+        catch(:add) do
+          grps = (@state[proc_key][:group] || []) + [DRbQS::Task::DEFAULT_GROUP]
+          grps.each do |gr|
+            @task_group[gr].each do |task_id|
+              task_data = @task_pool[task_id]
+              if !task_data[:calculate]
+                send_task(proc_key, task_id, task_data[:task])
+                @task_pool[task_id][:calculate] = true
+                throw :add
               end
             end
           end
@@ -98,6 +101,9 @@ module DRbQS
       @process.respond_signal
     end
 
+    # Wait finish of task +task_id+ with sleep +interval_time+.
+    # @param [Fixnum] task_id
+    # @param [Numeric] interval_time An argument of Kernel#sleep.
     def wait(task_id, interval_time)
       while @task_pool[task_id]
         unless step
@@ -106,6 +112,8 @@ module DRbQS
       end
     end
 
+    # Wait finishes of all tasks with sleep +interval_time+.
+    # @param [Numeric] interval_time An argument of Kernel#sleep.
     def waitall(interval_time)
       while calculating?
         unless step
@@ -114,7 +122,10 @@ module DRbQS
       end
     end
 
-    def finish(interval_time = nil)
+    # Send signal to exit to all child processes and wait the completion
+    # with sleep +interval_time+.
+    # @param [Numeric] interval_time An argument of Kernel#sleep.
+    def finish(interval_time = 1)
       @process.prepare_to_exit
       @process.waitall(interval_time)
     end

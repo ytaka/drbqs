@@ -59,6 +59,8 @@ module DRbQS
         end
       end
 
+      # Return true if the process of +key+ exists.
+      # @param [Symbol,nil] key Key of child process or nil.
       def exist?(key)
         @process[key]
       end
@@ -67,14 +69,17 @@ module DRbQS
         !@process.empty?
       end
 
+      # Return true if the process of +key+ is calculating.
       def calculating?(key)
         @process[key] && !@process[key][:task].empty?
       end
 
+      # Return true if the process +key+ does not calculate any tasks.
       def waiting?(key)
         !calculating?(key)
       end
 
+      # Return keys of processes not calculating a task.
       def waiting_processes
         @process.keys.select do |key|
           @process[key][:task].empty?
@@ -134,6 +139,16 @@ module DRbQS
       end
       private :delete_process
 
+      # Read IOs and respond signals from chiled processes.
+      # If there no signal from childe processes then the method returns false.
+      # Otherwise, true.
+      # Types of signals are :result, :node_error, :finish_preparing_to_exit.
+      #  - :result
+      #    Execute callback set by DRbQS::Worker::ProcessSet#on_result.
+      #  - :node_error
+      #    Execute callback set by DRbQS::Worker::ProcessSet#on_error.
+      #  - :finish_preparing_to_exit
+      #    Send :exit signale to the process and delete from list of child processes.
       def respond_signal
         num = 0
         to_be_deleted = []
@@ -148,9 +163,17 @@ module DRbQS
                 when :result
                   task_id, result = response
                   h[:task].delete(task_id)
-                  @on_result.call(key, [task_id, result])
+                  if @on_result
+                    @on_result.call(key, [task_id, result])
+                  else
+                    $stderr.puts "The instance of DRbQS::Worker::ProcessSet can not deal with results from child processes."
+                  end
                 when :node_error
-                  @on_error.call(key, response)
+                  if @on_error
+                    @on_error.call(key, response)
+                  else
+                    $stderr.puts "The instance of DRbQS::Worker::ProcessSet can not deal with error from child processes."
+                  end
                 when :finish_preparing_to_exit
                   delete_process(key)
                   to_be_deleted << key
