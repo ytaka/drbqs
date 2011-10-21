@@ -63,6 +63,10 @@ module DRbQS
         @process[key]
       end
 
+      def has_process?
+        !@process.empty?
+      end
+
       def calculating?(key)
         @process[key] && !@process[key][:task].empty?
       end
