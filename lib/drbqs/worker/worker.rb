@@ -100,15 +100,17 @@ module DRbQS
 
     def wait(task_id, interval_time)
       while @task_pool[task_id]
-        step
-        sleep(interval_time)
+        unless step
+          sleep(interval_time)
+        end
       end
     end
 
     def waitall(interval_time)
       while calculating?
-        step
-        sleep(interval_time)
+        unless step
+          sleep(interval_time)
+        end
       end
     end
 

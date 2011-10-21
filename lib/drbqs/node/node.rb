@@ -271,8 +271,9 @@ module DRbQS
             break
           end
           send_task
-          respond_signal
-          wait_interval_of_connection
+          unless respond_signal
+            wait_interval_of_connection
+          end
         end
       rescue => err
         send_error(err, "Node error occurs.")
