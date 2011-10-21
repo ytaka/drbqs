@@ -149,6 +149,7 @@ module DRbQS
         end
         uri = current_server_uri
         wait_server_process(uri, server_pid)
+        $PROGRAM_NAME = "drbqs-node with drbqs-server (PID #{server_pid})"
         execute_node_and_wait(uri)
       end
       private :command_server_with_nodes
