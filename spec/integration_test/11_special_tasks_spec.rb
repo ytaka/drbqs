@@ -47,6 +47,7 @@ describe DRbQS do
 
   it "should execute finalization tasks" do
     @node.calculate
+    sleep(1)                    # Wait finish of task.
     TestValue.get(:third).should == 3
     TestValue.get(:fourth).should == 4
   end
