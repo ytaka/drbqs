@@ -25,21 +25,11 @@ module DRbQS
       end
       private :get_log_file
 
-      def create_process
-        @pid << fork do
-          opts = @node_opts.merge({ :log_level => @log_level, :log_file => get_log_file })
-          node = DRbQS::Node.new(@uri, opts)
-          node.connect
-          node.calculate
-        end
-      end
-      private :create_process
-
       def execute(process_num, interval = 0)
-        process_num.times do |i|
-          create_process
-          sleep(interval) if interval > 0
-        end
+        opts = @node_opts.merge({ :log_level => @log_level, :log_file => get_log_file, :process => process_num })
+        node = DRbQS::Node.new(@uri, opts)
+        node.connect
+        node.calculate
       end
 
       def wait
