@@ -141,7 +141,10 @@ module DRbQS
 
     def send_error(err, mes)
       output_error(err, mes)
-      @connection.send_node_error("#{err.to_s}\n#{err.backtrace.join("\n")}")
+      begin
+        @connection.send_node_error("#{err.to_s}\n#{err.backtrace.join("\n")}")
+      rescue
+      end
     end
     private :send_error
 
@@ -288,6 +291,7 @@ module DRbQS
         end
       rescue => err
         send_error(err, "Node error occurs.")
+        @worker.kill_all_processes
       end
       wait_process_finish
       clear_node_files
