@@ -2,7 +2,7 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe DRbQS::Node::State do
   subject do
-    DRbQS::Node::State.new(:wait)
+    DRbQS::Node::State.new(:wait, 1)
   end
 
   context "when state is :wait" do
@@ -91,7 +91,7 @@ describe DRbQS::Node::State do
 
   context "when setting load average" do
     subject do
-      DRbQS::Node::State.new(:wait, :max_loadavg => 2)
+      DRbQS::Node::State.new(:wait, 1, :max_loadavg => 2)
     end
 
     it "should be true" do
@@ -126,7 +126,7 @@ describe DRbQS::Node::State do
 
   context "when setting auto wakeup" do
     subject do
-      DRbQS::Node::State.new(:wait, :sleep_time => 0)
+      DRbQS::Node::State.new(:wait, 1, :sleep_time => 0)
     end
 
     it "should do nothing." do

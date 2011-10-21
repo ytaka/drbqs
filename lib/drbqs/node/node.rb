@@ -19,6 +19,7 @@ module DRbQS
 
     # @param [String] acces_uri Set the uri of server
     # @param [Hash] opts Options of a node
+    # @option opts [Fixnum] :process Number of worker processes
     # @option opts [Array] :group An array of group symbols
     # @option opts [Boolean] :continue If we set true then the node process does not exit
     # @option opts [Fixnum] :sleep_time Time interval during sleep of the node
@@ -28,16 +29,18 @@ module DRbQS
       @logger = DRbQS::Misc.create_logger(opts[:log_file] || DEFAULT_LOG_FILE, opts[:log_level])
       @connection = nil
       @task_client = nil
-      @state = DRbQS::Node::State.new(:wait, :max_loadavg => opts[:max_loadavg], :sleep_time => opts[:sleep_time])
+      @worker_number = opts[:process] || 1
+      @state = DRbQS::Node::State.new(:wait, @worker_number, :max_loadavg => opts[:max_loadavg], :sleep_time => opts[:sleep_time])
       @process_continue = opts[:continue]
       @group = opts[:group] || []
       @signal_queue = Queue.new
       @config = DRbQS::Config.new
       @special_task_number = 0
+      @worker_key = []
       @worker = DRbQS::Worker::ProcessSet.new(DRbQS::Worker::ForkedProcess)
       @worker.on_result do |proc_key, res|
         task_id, h = res
-        queue_result(h)
+        queue_result(task_id, h)
       end
       @worker.on_error do |proc_key, res|
         @signal_queue.push([:node_error, res])
@@ -56,14 +59,14 @@ module DRbQS
     end
     private :transfer_file
 
-    def queue_result(result_hash)
+    def queue_result(task_id, result_hash)
       if files = result_hash[:transfer]
         transfer_file(files)
       end
       if subdir = result_hash[:tmp]
         FileUtils.rm_r(result_hash[:tmp])
       end
-      @task_client.queue_result(result_hash[:result])
+      @task_client.queue_result(task_id, result_hash[:result])
     end
     private :queue_result
 
@@ -72,10 +75,16 @@ module DRbQS
     end
     private :node_data
 
-    def worker_key
-      @task_client.node_number
+    # @param [Array] task_ary An array from @connection.get_initialization or @connection.get_finalization.
+    def send_special_task_ary_to_all_workers(task_ary)
+      task_ary.each do |ary|
+        ary_to_send = [nil] + ary
+        @worker_key.each do |wkey|
+          @worker.send_task(wkey, ary_to_send)
+        end
+      end
     end
-    private :worker_key
+    private :send_special_task_ary_to_all_workers
 
     # Connect to the server and finish initialization of the node.
     def connect
@@ -84,13 +93,12 @@ module DRbQS
       @connection = DRbQS::Node::Connection.new(obj[:message], @logger)
       set_node_group_for_task
       @task_client = DRbQS::Node::TaskClient.new(@connection.node_number, obj[:queue], obj[:result],
-                                                 @group, @logger)
+                                                 @group, @worker_number, @logger)
       DRbQS::Transfer::Client.set(obj[:transfer].get_client(server_on_same_host?)) if obj[:transfer]
-      @worker.create_process(worker_key)
+      @worker_key << @task_client.node_number
+      @worker.create_process(@worker_key[0])
       if ary_initialization = @connection.get_initialization
-        ary_initialization.each do |ary|
-          @worker.send_task(worker_key, [nil] + ary)
-        end
+        send_special_task_ary_to_all_workers(ary_initialization)
       end
       @config.list.node.save(Process.pid, node_data)
     end
@@ -123,9 +131,7 @@ module DRbQS
 
     def execute_finalization
       if ary_finalization = @connection.get_finalization
-        ary_finalization.each do |ary|
-          @worker.send_task(worker_key, [nil] + ary)
-        end
+        send_special_task_ary_to_all_workers(ary_finalization)
       end
     rescue => err
       output_error(err, "On finalization")
@@ -151,7 +157,7 @@ module DRbQS
 
     def send_result
       flag_finalize_exit = @task_client.send_result
-      if @state.calculate? && @task_client.waiting?
+      if @state.calculate? && !@task_client.calculating?
         @state.change_to_finish_calculating
       end
       flag_finalize_exit
@@ -211,7 +217,7 @@ module DRbQS
 
     def send_task
       if ary = @task_client.dequeue_task
-        @worker.send_task(worker_key, ary)
+        @worker.send_task(@worker_key[0], ary)
         true
       else
         nil

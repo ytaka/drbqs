@@ -55,6 +55,7 @@ describe DRbQS::Worker::ProcessSet do
         @result[0][0].should == key
       end
 
+      # Sometimes this spec fails. Later we investigate. (2011-10-21)
       it "should make process exit." do
         key = :proc2
         send_task(key)

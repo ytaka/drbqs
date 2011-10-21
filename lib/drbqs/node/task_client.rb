@@ -3,7 +3,7 @@ module DRbQS
     class TaskClient
       attr_reader :node_number, :calculating_task, :group
 
-      def initialize(node_number, queue, result, group, logger = DRbQS::Misc::LoggerDummy.new)
+      def initialize(node_number, queue, result, group, max_task_number, logger = DRbQS::Misc::LoggerDummy.new)
         @node_number = node_number
         @queue = queue
         @result = result
@@ -12,6 +12,7 @@ module DRbQS
         @task_queue = Queue.new
         @result_queue = Queue.new
         @group = group || []
+        @max_task_number = max_task_number
         @logger = logger
       end
 
@@ -20,7 +21,7 @@ module DRbQS
       end
 
       def waiting?
-        !calculating?
+        (@max_task_number - @calculating_task.size) > 0
       end
 
       def task_empty?
@@ -82,25 +83,27 @@ module DRbQS
         nil
       end
 
-      # If the method return true, a node should finilize and exit.
+      # When there is no calculating task, this method returns true.
+      # If the returned value is true then a node should finilize and exit.
       def send_result
         if !result_empty?
-          result = dequeue_result
-          @logger.info("Send result: #{@calculating_task[0]}") { result.inspect }
-          @result.write([:result, @calculating_task[0], @node_number, result])
-          @calculating_task.delete_at(0)
+          task_id, result = dequeue_result
+          @logger.info("Send result: #{task_id}") { result.inspect }
+          @result.write([:result, task_id, @node_number, result])
+          @calculating_task.delete(task_id)
         end
-        waiting? && @exit_after_task
+        !calculating? && @exit_after_task
       end
 
-      def queue_result(result)
-        @result_queue.enq(result)
+      def queue_result(task_id, result)
+        @result_queue.enq([task_id, result])
       end
 
       def dump_result_queue
         results = []
         while !result_empty?
-          results << dequeue_result
+          task_id, res = dequeue_result
+          results << res
         end
         if results.size > 0
           Marshal.dump(results)

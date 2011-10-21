@@ -6,7 +6,7 @@ module DRbQS
       def initialize(log_level, transfer, queue)
         super(nil, :log_file => $stdout, :log_level => log_level)
         DRbQS::Transfer::Client.set(transfer.get_client(true)) if transfer
-        @task_client = DRbQS::Node::TaskClient.new(nil, queue, nil, [DRbQS::Node::SAME_HOST_GROUP])
+        @task_client = DRbQS::Node::TaskClient.new(nil, queue, nil, [DRbQS::Node::SAME_HOST_GROUP], 1)
         @special_task_number = 0
       end
 

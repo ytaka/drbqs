@@ -7,7 +7,7 @@ describe DRbQS::Node::TaskClient do
     @node_number = opts[:number] || 10
     @ts_queue = Rinda::TupleSpace.new
     @ts_result = Rinda::TupleSpace.new
-    @task_client = DRbQS::Node::TaskClient.new(@node_number, @ts_queue, @ts_result, opts[:group])
+    @task_client = DRbQS::Node::TaskClient.new(@node_number, @ts_queue, @ts_result, opts[:group], 1)
   end
 
   def add_task_to_tuplespace(task_id, task_ary, group = DRbQS::Task::DEFAULT_GROUP)
@@ -74,7 +74,7 @@ describe DRbQS::Node::TaskClient do
     end
 
     it "should not return task." do
-      client = DRbQS::Node::TaskClient.new(100, @ts_queue, @ts_result, nil)
+      client = DRbQS::Node::TaskClient.new(100, @ts_queue, @ts_result, nil, 1)
       client.get_task.should be_nil
     end
 
@@ -171,7 +171,7 @@ describe DRbQS::Node::TaskClient do
       add_task_to_tuplespace(@task_id, @task_ary)
       subject.add_new_task
       @dequeued_task = subject.dequeue_task
-      subject.queue_result(:result_object)
+      subject.queue_result(1, :result_object)
     end
 
     it "should have empty task queue." do
@@ -190,17 +190,17 @@ describe DRbQS::Node::TaskClient do
   context "when sending result" do
     before(:all) do
       init_task_client(:number => 2)
-      @task_id = 27
+      @task_id = 28
       @task_ary = ["abcdef", :size, []]
       add_task_to_tuplespace(@task_id, @task_ary)
       subject.add_new_task
       @dequeued_task = subject.dequeue_task
-      subject.queue_result(:result_object)
+      subject.queue_result(@task_id, :result_object)
       @send_returned_value = subject.send_result
     end
 
     it "should get nil returned value." do
-      @send_returned_value.should be_nil
+      @send_returned_value.should_not be_true
     end
 
     it "should have empty task queue." do
@@ -223,13 +223,13 @@ describe DRbQS::Node::TaskClient do
   context "when setting exit_after_task" do
     before(:all) do
       init_task_client(:number => 2)
-      @task_id = 27
+      @task_id = 29
       @task_ary = ["abcdef", :size, []]
       add_task_to_tuplespace(@task_id, @task_ary)
       subject.add_new_task
       subject.set_exit_after_task
       @dequeued_task = subject.dequeue_task
-      subject.queue_result(:result_object)
+      subject.queue_result(@task_id, :result_object)
     end
 
     it "should return true" do
@@ -248,8 +248,8 @@ describe DRbQS::Node::TaskClient do
 
     it "should return string for non empty result queue." do
       results = [:result_object1, :result_object2]
-      results.each do |sym|
-        subject.queue_result(sym)
+      results.each_with_index do |sym, i|
+        subject.queue_result(i, sym)
       end
       subject.dump_result_queue.should == Marshal.dump(results)
     end

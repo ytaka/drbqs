@@ -8,8 +8,9 @@ module DRbQS
       DEFAULT_SLEEP_TIME = 300
       LOADAVG_PATH = '/proc/loadavg'
 
-      def initialize(state, opts = {})
+      def initialize(state, process_number, opts = {})
         @state = state
+        @process_number = process_number
         @sleep_at_calculated = nil
         @load_average_threshold = opts[:max_loadavg]
         @sleep_time = opts[:sleep_time] || DEFAULT_SLEEP_TIME
