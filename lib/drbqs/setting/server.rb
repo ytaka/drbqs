@@ -133,7 +133,6 @@ module DRbQS
         end
         exec_node = DRbQS::Execution::ExecuteNode.new(uri, node_log_file, @options[:log_level])
         exec_node.execute(@execute_node_number, NODE_INTERVAL_TIME)
-        exec_node.wait
       end
       private :execute_node_and_wait
 

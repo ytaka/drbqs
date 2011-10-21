@@ -1,8 +1,6 @@
 module DRbQS
   class Execution
     class ExecuteNode
-      attr_reader :pid
-
       def initialize(uri, log_prefix, log_level, node_opts = {})
         @uri = uri
         @log_level = log_level
@@ -13,7 +11,6 @@ module DRbQS
         else
           @fname = nil
         end
-        @pid = []
         @node_opts = node_opts
       end
 
@@ -30,10 +27,6 @@ module DRbQS
         node = DRbQS::Node.new(@uri, opts)
         node.connect
         node.calculate
-      end
-
-      def wait
-        Process.waitall
       end
     end
   end

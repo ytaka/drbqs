@@ -86,7 +86,6 @@ module DRbQS
 
         exec_node = DRbQS::Execution::ExecuteNode.new(@uri, @options[:log_prefix], @options[:log_level], @options[:node_opts])
         exec_node.execute(@process_num)
-        exec_node.wait
         true
       end
     end
