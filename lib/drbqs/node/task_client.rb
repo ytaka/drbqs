@@ -31,6 +31,8 @@ module DRbQS
         @task_queue.enq(ary)
       end
 
+      # @return [nil,Array] If @task_queue is empty then return nil.
+      #   Otherwise, an array [task_id, obj, method_name, args] is returned.
       def dequeue_task
         if @task_queue.empty?
           nil
@@ -72,8 +74,7 @@ module DRbQS
         get_task_id.empty? ? nil: get_task_id
       end
 
-      # When there is no calculating task, this method returns true.
-      # If the returned value is true then a node should finilize and exit.
+      # Return an array of task ID that is sent to the server.
       def send_result
         sent_task_id = []
         while !result_empty?

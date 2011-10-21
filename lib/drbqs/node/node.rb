@@ -33,17 +33,16 @@ module DRbQS
       @state = DRbQS::Node::State.new(:wait, @worker_number, :max_loadavg => opts[:max_loadavg], :sleep_time => opts[:sleep_time])
       @process_continue = opts[:continue]
       @group = opts[:group] || []
-      @signal_queue = Queue.new
+      @signal_to_server_queue = Queue.new
       @config = DRbQS::Config.new
       @special_task_number = 0
-      @worker_key = []
       @worker = DRbQS::Worker::ProcessSet.new(DRbQS::Worker::ForkedProcess)
       @worker.on_result do |proc_key, res|
         task_id, h = res
         queue_result(task_id, h)
       end
       @worker.on_error do |proc_key, res|
-        @signal_queue.push([:node_error, res])
+        @signal_to_server_queue.push([:node_error, res])
       end
     end
 
@@ -79,8 +78,8 @@ module DRbQS
     def send_special_task_ary_to_all_workers(task_ary)
       task_ary.each do |ary|
         ary_to_send = [nil] + ary
-        @worker_key.each do |wkey|
-          @worker.send_task(wkey, ary_to_send)
+        @state.each_worker_id do |wid|
+          @worker.send_task(wid, ary_to_send)
         end
       end
     end
@@ -93,10 +92,11 @@ module DRbQS
       @connection = DRbQS::Node::Connection.new(obj[:message], @logger)
       set_node_group_for_task
       @task_client = DRbQS::Node::TaskClient.new(@connection.node_number, obj[:queue], obj[:result],
-                                                 @group, @worker_number, @logger)
+                                                 @group, @logger)
       DRbQS::Transfer::Client.set(obj[:transfer].get_client(server_on_same_host?)) if obj[:transfer]
-      @worker_key << @task_client.node_number
-      @worker.create_process(@worker_key[0])
+      @state.each_worker_id do |wid|
+        @worker.create_process(wid)
+      end
       if ary_initialization = @connection.get_initialization
         send_special_task_ary_to_all_workers(ary_initialization)
       end
@@ -130,6 +130,7 @@ module DRbQS
     private :output_error
 
     def execute_finalization
+      @worker.waitall
       if ary_finalization = @connection.get_finalization
         send_special_task_ary_to_all_workers(ary_finalization)
       end
@@ -145,29 +146,27 @@ module DRbQS
     private :send_error
 
     def get_new_task
-      if @state.request?
-        if @state.change_to_sleep_for_busy_system
-          @logger.info("Sleep because system is busy.")
-        elsif @task_client.add_new_task
-          @state.change_to_calculate
-        end
+      if @state.request? && (obtained_task_id = @task_client.add_new_task(@state.request_task_number))
+        return obtained_task_id
       end
+      nil
     end
     private :get_new_task
 
-    def send_result
-      flag_finalize_exit = @task_client.send_result
-      if @state.calculate? && !@task_client.calculating?
-        @state.change_to_finish_calculating
+    def send_result_to_server
+      if sent_task_id = @task_client.send_result
+        @state.set_finish_of_task(sent_task_id)
       end
-      flag_finalize_exit
     end
-    private :send_result
+    private :send_result_to_server
 
+    # Send signals from @signal_to_server_queue,
+    # which stores errors of workers and signals to current process.
+    # @return [Boolean] If some error signal is sent then this method returns true. Otherwise, nil.
     def send_signal
       flag_finalize_exit = nil
-      until @signal_queue.empty?
-        signal, obj = @signal_queue.pop
+      until @signal_to_server_queue.empty?
+        signal, obj = @signal_to_server_queue.pop
         case signal
         when :node_error
           send_error(obj, "Communicating with server")
@@ -179,51 +178,48 @@ module DRbQS
           raise "Not implemented"
         end
       end
+      flag_finalize_exit
     end
     private :send_signal
 
-    def process_signal
+    # If the method returns true, the node finishes.
+    def process_signal_for_server
+      flag_finalize_exit = send_signal
       case @connection.respond_signal
       when :wake
-        @state.change_to_wait
+        @state.wakeup_sleeping_worker
       when :sleep
         @state.change_to_sleep
       when :exit
-        return :exit
+        return nil
       when :finalize
-        return :finalize
+        flag_finalize_exit = true
       when :exit_after_task
-        @task_client.set_exit_after_task
+        @state.set_exit_after_task
         @process_continue = nil
       end
-      nil
-    end
-    private :process_signal
-
-    # If the method returns true, the node finishes.
-    def communicate_with_server
-      get_new_task
-      sig = process_signal
-      return nil if sig == :exit
-      flag_finalize_exit = send_result || send_signal
-      if sig == :finalize || flag_finalize_exit
+      if flag_finalize_exit
         execute_finalization
         return nil
       end
       @state.wakeup_automatically_for_unbusy_system
       true
     end
-    private :communicate_with_server
+    private :process_signal_for_server
 
-    def send_task
-      if ary = @task_client.dequeue_task
-        @worker.send_task(@worker_key[0], ary)
-        true
-      else
-        nil
+    # Dequeue tasks from @task_client and send them to worker processes.
+    def send_task_to_worker
+      wids = @state.waiting_worker_id
+      wids.each do |wid|
+        if ary = @task_client.dequeue_task
+          @state.set_calculating_task(wid, ary[0])
+          @worker.send_task(wid, ary)
+        else
+          break
+        end
       end
     end
-    private :send_task
+    private :send_task_to_worker
 
     def clear_node_files
       DRbQS::Temporary.delete_all
@@ -238,23 +234,23 @@ module DRbQS
 
     def set_signal_trap
       Signal.trap(:TERM) do
-        @signal_queue.push([:signal_kill])
+        @signal_to_server_queue.push([:signal_kill])
       end
     end
 
     MAX_WAIT_FINISH = 3
     WAIT_INTERVAL = 0.1
 
-    def respond_signal
+    def respond_worker_signal
       @worker.respond_signal
     end
-    private :respond_signal
+    private :respond_worker_signal
 
     def wait_process_finish
       @worker.prepare_to_exit
       total_wait_time = 0.0
       loop do
-        respond_signal
+        respond_worker_signal
         if !@worker.has_process?
           break
         elsif total_wait_time > MAX_WAIT_FINISH
@@ -265,7 +261,7 @@ module DRbQS
         sleep(WAIT_INTERVAL)
         total_wait_time += WAIT_INTERVAL
       end
-      send_result
+      send_result_to_server
     end
     private :wait_process_finish
 
@@ -273,11 +269,20 @@ module DRbQS
       set_signal_trap
       begin
         loop do
-          unless communicate_with_server
+          send_result_to_server
+          unless process_signal_for_server
             break
           end
-          send_task
-          unless respond_signal
+          if @state.change_to_sleep_for_busy_system
+            @logger.info("Sleep because system is busy.")
+          end
+          if get_new_task
+            send_task_to_worker
+          elsif @state.all_workers_waiting? && !@process_continue
+            execute_finalization
+            break
+          end
+          unless respond_worker_signal
             wait_interval_of_connection
           end
         end
