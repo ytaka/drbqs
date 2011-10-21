@@ -12,8 +12,9 @@ describe DRbQS::Server do
 
   it "should send node exit" do
     execute_node = DRbQS::Execution::ExecuteNode.new(@uri, nil, nil)
-    execute_node.execute(1)
-    client_process_id = execute_node.pid[0]
+    client_process_id = fork do
+      execute_node.execute(1)
+    end
     th = Process.detach(client_process_id)
     lambda do
       @max_wait_time.times do |i|
