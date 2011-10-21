@@ -73,3 +73,18 @@ class TestCountCalc
     n
   end
 end
+
+class TestPID
+  def save(dir)
+    path = File.join(dir, "#{Process.pid}")
+    if File.exist?(path)
+      n = File.read(path).to_i + 1
+    else
+      n = 1
+    end
+    Kernel.open(path, 'w') do |f|
+      f.print n.to_s
+    end
+    true
+  end
+end
