@@ -1,27 +1,16 @@
 module DRbQS
   class Node
     class TaskClient
-      attr_reader :node_number, :calculating_task, :group
+      attr_reader :node_number, :group
 
-      def initialize(node_number, queue, result, group, max_task_number, logger = DRbQS::Misc::LoggerDummy.new)
+      def initialize(node_number, queue, result, group, logger = DRbQS::Misc::LoggerDummy.new)
         @node_number = node_number
         @queue = queue
         @result = result
-        @calculating_task = []
-        @exit_after_task = nil
         @task_queue = Queue.new
         @result_queue = Queue.new
         @group = group || []
-        @max_task_number = max_task_number
         @logger = logger
-      end
-
-      def calculating?
-        !@calculating_task.empty?
-      end
-
-      def waiting?
-        (@max_task_number - @calculating_task.size) > 0
       end
 
       def task_empty?
@@ -39,7 +28,6 @@ module DRbQS
 
       # @param [Array] ary An array is [task_id, obj, method_name, args]
       def queue_task(ary)
-        @calculating_task << ary[0]
         @task_queue.enq(ary)
       end
 
@@ -68,31 +56,33 @@ module DRbQS
         get_task_by_group(DRbQS::Task::DEFAULT_GROUP)
       end
 
-      def set_exit_after_task
-        @exit_after_task = true
-      end
-
-      def add_new_task
-        if waiting? && !@exit_after_task && (ary = get_task)
-          task_id = ary[0]
-          @logger.info("Send accept signal: node #{@node_number} caluclating #{task_id}")
-          @result.write([:accept, task_id, @node_number])
-          queue_task(ary)
-          return true
+      def add_new_task(num)
+        get_task_id = []
+        num.times do |i|
+          if ary = get_task
+            task_id = ary[0]
+            @logger.info("Send accept signal: node #{@node_number} caluclating #{task_id}")
+            @result.write([:accept, task_id, @node_number])
+            queue_task(ary)
+            get_task_id << task_id
+          else
+            break
+          end
         end
-        nil
+        get_task_id.empty? ? nil: get_task_id
       end
 
       # When there is no calculating task, this method returns true.
       # If the returned value is true then a node should finilize and exit.
       def send_result
-        if !result_empty?
+        sent_task_id = []
+        while !result_empty?
           task_id, result = dequeue_result
           @logger.info("Send result: #{task_id}") { result.inspect }
           @result.write([:result, task_id, @node_number, result])
-          @calculating_task.delete(task_id)
+          sent_task_id << task_id
         end
-        !calculating? && @exit_after_task
+        sent_task_id.empty? ? nil : sent_task_id
       end
 
       def queue_result(task_id, result)
