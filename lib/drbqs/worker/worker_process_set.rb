@@ -207,10 +207,10 @@ module DRbQS
         t = interval_time || WAITALL_INTERVAL_TIME
         until @process.empty?
           respond_signal
-          sleep(t)
+          Kernel.sleep(t)
         end
         until Process.waitall == []
-          sleep(t)
+          Kernel.sleep(t)
         end
         true
       end
