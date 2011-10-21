@@ -314,6 +314,7 @@ module DRbQS
     private :process_data
 
     def send_status_for_request
+      task_message = []
       messages = @queue.calculating_task_message
       s = ''
       @message.each_node_history do|node_id, events|
@@ -332,10 +333,9 @@ module DRbQS
             task_ids = @queue.calculating[node_id].to_a
             s << "task: "
             if messages[node_id]
-              s << messages[node_id].map do |task_id, mes|
-                calc_task = task_id.to_s
-                calc_task << ": " << mes.to_s if mes
-                calc_task
+              s << messages[node_id].map do |ary|
+                task_message << ary
+                ary[0].to_s
               end.join(', ')
             else
               s << "none"
@@ -346,6 +346,15 @@ module DRbQS
       end
       s << "  none\n" if s.size == 0
       s = "Nodes:\n" << s
+      unless task_message.empty?
+        s << "Tasks:\n"
+        task_message.sort_by! do |task_id, mes|
+          task_id
+        end
+        task_message.each do |task_id, mes|
+          s << sprintf("%4d: %s\n", task_id, (mes ? mes.to_s : ''))
+        end
+      end
       s << "Server:\n"
       s << "  calculating tasks: #{@queue.calculating_task_number}\n"
       s << "  finished tasks   : #{@queue.finished_task_number}\n"
