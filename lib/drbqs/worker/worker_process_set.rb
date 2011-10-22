@@ -4,7 +4,7 @@ require 'drbqs/utility/temporary.rb'
 
 module DRbQS
   class Worker
-    READ_BYTE_SIZE = 1024
+    READ_BYTE_SIZE = 10240
 
     class ProcessSet
       attr_reader :process
@@ -154,10 +154,16 @@ module DRbQS
         to_be_deleted = []
         @process.each do |key, h|
           if !h[:task].empty? || h[:exit]
+            data = ''
             begin
-              data = h[:in].read_nonblock(READ_BYTE_SIZE)
+              loop do
+                data << h[:in].read_nonblock(READ_BYTE_SIZE)
+              end
+            rescue IO::WaitReadable
+            end
+            if !data.empty?
+              num += 1
               h[:unpacker].feed_each(data) do |ary|
-                num += 1
                 response_type, response = ary
                 case response_type
                 when :result
@@ -179,7 +185,6 @@ module DRbQS
                   to_be_deleted << key
                 end
               end
-            rescue IO::WaitReadable
             end
           end
         end

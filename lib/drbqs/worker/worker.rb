@@ -105,8 +105,12 @@ module DRbQS
     # @param [Fixnum] task_id
     # @param [Numeric] interval_time An argument of Kernel#sleep.
     def wait(task_id, interval_time)
-      while @task_pool[task_id]
-        unless step
+      if @task_pool[task_id]
+        loop do
+          step
+          unless @task_pool[task_id]
+            return true
+          end
           Kernel.sleep(interval_time)
         end
       end
@@ -116,9 +120,8 @@ module DRbQS
     # @param [Numeric] interval_time An argument of Kernel#sleep.
     def waitall(interval_time)
       while calculating?
-        unless step
-          Kernel.sleep(interval_time)
-        end
+        step
+        Kernel.sleep(interval_time)
       end
     end
 
