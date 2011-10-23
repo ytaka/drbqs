@@ -65,6 +65,7 @@ describe DRbQS::Worker::ProcessSet do
           subject.respond_signal
           sleep(0.1)
           unless subject.exist?(key)
+            sleep(0.1)
             break
           end
         end
