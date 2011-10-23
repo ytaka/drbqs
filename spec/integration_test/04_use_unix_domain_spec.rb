@@ -11,7 +11,7 @@ describe DRbQS::Server do
     path = "/tmp/drbqs"
     @process_id, @uri = drbqs_fork_server(path, :task => @tasks)
     @manage = DRbQS::Manage.new(:uri => @uri)
-    @node = DRbQS::Node.new(@uri, :log_file => $stdout, :continue => true)
+    @node = DRbQS::Node.new(@uri, :log_file => $stdout)
   end
 
   it "should send signal and get status" do

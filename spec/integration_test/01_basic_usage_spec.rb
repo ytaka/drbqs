@@ -9,7 +9,7 @@ describe DRbQS do
       DRbQS::Task.new(TestCount.new, :echo, args: [i])
     end
     @process_id, @uri = drbqs_fork_server(14010, :task => @tasks)
-    @node = DRbQS::Node.new(@uri, :log_file => $stdout, :continue => true)
+    @node = DRbQS::Node.new(@uri, :log_file => $stdout)
   end
 
   it "should have nil instance variables" do

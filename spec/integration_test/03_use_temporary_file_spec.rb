@@ -7,7 +7,7 @@ describe DRbQS do
   before(:all) do
     @tasks = [DRbQS::Task.new(Test3.new, :temp_file)]
     @process_id, @uri = drbqs_fork_server(14030, :task => @tasks)
-    @node = DRbQS::Node.new(@uri, :log_file => $stdout, :continue => true)
+    @node = DRbQS::Node.new(@uri, :log_file => $stdout)
   end
 
   it "should initialize @task_client" do

@@ -13,7 +13,7 @@ describe DRbQS do
     end
     @process_number = 3
     @process_id, @uri = drbqs_fork_server(14120, :task => @tasks)
-    @node = DRbQS::Node.new(@uri, :log_file => $stdout, :continue => true, :process => @process_number)
+    @node = DRbQS::Node.new(@uri, :log_file => $stdout, :process => @process_number)
   end
 
   it "should calculate" do

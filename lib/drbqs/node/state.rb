@@ -55,7 +55,7 @@ module DRbQS
       end
 
       def request?
-        request_task_number > 0
+        @state_after_task != :exit && request_task_number > 0
       end
 
       def all_workers_waiting?
@@ -168,6 +168,10 @@ module DRbQS
           return true
         end
         nil
+      end
+
+      def ready_to_exit_after_task?
+        @state_after_task == :exit && all_workers_waiting?
       end
     end
   end

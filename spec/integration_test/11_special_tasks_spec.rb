@@ -36,7 +36,7 @@ describe DRbQS do
       server.set_finalization_task(DRbQS::Task.new(TestValue, :set, args: [:third, 3]),
                                    DRbQS::Task.new(TestValue, :set, args: [:fourth, 4]))
     end
-    @node = DRbQS::Node.new(@uri, :log_file => $stdout, :continue => true)
+    @node = DRbQS::Node.new(@uri, :log_file => $stdout)
   end
 
   it "should execute initialization tasks." do

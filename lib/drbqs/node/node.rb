@@ -21,7 +21,6 @@ module DRbQS
     # @param [Hash] opts Options of a node
     # @option opts [Fixnum] :process Number of worker processes
     # @option opts [Array] :group An array of group symbols
-    # @option opts [Boolean] :continue If we set true then the node process does not exit
     # @option opts [Fixnum] :sleep_time Time interval during sleep of the node
     # @option opts [String] :max_loadavg Note that this optiono is experimental
     def initialize(access_uri, opts = {})
@@ -31,7 +30,6 @@ module DRbQS
       @task_client = nil
       @worker_number = opts[:process] || 1
       @state = DRbQS::Node::State.new(:wait, @worker_number, :max_loadavg => opts[:max_loadavg], :sleep_time => opts[:sleep_time])
-      @process_continue = opts[:continue]
       @group = opts[:group] || []
       @signal_to_server_queue = Queue.new
       @config = DRbQS::Config.new
@@ -199,7 +197,6 @@ module DRbQS
         flag_finalize_exit = true
       when :exit_after_task
         @state.set_exit_after_task
-        @process_continue = nil
       end
       if flag_finalize_exit
         execute_finalization
@@ -281,7 +278,7 @@ module DRbQS
           end
           if get_new_task
             send_task_to_worker
-          elsif @state.all_workers_waiting? && !@process_continue
+          elsif @state.ready_to_exit_after_task? && @task_client.result_empty?
             execute_finalization
             break
           end
