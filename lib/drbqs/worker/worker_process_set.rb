@@ -140,7 +140,7 @@ module DRbQS
       private :delete_process
 
       # Read IOs and respond signals from chiled processes.
-      # If there no signal from childe processes then the method returns false.
+      # If there is no data from child processes then the method returns false.
       # Otherwise, true.
       # Types of signals are :result, :node_error, :finish_preparing_to_exit.
       #  - :result
