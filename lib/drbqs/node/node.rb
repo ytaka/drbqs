@@ -15,6 +15,7 @@ module DRbQS
     OUTPUT_NOT_SEND_RESULT = 'not_send_result'
     DEFAULT_LOG_FILE = 'drbqs_client.log'
     INTERVAL_TIME_DEFAULT = 0.1
+    WAIT_NEW_TASK_TIME = 1
     SAME_HOST_GROUP = :local
 
     # @param [String] acces_uri Set the uri of server
@@ -228,7 +229,7 @@ module DRbQS
     private :clear_node_files
 
     def wait_interval_of_connection
-      sleep(INTERVAL_TIME_DEFAULT)
+      Kernel.sleep(INTERVAL_TIME_DEFAULT)
     end
     private :wait_interval_of_connection
 
@@ -238,8 +239,8 @@ module DRbQS
       end
     end
 
-    MAX_WAIT_FINISH = 3
-    WAIT_INTERVAL = 0.1
+    MAX_WORKER_WAIT_TIME = 3
+    WORKER_WAIT_INTERVAL = 0.1
 
     def respond_worker_signal
       @worker.respond_signal
@@ -253,13 +254,13 @@ module DRbQS
         respond_worker_signal
         if !@worker.has_process?
           break
-        elsif total_wait_time > MAX_WAIT_FINISH
+        elsif total_wait_time > MAX_WORKER_WAIT_TIME
           # Kill worker processes forcibly.
           @worker.kill_all_processes
           break
         end
-        sleep(WAIT_INTERVAL)
-        total_wait_time += WAIT_INTERVAL
+        sleep(WORKER_WAIT_INTERVAL)
+        total_wait_time += WORKER_WAIT_INTERVAL
       end
       send_result_to_server
     end
@@ -268,6 +269,7 @@ module DRbQS
     def calculate(opts = {})
       set_signal_trap
       begin
+        server_has_no_task = nil
         loop do
           send_result_to_server
           unless process_signal_for_server
@@ -276,11 +278,17 @@ module DRbQS
           if @state.change_to_sleep_for_busy_system
             @logger.info("Sleep because system is busy.")
           end
+          if server_has_no_task && (t = server_has_no_task + WAIT_NEW_TASK_TIME - Time.now) > 0
+            sleep(t)
+            server_has_no_task = nil
+          end
           if get_new_task
             send_task_to_worker
           elsif @state.ready_to_exit_after_task? && @task_client.result_empty?
             execute_finalization
             break
+          elsif @state.request?
+            server_has_no_task = Time.now
           end
           unless respond_worker_signal
             wait_interval_of_connection
