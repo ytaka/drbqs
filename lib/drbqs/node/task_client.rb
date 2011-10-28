@@ -71,7 +71,7 @@ module DRbQS
             break
           end
         end
-        get_task_id.empty? ? nil: get_task_id
+        get_task_id.empty? ? nil : get_task_id
       end
 
       # Return an array of task ID that is sent to the server.
