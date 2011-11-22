@@ -26,7 +26,7 @@ HELP
           set(:sftp_host, '--sftp-host HOST', String, 'Set the host of sftp destination.')
           set(:profile, '--profile', 'Use profile for test exec.')
           set(:profile_printer, '--profile-printer PRINTER', String,
-              'Set the printer type for profile. The value is :flat, :graph, :graphhtml, or :calltree.')
+              'Set the printer type for profile. The value is flat, graph, graphhtml, or calltree.')
           set(:test, '--test STR', String, 'Execute test.')
           set(:execute_node, '--execute-node NUM', Integer, 'Execute nodes.')
           set(:help, '-h', '--help', 'Show this command help and server specific help.') do |opt|
