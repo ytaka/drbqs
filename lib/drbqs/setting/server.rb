@@ -25,8 +25,11 @@ module DRbQS
 
       def parse_test
         @test_opts[:profile] = get(:profile)
-        @test_opts[:printer] = get_first(:printer) do |val|
+        @test_opts[:printer] = get_first(:profile_printer) do |val|
           val.intern
+        end
+        if @test_opts[:printer] && !@test_opts[:profile]
+          @test_opts[:profile] = true
         end
         if test = get_first(:test)
           @command_type = "test_#{test.to_s}"
