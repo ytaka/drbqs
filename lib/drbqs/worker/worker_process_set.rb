@@ -160,6 +160,9 @@ module DRbQS
                 data << h[:in].read_nonblock(READ_BYTE_SIZE)
               end
             rescue IO::WaitReadable
+            rescue
+              $stderr.puts "Stored data: " + data.inspect
+              raise
             end
             if !data.empty?
               num += 1
