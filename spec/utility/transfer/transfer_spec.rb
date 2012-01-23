@@ -31,13 +31,13 @@ describe DRbQS::Transfer do
 
   it "should enqueue path." do
     path = create_file('file1.txt', 'file1')
-    DRbQS::Transfer.enqueue(path)
+    DRbQS::Transfer.enqueue(path).should == File.basename(path)
     DRbQS::Transfer.dequeue.should == path
   end
 
   it "should compress and enqueue path." do
     path = create_file('file2.txt', 'file2')
-    DRbQS::Transfer.enqueue(path, :compress => true)
+    DRbQS::Transfer.enqueue(path, :compress => true).should == File.basename(path) + '.gz'
     DRbQS::Transfer.dequeue.should == path + '.gz'
   end
 
@@ -54,7 +54,7 @@ describe DRbQS::Transfer do
     path = create_file('file4.txt', 'file4')
     rename = 'dir/rename.txt'
     new_path = File.join(@tmp, rename)
-    DRbQS::Transfer.enqueue(path, :rename => rename)
+    DRbQS::Transfer.enqueue(path, :rename => rename).should == File.basename(rename)
     DRbQS::Transfer.dequeue.should == new_path
     File.exist?(new_path).should be_true
   end
@@ -63,7 +63,7 @@ describe DRbQS::Transfer do
     path = create_file('file5.txt', 'file5')
     rename = 'dir2/rename.txt'
     new_path = File.join(@tmp, rename + '.gz')
-    DRbQS::Transfer.enqueue(path, :rename => rename, :compress => true)
+    DRbQS::Transfer.enqueue(path, :rename => rename, :compress => true).should == File.basename(rename) + '.gz'
     DRbQS::Transfer.dequeue.should == new_path
     File.exist?(new_path).should be_true
   end
@@ -73,7 +73,7 @@ describe DRbQS::Transfer do
              create_file('file8.txt', 'file8'),
              create_file('file8.txt', 'file8')]
     files.each do |path|
-      DRbQS::Transfer.enqueue(path)
+      DRbQS::Transfer.enqueue(path).should == File.basename(path)
     end
     DRbQS::Transfer.dequeue_all.should == files
     DRbQS::Transfer.empty?.should be_true
@@ -81,14 +81,14 @@ describe DRbQS::Transfer do
 
   it "should enqueue path of directory." do
     path = create_directory('dir/dir1')
-    DRbQS::Transfer.enqueue(path)
+    DRbQS::Transfer.enqueue(path).should == File.basename(path)
     DRbQS::Transfer.dequeue.should == path
   end
 
   it "should compress and enqueue path of directory." do
     path = create_directory('dir/dir2')
     file_path = create_file('dir/dir2/test.txt', 'hello world')
-    DRbQS::Transfer.enqueue(path, :compress => true)
+    DRbQS::Transfer.enqueue(path, :compress => true).should == File.basename(path) + '.tar.gz'
     DRbQS::Transfer.dequeue.should == path + '.tar.gz'
   end
 
@@ -96,8 +96,23 @@ describe DRbQS::Transfer do
     path = create_directory('dir/dir3')
     file_path = create_file('dir/dir3/test.txt', 'hello world')
     rename = 'rename_dir'
-    DRbQS::Transfer.enqueue(path, :compress => true, :rename => rename)
+    DRbQS::Transfer.enqueue(path, :compress => true, :rename => rename).should == rename + '.tar.gz'
     DRbQS::Transfer.dequeue.should == File.join(@tmp, 'dir', rename + '.tar.gz')
+  end
+
+  it "should return nil for a nonexistent file." do
+    DRbQS::Transfer.enqueue("nonexistent/file.txt").should be_nil
+    DRbQS::Transfer.empty?.should be_true
+  end
+
+  it "should return nil for a nonexistent file with a compress option." do
+    DRbQS::Transfer.enqueue("nonexistent/file.txt", :compress => true).should be_nil
+    DRbQS::Transfer.empty?.should be_true
+  end
+
+  it "should return nil for a nonexistent file with a rename option." do
+    DRbQS::Transfer.enqueue("nonexistent/file.txt", :rename => "hello.txt").should be_nil
+    DRbQS::Transfer.empty?.should be_true
   end
 
   after(:all) do
