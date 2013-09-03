@@ -69,7 +69,7 @@ describe DRbQS::Transfer::Client::SFTP do
   it "should transfer files." do
     tmp_dir, files = create_sample_transfer_files(1)
     source_path = files[0]
-    sftp = mock('sftp')
+    sftp = double('sftp')
     sftp.should_receive(:upload).with(source_path, File.join(@dir, File.basename(source_path)))
     FileUtils.should_receive(:rm_r).with(source_path)
     Net::SFTP.set_mock(sftp)
@@ -78,7 +78,7 @@ describe DRbQS::Transfer::Client::SFTP do
 
   it "should download files. (incomplete)" do
     tmp_dir, files = create_sample_transfer_files(1)
-    sftp = mock('sftp')
+    sftp = double('sftp')
     sftp.should_receive(:download)
     Net::SFTP.set_mock(sftp)
     @client.download(files)

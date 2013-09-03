@@ -39,7 +39,7 @@ describe DRbQS::Task do
   end
 
   it "should execute hook of block." do
-    mock = mock('for task')
+    mock = double('for task')
     task = DRbQS::Task.new(mock, :calc) do |server, result|
       mock.hook_method(server, result)
     end
@@ -48,7 +48,7 @@ describe DRbQS::Task do
   end
 
   it "should execute hook of symbol." do
-    mock = mock('for task')
+    mock = double('for task')
     task = DRbQS::Task.new(mock, :calc, hook: :hook_method)
     mock.should_receive(:hook_method).with(:server, :result)
     task.exec_hook(:server, :result)
@@ -167,8 +167,8 @@ describe DRbQS::Task::TaskSet do
   end
 
   it "should execute hooks of blocks." do
-    server = mock('server')
-    methods_for_hook = mock('hook')
+    server = double('server')
+    methods_for_hook = double('hook')
     methods_for_hook.should_receive(:m0).exactly(1)
     methods_for_hook.should_receive(:m1).exactly(1)
     methods_for_hook.should_receive(:m2).exactly(1)
@@ -182,7 +182,7 @@ describe DRbQS::Task::TaskSet do
   end
 
   it "should execute hooks of symbols." do
-    server = mock('server')
+    server = double('server')
     args = [100, 200, 300]
     tasks = args.map do |a|
       DRbQS::Task.new(TestTask.new(a), :some_method, hook: :test_hook)

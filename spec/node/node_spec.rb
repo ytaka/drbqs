@@ -24,12 +24,12 @@ describe DRbQS::Node do
     it "should connect to server." do
       node_number = 10
       DRb::DRbObject.should_receive(:new_with_uri).and_return(@drb_object)
-      node_connection = mock('node connection')
+      node_connection = double('node connection')
       node_connection.stub(:node_number).and_return(node_number)
       node_connection.stub(:get_initialization).and_return(nil)
-      task_client = mock('task client')
+      task_client = double('task client')
       task_client.stub(:node_number).and_return(node_number)
-      worker = mock('worker')
+      worker = double('worker')
       worker.stub(:create_process)
       worker.stub(:on_error)
       worker.stub(:on_result)

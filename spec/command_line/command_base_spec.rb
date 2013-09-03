@@ -5,7 +5,7 @@ require 'drbqs/command_line/command_line'
 describe DRbQS::Command::Base do
   context "when executing" do
     it "should execute." do
-      setting = mock('setting')
+      setting = double('setting')
       DRbQS::Setting::Base.stub(:new).and_return(setting)
       setting.should_receive(:parse!)
       setting.should_receive(:exec).with($stdout)
@@ -16,7 +16,7 @@ describe DRbQS::Command::Base do
 
     it "should define DRbQS::Command::Base.exec." do
       argv = [1, 2, 3]
-      obj = mock
+      obj = double
       DRbQS::Command::Base.should_receive(:new).and_return(obj)
       obj.should_receive(:parse_option)
       obj.should_receive(:exec)

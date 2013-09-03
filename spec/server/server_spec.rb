@@ -56,7 +56,7 @@ describe DRbQS::Server do
     end
 
     it "should set finish hook" do
-      server_hook = mock
+      server_hook = double
       DRbQS::Server::Hook.stub!(:new).and_return(server_hook)
       server_hook.should_receive(:set_finish_exit)
       DRbQS::Server.new
