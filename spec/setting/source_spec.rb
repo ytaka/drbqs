@@ -158,30 +158,31 @@ describe DRbQS::Setting::Source do
 
   context "when cloning an object" do
     before(:all) do
-      subject.register_key(:key1, :check => [:>, 1])
-      subject.register_key(:key2, :bool => true)
-      subject.register_key(:key3, :add => true)
-      subject.register_key(:key4, :default => [1, 2, 3])
-      @source_new = subject.clone
+      @source_orig = DRbQS::Setting::Source.new
+      @source_orig.register_key(:key1, :check => [:>, 1])
+      @source_orig.register_key(:key2, :bool => true)
+      @source_orig.register_key(:key3, :add => true)
+      @source_orig.register_key(:key4, :default => [1, 2, 3])
+      @source_new = @source_orig.clone
     end
 
     it "should have different @cond." do
       obj_new = @source_new.instance_variable_get(:@cond)
-      obj_old = subject.instance_variable_get(:@cond)
+      obj_old = @source_orig.instance_variable_get(:@cond)
       obj_new.should == obj_old
       obj_new.object_id.should_not == obj_old.object_id
     end
 
     it "should have different @default." do
       obj_new = @source_new.instance_variable_get(:@default)
-      obj_old = subject.instance_variable_get(:@default)
+      obj_old = @source_orig.instance_variable_get(:@default)
       obj_new.should == obj_old
       obj_new.object_id.should_not == obj_old.object_id
     end
 
     it "should have different @value." do
       obj_new = @source_new.instance_variable_get(:@value)
-      obj_old = subject.instance_variable_get(:@value)
+      obj_old = @source_orig.instance_variable_get(:@value)
       [:key1, :key2, :key3, :key4].each do |k|
         obj_new.__send__(k).should == obj_old.__send__(k)
       end
@@ -189,13 +190,13 @@ describe DRbQS::Setting::Source do
 
     it "should have different @argument_condition." do
       obj_new = @source_new.instance_variable_get(:@argument_condition)
-      obj_old = subject.instance_variable_get(:@argument_condition)
+      obj_old = @source_orig.instance_variable_get(:@argument_condition)
       obj_new.should == obj_old
     end
 
     it "should have same value of @all_keys_defined." do
       @source_new.instance_variable_get(:@all_keys_defined).should ==
-        subject.instance_variable_get(:@all_keys_defined)
+        @source_orig.instance_variable_get(:@all_keys_defined)
     end
   end
 

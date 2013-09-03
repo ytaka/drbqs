@@ -11,18 +11,22 @@ describe DRbQS::Server::History do
     end
   end
 
-  subject do
-    DRbQS::Server::History.new
-  end
-
   context "when setting events" do
     before(:all) do
-      subject.set(1, :abc)
-      subject.set(1, :def)
-      subject.set(2, 'ABC', 'DEF')
-      subject.set(3, :ghi)
-      subject.set(1, :jkl)
-      subject.set(2, 123, 456)
+      @history = DRbQS::Server::History.new
+    end
+
+    subject do
+      @history
+    end
+
+    before(:all) do
+      @history.set(1, :abc)
+      @history.set(1, :def)
+      @history.set(2, 'ABC', 'DEF')
+      @history.set(3, :ghi)
+      @history.set(1, :jkl)
+      @history.set(2, 123, 456)
     end
 
     it "should have 3 items." do
@@ -61,6 +65,14 @@ describe DRbQS::Server::History do
   end
 
   context "when executing a method" do
+    before(:all) do
+      @history = DRbQS::Server::History.new
+    end
+
+    subject do
+      @history
+    end
+
     it "should add new event" do
       id = 1
       subject.set(id, :connect)

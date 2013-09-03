@@ -108,7 +108,7 @@ describe DRbQS::Node::TaskClient do
       @task_id = 3
       @task_ary = [[1, 3, 5, 7], :size, []]
       add_task_to_tuplespace(@task_id, @task_ary)
-      @get_task_id = subject.add_new_task(1)
+      @get_task_id = @task_client.add_new_task(1)
     end
 
     it "should have non empty task queue." do
@@ -138,8 +138,8 @@ describe DRbQS::Node::TaskClient do
       @task_id = 8
       @task_ary = [[1, 3, 5, 7], :size, []]
       add_task_to_tuplespace(@task_id, @task_ary)
-      @get_task_id = subject.add_new_task(1)
-      @dequeued_task = subject.dequeue_task
+      @get_task_id = @task_client.add_new_task(1)
+      @dequeued_task = @task_client.dequeue_task
     end
 
     it "should get a task" do
@@ -165,9 +165,9 @@ describe DRbQS::Node::TaskClient do
       @task_id = 27
       @task_ary = ["abcdef", :size, []]
       add_task_to_tuplespace(@task_id, @task_ary)
-      @get_task_id = subject.add_new_task(1)
-      @dequeued_task = subject.dequeue_task
-      subject.queue_result(1, :result_object)
+      @get_task_id = @task_client.add_new_task(1)
+      @dequeued_task = @task_client.dequeue_task
+      @task_client.queue_result(1, :result_object)
     end
 
     it "should have empty task queue." do
@@ -189,10 +189,10 @@ describe DRbQS::Node::TaskClient do
       @task_id = 28
       @task_ary = ["abcdef", :size, []]
       add_task_to_tuplespace(@task_id, @task_ary)
-      subject.add_new_task(1)
-      @dequeued_task = subject.dequeue_task
-      subject.queue_result(@task_id, :result_object)
-      @send_returned_value = subject.send_result
+      @task_client.add_new_task(1)
+      @dequeued_task = @task_client.dequeue_task
+      @task_client.queue_result(@task_id, :result_object)
+      @send_returned_value = @task_client.send_result
     end
 
     it "should get nil returned value." do

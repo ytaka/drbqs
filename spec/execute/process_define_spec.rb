@@ -8,13 +8,14 @@ describe DRbQS::ProcessDefinition do
   end
 
   context "when creating without default process names" do
-    subject do
-      DRbQS::ProcessDefinition.new(nil, nil, nil)
+    before(:all) do
+      @process_def = DRbQS::ProcessDefinition.new(nil, nil, nil)
+      @process_def.load(definition_file('execute1.rb'))
+      @info = @process_def.information
     end
 
-    before(:all) do
-      subject.load(definition_file('execute1.rb'))
-      @info = subject.information
+    subject do
+      @process_def
     end
 
     it "should get server list." do
@@ -68,13 +69,14 @@ describe DRbQS::ProcessDefinition do
   end
 
   context "when there is no definition" do
-    subject do
-      DRbQS::ProcessDefinition.new(nil, nil, nil)
+    before(:all) do
+      @process_def = DRbQS::ProcessDefinition.new(nil, nil, nil)
+      @process_def.load(definition_file('no_def.rb'))
+      @info = @process_def.information
     end
 
-    before(:all) do
-      subject.load(definition_file('no_def.rb'))
-      @info = subject.information
+    subject do
+      @process_def
     end
 
     it "should get server list." do
@@ -117,9 +119,9 @@ describe DRbQS::ProcessDefinition do
       @tmp = '/tmp/drbqs_tmp_log' # defined in execute1.rb
       @process_def = DRbQS::ProcessDefinition.new(nil, nil, @port)
       @process_def.load(definition_file('execute1.rb'))
-      @server_setting = subject.__send__(:get_server_setting)[1][:setting]
-      @node_local_setting = subject.__send__(:get_node_data, :node_local)[:setting]
-      @node_ssh_setting = subject.__send__(:get_node_data, :node_ssh)[:setting]
+      @server_setting = @process_def.__send__(:get_server_setting)[1][:setting]
+      @node_local_setting = @process_def.__send__(:get_node_data, :node_local)[:setting]
+      @node_ssh_setting = @process_def.__send__(:get_node_data, :node_ssh)[:setting]
     end
 
     subject do
@@ -153,8 +155,8 @@ describe DRbQS::ProcessDefinition do
       @tmp = '/tmp/drbqs_tmp_log' # defined in execute1.rb
       @process_def = DRbQS::ProcessDefinition.new(nil, [:node_local], nil)
       @process_def.load(definition_file('execute1.rb'))
-      @server_setting = subject.__send__(:get_server_setting)[1][:setting]
-      @node_local_setting = subject.__send__(:get_node_data, :node_local)[:setting]
+      @server_setting = @process_def.__send__(:get_server_setting)[1][:setting]
+      @node_local_setting = @process_def.__send__(:get_node_data, :node_local)[:setting]
     end
 
     subject do
@@ -186,9 +188,9 @@ describe DRbQS::ProcessDefinition do
       @tmp = '/tmp/drbqs_tmp_log' # defined in execute1.rb
       @process_def = DRbQS::ProcessDefinition.new(nil, nil, nil)
       @process_def.load(definition_file('execute2.rb'))
-      @server_setting = subject.__send__(:get_server_setting)[1][:setting]
-      @node_local_setting = subject.__send__(:get_node_data, :node_local)[:setting]
-      @node_ssh_setting = subject.__send__(:get_node_data, :node_ssh)[:setting]
+      @server_setting = @process_def.__send__(:get_server_setting)[1][:setting]
+      @node_local_setting = @process_def.__send__(:get_node_data, :node_local)[:setting]
+      @node_ssh_setting = @process_def.__send__(:get_node_data, :node_ssh)[:setting]
     end
 
     subject do

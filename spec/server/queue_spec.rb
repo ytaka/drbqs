@@ -60,7 +60,7 @@ describe DRbQS::Server::Queue do
   context "when adding a task" do
     before(:all) do
       object_init
-      @task_id = subject.add(@task[:obj])
+      @task_id = @queue_server.add(@task[:obj])
     end
 
     it "should return number of acceptances of signals." do
@@ -100,7 +100,7 @@ describe DRbQS::Server::Queue do
     before(:all) do
       object_init
       @node_id = 100
-      @task_id = subject.add(@task[:obj])
+      @task_id = @queue_server.add(@task[:obj])
       @ts[:result].write([:accept, @task_id, @node_id])
     end
 
@@ -141,9 +141,9 @@ describe DRbQS::Server::Queue do
     before(:all) do
       object_init
       @node_id = 100
-      @task_id = subject.add(@task[:obj])
+      @task_id = @queue_server.add(@task[:obj])
       @ts[:result].write([:accept, @task_id, @node_id])
-      subject.get_accept_signal
+      @queue_server.get_accept_signal
       @ts[:result].write([:result, @task_id, @node_id, :result_object])
     end
 
@@ -180,10 +180,10 @@ describe DRbQS::Server::Queue do
     before(:all) do
       object_init
       @node_id = 100
-      @task_id = subject.add(@task[:obj])
+      @task_id = @queue_server.add(@task[:obj])
       @ts[:result].write([:accept, @task_id, @node_id])
-      subject.get_accept_signal
-      subject.requeue_for_deleted_node_id([@node_id])
+      @queue_server.get_accept_signal
+      @queue_server.requeue_for_deleted_node_id([@node_id])
     end
 
     it "should return number of acceptances of signals." do
@@ -229,11 +229,11 @@ describe DRbQS::Server::Queue do
                 DRbQS::Task.new([-1, -2], :size),
                 DRbQS::Task.new([8, 9, 10, 11], :size)]
       @task_ids = @tasks.map do |t|
-        subject.add(t)
+        @queue_server.add(t)
       end
       @ts[:result].write([:accept, @task_ids[0], @node_ids[0]])
       @ts[:result].write([:accept, @task_ids[1], @node_ids[1]])
-      subject.get_accept_signal
+      @queue_server.get_accept_signal
     end
 
     it "should return number of acceptances of signals." do
@@ -296,7 +296,7 @@ describe DRbQS::Server::Queue do
       object_init
       @node_id = 100
       @task_id_ary = @task_ary.map do |task|
-        subject.add(task)
+        @queue_server.add(task)
       end
       @ts[:result].write([:accept, @task_id_ary[0], 100])
       @ts[:result].write([:accept, @task_id_ary[1], 101])
@@ -336,7 +336,7 @@ describe DRbQS::Server::Queue do
       object_init
       @node_id = 100
       @task_id_ary = @task_ary.map do |task|
-        subject.add(task)
+        @queue_server.add(task)
       end
       @ts[:result].write([:accept, @task_id_ary[0], 100])
       @ts[:result].write([:accept, @task_id_ary[1], 101])

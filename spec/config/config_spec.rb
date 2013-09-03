@@ -3,10 +3,11 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 describe DRbQS::Config do
   before(:all) do
     FileUtils.mkdir_p(HOME_FOR_SPEC)
+    @config = DRbQS::Config.new
   end
 
   subject do
-    DRbQS::Config.new
+    @config
   end
 
   context "when setting new homedirectory" do
@@ -33,14 +34,14 @@ describe DRbQS::Config do
 
     it "should get directory existing." do
       lambda do
-        subject
+        DRbQS::Config.new
       end.should change { File.exist?(@dir) }.from(false).to(true)
     end
   end
 
   context "when saving samples" do
     before(:all) do
-      subject.save_sample
+      @config.save_sample
     end
 
     it "should get sample of ACL file." do
@@ -58,7 +59,7 @@ describe DRbQS::Config do
 
   context "when managing ACL file" do
     before(:all) do
-      @path = subject.directory.file_path('acl.txt')
+      @path = @config.directory.file_path('acl.txt')
       FileUtils.rm(@path) if File.exist?(@path)
     end
 
