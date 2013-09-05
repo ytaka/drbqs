@@ -223,24 +223,32 @@ module DRbQS
       string_name_size = ary.max
       info[:server].each do |name, data|
         prop = (data[:ssh] ? 'ssh' : 'local')
-        prop << ',template' if data[:template]
-        str << (data[:template] ? " - " : (info[:default][:server] == name ? " * " : "   "))
+        str << (info[:default][:server] == name ? " * " : (data[:template] ? " - " : "   "))
         str << sprintf("%- #{string_name_size}s  %s\n", name, prop)
       end
-      str << "Node:\n"
+      str << "\nNode:\n"
       info[:node].each do |name, data|
         if data[:type] == :group
           prop = 'group: ' << data[:args].map(&:to_s).join(',')
         else
           prop = (data[:ssh] ? 'ssh' : 'local')
-          if data[:template]
-            prop << ',template'
-          end
         end
-        str << (data[:template] ? " - " : (info[:default][:node].include?(name) ? " * " : "   "))
+        if info[:default][:node].include?(name)
+          str << " * "
+        elsif data[:type] == :group
+          str << " # "
+        elsif data[:template]
+          str << " - "
+        else
+          str << "   "
+        end
         str << sprintf("%- #{string_name_size}s  %s\n", name, prop)
       end
-      str << "Port: #{info[:default][:port]}"
+      str << "\nDefault port:\n   #{info[:default][:port]}"
+      str << "\n\nHelp:\n"
+      str << "   ssh:   Process over SSH\n"
+      str << "   local: Process on localhost\n"
+      str << "   *: default, -: template, #: node group"
     end
 
     def usage
