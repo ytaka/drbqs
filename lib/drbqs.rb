@@ -22,6 +22,7 @@ module DRbQS
   autoload :Config, 'drbqs/config/config'
   autoload :Setting, 'drbqs/setting/setting'
   autoload :Temporary, 'drbqs/utility/temporary'
+  autoload :CommandTask, 'drbqs/ext/task'
 
   ROOT_DEFAULT_PORT = 13500
 end
