@@ -11,8 +11,7 @@ module DRbQS
       end
 
       # Add tasks to server.
-      # @param [DRbQS::Task] arg Add an ojbect of DRbQS::Task.
-      # @param [Array] arg Add all elements of an array of objects of DRbQS::Task.
+      # @param [DRbQS::Task,Array] arg DRbQS::Task object or array of DRbQS::Task objects, which is added to pool of tasks
       def add(arg)
         case arg
         when DRbQS::Task

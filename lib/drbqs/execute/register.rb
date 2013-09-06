@@ -95,10 +95,19 @@ module DRbQS
       # If we omit the 'connect' method then the program tries to connect
       # the name specified as first argument.
       # 
-      # @param [Symbol,String] name Server name
-      # @param [Hash] opts The options of server
-      # @option opts [Boolean] :template Template for other servers to load, not actual server
-      # @option opts [Symbol] :load Inherit definition of other server
+      # @overload server(name, hostname, opts = {})
+      #  @param [Symbol,String] name Server name
+      #  @param [Symbol,String] hostname Hostname of server to access over SSH
+      #  @param [Hash] opts The options of server
+      #  @option opts [Boolean] :template Template for other servers to load, not actual server
+      #  @option opts [Symbol] :load Inherit definition of other server
+      # 
+      # @overload server(name, opts = {})
+      #  If hostname is omitted, the server uses UNIX domain socket and executes some nodes together.
+      #  @param [Symbol,String] name Server name
+      #  @param [Hash] opts The options of server
+      #  @option opts [Boolean] :template Template for other servers to load, not actual server
+      #  @option opts [Symbol] :load Inherit definition of other server
       # 
       # @example A server on localhost (Connections from nodes is over SSH)
       #  server :server_local, "example.com" do |srv|
@@ -229,7 +238,7 @@ module DRbQS
         end
       end
 
-      # @param [Array] *args Symbols of servers
+      # @param [Array] args Symbols of servers
       # @example Clear server definitions
       #  clear_server :server1, :server2
       def clear_server(*args)
@@ -240,7 +249,7 @@ module DRbQS
         end
       end
 
-      # @param [Array] *args Symbols of nodes
+      # @param [Array] args Symbols of nodes
       # @example Clear node definitions
       #  clear_node :node1, :node2
       def clear_node(*args)

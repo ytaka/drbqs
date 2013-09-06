@@ -17,7 +17,7 @@ module DRbQS
     WAIT_NEW_TASK_TIME = 1
     SAME_HOST_GROUP = :local
 
-    # @param [String] acces_uri Set the uri of server
+    # @param [String] access_uri Set the uri of server
     # @param [Hash] opts Options of a node
     # @option opts [Fixnum] :process Number of worker processes
     # @option opts [Array] :group An array of group symbols

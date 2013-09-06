@@ -161,12 +161,12 @@ module DRbQS
     end
     private :all_tasks_assigned?
 
-    # @param [DRbQS::task] task
+    # @param [Array] tasks An array of DRbQS::task objects, which are executed at initialization
     def set_initialization_task(*tasks)
       @message.set_initialization_tasks(tasks)
     end
 
-    # @param [DRbQS::task] task
+    # @param [Array] tasks An array of DRbQS::task objects, which are executed at initialization
     def set_finalization_task(*tasks)
       @finalization_task.concat(tasks)
     end
@@ -175,10 +175,10 @@ module DRbQS
     # @note When we set both :empty_queue and task generators,
     #  hook of :empty_queue is prior to task generators.
     # @param [:empty_queue,:process_data,:finish] key Set the type of hook.
+    # @param [Proc] block The block is obligatory and takes server itself as an argument.
     # @option opts [Fixnum] :repeat If we execute the hook specified times then the hook is deleted.
     #   If the value is nil, the hook is repeated without limit.
     # @option opts [String] :name Name of the hook. If the value is nil then the name is automatically created.
-    # @param [Proc] &block block is obligatory and takes server itself as an argument.
     def add_hook(key, opts = {}, &block)
       if key == :process_data
         if @hook.number_of_hook(:process_data) != 0
