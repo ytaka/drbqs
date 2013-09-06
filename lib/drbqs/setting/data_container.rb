@@ -3,7 +3,7 @@ module DRbQS
     class Source
       class DataContainer < BasicObject
         attr_accessor :argument
-        attr_reader :__data__
+        attr_reader :__data__, :__array__
 
         def initialize(array_class)
           @argument = []
@@ -27,7 +27,7 @@ module DRbQS
       end
 
       def self.clone_container(obj)
-        cl = DRbQS::Setting::Source::DataContainer.new(Array)
+        cl = DRbQS::Setting::Source::DataContainer.new(obj.__array__)
         cl.argument = obj.argument.clone
         obj.__data__.each do |key, val|
           cl.__data__[key] = val.clone
