@@ -64,7 +64,7 @@ describe DRbQS::Server do
   end
 
   after(:all) do
-    DRbQS::Temporary.delete_all
+    DRbQS::Temporary.delete
     @manage.send_exit_signal
     lambda do
       drbqs_wait_kill_server(@server_process_id)

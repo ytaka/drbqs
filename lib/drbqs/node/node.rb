@@ -222,7 +222,7 @@ module DRbQS
     private :send_task_to_worker
 
     def clear_node_files
-      DRbQS::Temporary.delete_all
+      DRbQS::Temporary.delete
       @config.list.node.delete(Process.pid)
     end
     private :clear_node_files

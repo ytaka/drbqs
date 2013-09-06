@@ -29,12 +29,6 @@ describe DRbQS::Temporary do
     end
   end
 
-  it "should make directory empty." do
-    Dir.entries(subject.root).size.should > 2
-    subject.delete
-    Dir.entries(subject.root).should have(2).items
-  end
-
   it "should set subdirectory." do
     subject.set_sub_directory('abc')
     subject.subdirectory.should be_nil
@@ -56,7 +50,7 @@ describe DRbQS::Temporary do
 
   it "should delete all directories." do
     root = subject.root
-    subject.delete_all
+    subject.delete
     File.exist?(root).should_not be_true
   end
 end

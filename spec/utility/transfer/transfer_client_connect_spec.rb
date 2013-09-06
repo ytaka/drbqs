@@ -46,7 +46,7 @@ describe DRbQS::Transfer::Client::Local do
   end
 
   after(:all) do
-    DRbQS::Temporary.delete_all
+    DRbQS::Temporary.delete
   end
 end
 
@@ -85,6 +85,6 @@ describe DRbQS::Transfer::Client::SFTP do
   end
 
   after(:all) do
-    DRbQS::Temporary.delete_all
+    DRbQS::Temporary.delete
   end
 end

@@ -76,6 +76,6 @@ describe DRbQS::Config::SSHHost do
   end
 
   after(:all) do
-    DRbQS::Temporary.delete_all
+    DRbQS::Temporary.delete
   end
 end

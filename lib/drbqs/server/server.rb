@@ -395,6 +395,11 @@ module DRbQS
     end
     private :first_task_generator_init
 
+    def clear_server_files
+      DRbQS::Temporary.delete
+    end
+    private :clear_server_files
+
     def wait
       first_task_generator_init
       loop do
@@ -407,6 +412,7 @@ module DRbQS
           sleep(WAIT_TIME_NEW_RESULT)
         end
       end
+      clear_server_files
     end
   end
 end
