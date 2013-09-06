@@ -121,35 +121,21 @@ module DRbQS
       #    ssh.nice 10
       #  end
       def server(name, *args, &block)
+        unless block_given?
+          raise ArgumentError, "Block to define settings is not given."
+        end
         name = name.intern
         if ind = @__server__.index { |n, data| name == n }
           old_data = @__server__.delete_at(ind)
         else
           old_data = nil
         end
-        unless block_given?
-          raise ArgumentError, "Block to define settings is not given."
+        opts = args.extract_options!
+        opts.assert_valid_keys(:template, :load)
+        if args.size > 1
+          raise ArgumentError, "Invalid number of arguments."
         end
-        case args.size
-        when 2
-          hostname = args[0]
-          opts = args[1]
-          unless Hash === opts
-            raise ArgumentError, "Options must be hash."
-          end
-        when 1
-          if Hash === args[0]
-            hostname = nil
-            opts = args[0]
-          else
-            hostname = args[0]
-            opts = {}
-          end
-        else
-          unless old_data
-            raise ArgumentError, "Invalid argument size."
-          end
-        end
+        hostname = args[0]
         if old_data
           if opts[:load]
             raise ArgumentError, "Can not set both reconfiguring and loading."
