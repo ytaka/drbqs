@@ -42,7 +42,7 @@ describe DRbQS::ProcessDefinition::Register do
     it "should raise error for arguments without hostname." do
       load_file = 'file.rb'
       lambda do
-        subject.server(:server3) do |server|
+        subject.server(:server3) do |server, ssh|
           server.load load_file
         end
       end.should raise_error

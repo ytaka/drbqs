@@ -73,5 +73,12 @@ module DRbQS
     def self.root
       @@root
     end
+
+    def self.socket_path
+      unless @@root
+        set_root_directory
+      end
+      FileName.create(@@root, "socket", :add => :always, :type => :time)
+    end
   end
 end

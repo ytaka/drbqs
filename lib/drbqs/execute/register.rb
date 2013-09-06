@@ -18,6 +18,7 @@ module DRbQS
       def __register__(type, setting, name, template, args, &block)
         ary = [name.intern, { :type => type.intern, :template => template, :args => args }]
         type = type.to_s
+        # Note that if type is :server, then args[0] is hostname
         case block.arity
         when 2
           if DRbQS::Setting::SSH === setting
@@ -33,6 +34,10 @@ module DRbQS
           end
           ary[1][:ssh] = true
           ary[1][:setting] = ssh_setting
+
+          if type == "server" && !template && !args[0]
+            raise ArgumentError, "No hostname of SSH server"
+          end
         when 1
           if DRbQS::Setting::SSH === setting
             raise ArgumentError, "Inherited definition is over ssh."
@@ -40,6 +45,7 @@ module DRbQS
           yield(setting.value)
           ary[1][:ssh] = false
           ary[1][:setting] = setting
+          ary[1][:unix_domain_socket] = (!template && !args[0])
         else
           raise ArgumentError, "Block must take one or two arguments."
         end
@@ -94,7 +100,7 @@ module DRbQS
       # @option opts [Boolean] :template Template for other servers to load, not actual server
       # @option opts [Symbol] :load Inherit definition of other server
       # 
-      # @example A server on localhost
+      # @example A server on localhost (Connections from nodes is over SSH)
       #  server :server_local, "example.com" do |srv|
       #    srv.load "server_definition.rb"
       #    srv.acl "/path/to/acl"
@@ -104,7 +110,7 @@ module DRbQS
       #    srv.sftp_host "example.com"
       #  end
       # 
-      # @example A server over ssh
+      # @example A server executed over SSH
       #  server :server_ssh, "example.co.jp" do |srv, ssh|
       #    srv.load "server_definition.rb"
       #    srv.acl "/path/to/acl"
@@ -119,6 +125,12 @@ module DRbQS
       #    ssh.rvm_init "/path/to/scripts/rvm"
       #    ssh.output "/path/to/output"
       #    ssh.nice 10
+      #  end
+      #
+      # @example A server on localhost that uses UNIX domain socket (No node on other computer)
+      #  server :server_unix_domain_socket do |srv|
+      #    srv.load "server_definition.rb"
+      #    srv.execute_node 4
       #  end
       def server(name, *args, &block)
         unless block_given?
@@ -144,9 +156,6 @@ module DRbQS
           hostname = old_data[1][:args][0] if !hostname
         else
           load_def = opts[:load]
-        end
-        if !opts[:template] && !hostname
-          raise ArgumentError, "Definition of server '#{name}' needs hostname."
         end
         __register_server__(opts[:template], name, load_def, hostname, &block)
       end

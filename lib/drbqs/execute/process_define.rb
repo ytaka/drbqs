@@ -102,12 +102,30 @@ module DRbQS
 
     def server_uri(name)
       if ary = get_server_setting(name)
-        DRbQS::Misc.create_uri(:host => ary[1][:args][0], :port => server_port)
-      else
-        nil
+        data = ary[1]
+        unless data[:unix_domain_socket]
+          return DRbQS::Misc.create_uri(:host => data[:args][0], :port => server_port)
+        end
       end
+      nil
     end
     private :server_uri
+
+    PATH_CPUINFO = "/proc/cpuinfo"
+
+    def get_suitable_process_num
+      n = 0
+      if File.exist?(PATH_CPUINFO)
+        n = File.read(PATH_CPUINFO).lines.count { |l| /^processor/ =~ l }
+      end
+      if n <= 0
+        n = 1
+        puts_progress "Can not determine suitable process number, that is, can not count 'processor' lines in /proc/cpuinfo"
+      end
+      puts_progress "Execute #{n} processes to deal with tasks"
+      n
+    end
+    private :get_suitable_process_num
 
     def execute_server(server_args)
       if ary = get_server_setting(@server)
@@ -125,9 +143,18 @@ module DRbQS
           server_setting.value.daemon FileName.create(local_log_directory, "server_execute.log", :position => :middle)
         end
         server_setting.set_server_argument(*server_args)
-        server_setting.value.port server_port
-        unless server_setting.set?(:sftp_host)
-          server_setting.value.sftp_host hostname
+        if data[:unix_domain_socket]
+          unless server_setting.value.unix
+            server_setting.value.unix DRbQS::Temporary.socket_path
+          end
+          unless server_setting.value.execute_node
+            server_setting.value.execute_node get_suitable_process_num
+          end
+        else
+          server_setting.value.port server_port
+          unless server_setting.set?(:sftp_host)
+            server_setting.value.sftp_host hostname
+          end
         end
         setting.parse!
         unless data[:ssh]
@@ -188,9 +215,10 @@ module DRbQS
     private :each_node_to_execute
 
     def execute_node
-      uri = server_uri(@server)
-      each_node_to_execute do |name, data|
-        execute_one_node(name, data, uri)
+      if uri = server_uri(@server)
+        each_node_to_execute do |name, data|
+          execute_one_node(name, data, uri)
+        end
       end
     end
 
@@ -226,7 +254,13 @@ module DRbQS
       end
       string_name_size = ary.max
       info[:server].each do |name, data|
-        prop = (data[:ssh] ? 'ssh' : 'local')
+        if data[:unix_domain_socket]
+          prop = "local(unix socket domain)"
+        elsif data[:ssh]
+          prop = "ssh"
+        else
+          prop = "local(ssh)"
+        end
         str << (info[:default][:server] == name ? " * " : (data[:template] ? " - " : "   "))
         str << sprintf("%- #{string_name_size}s  %s\n", name, prop)
       end
