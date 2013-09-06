@@ -78,6 +78,14 @@ describe DRbQS::ProcessDefinition::Register do
       setting.get(:shell).should == [bash]
       setting.mode_setting.get(:load).should == [load_file]
     end
+
+    it "should raise an error for invalid keys" do
+      lambda do
+        subject.server(:server6, "example.com", :invalid_key => "Hello") do |server|
+          ssh.shell "bash"
+        end
+      end.should raise_error
+    end
   end
 
   context "when registering a node" do
@@ -156,6 +164,15 @@ describe DRbQS::ProcessDefinition::Register do
     it "should raise error for invalid node group." do
       lambda do
         subject.node(:node_group, :group => :node_error)
+      end.should raise_error
+    end
+
+    it "should raise an error for invalid keys" do
+      uri = 'druby://:12345'
+      lambda do
+        subject.node(:node_error, :invalid_key => "Hello") do |node|
+          node.connect uri
+        end
       end.should raise_error
     end
   end
@@ -452,20 +469,25 @@ describe DRbQS::ProcessDefinition::Register do
       h[:node].should == nodes
     end
 
-    it "should set default value for some keys." do
-      subject.default(:log => '/tmp/drbqs/log', :some_key => 'some_value')
+    it "should set default value of log file." do
+      subject.default(:log => '/tmp/drbqs/log')
       h = subject.__default__
       h[:log].should == '/tmp/drbqs/log'
-      h[:some_key].should == 'some_value'
     end
 
     it "should clear values." do
-      subject.default(key1: 'val1', key2: 'val2', key3: 'val3')
-      subject.default_clear(:key1, :key2)
+      subject.default(:log => 'val1', :port => '12345', :server => :server1)
+      subject.default_clear(:log, :port)
       h = subject.__default__
-      h[:key1].should be_nil
-      h[:key2].should be_nil
-      h[:key3].should == 'val3'
+      h[:log].should be_nil
+      h[:port].should be_nil
+      h[:server].should == :server1
+    end
+
+    it "should raise an error for invalid keys" do
+      lambda do
+        subject.default(:invalid_key => 'val1')
+      end.should raise_error
     end
   end
 end

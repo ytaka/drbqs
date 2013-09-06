@@ -189,6 +189,7 @@ module DRbQS
       # @example Node group
       #  node :node_group, :group => [:node_local, :node_ssh]
       def node(name, opts = {}, &block)
+        opts.assert_valid_keys(:template, :load, :group)
         name = name.intern
         load_def = opts[:load]
         if ind = @__node__.index { |n, data| name == n }
@@ -245,10 +246,12 @@ module DRbQS
       # @param [Hash] val the pair of key and value
       # @option val [Fixnum] :port Port number of a server
       # @option val [Symbol] :server Server executed by default
+      # @option val [Array] :node Nodes executed by default if server has no node
       # @option val [String] :log Path of log of a server and nods on localhost
       # @example Set default value
       #  default :port => 13456, :server => :server_local, :log => "/tmp/drbqs_execute_log"
       def default(val = {})
+        val.assert_valid_keys(:port, :server, :node, :log)
         val.delete_if { |key, v| !v }
         if val[:server]
           val[:server] = val[:server].intern
@@ -276,6 +279,7 @@ module DRbQS
       # @example Set usage
       #  usage :message => 'Calculate some value', :server => 'server.rb'
       def usage(opts = {})
+        opts.assert_valid_keys(:message, :server)
         @__usage__.merge!(opts)
       end
 
