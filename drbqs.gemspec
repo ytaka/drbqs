@@ -27,4 +27,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'net-ssh-shell', '>= 0.2.0'
   s.add_runtime_dependency "net-sftp", ">= 2.0.5"
   s.add_runtime_dependency "sys-proctable"
+  s.add_runtime_dependency "activesupport"
 end

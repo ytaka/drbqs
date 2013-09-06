@@ -13,6 +13,9 @@ require 'drbqs/version'
 require 'drbqs/execute/server_define'
 require 'drbqs/utility/misc'
 
+require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/array/extract_options'
+
 module DRbQS
   autoload :Server, 'drbqs/server/server'
   autoload :Node, 'drbqs/node/node'
