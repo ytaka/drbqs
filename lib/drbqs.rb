@@ -21,6 +21,7 @@ module DRbQS
   autoload :Node, 'drbqs/node/node'
   autoload :Config, 'drbqs/config/config'
   autoload :Setting, 'drbqs/setting/setting'
+  autoload :Temporary, 'drbqs/utility/temporary'
 
   ROOT_DEFAULT_PORT = 13500
 end

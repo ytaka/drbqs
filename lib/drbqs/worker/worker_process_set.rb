@@ -1,6 +1,5 @@
 require 'drbqs/worker/serialize'
 require 'drbqs/worker/forked_process'
-require 'drbqs/utility/temporary.rb'
 
 module DRbQS
   class Worker
