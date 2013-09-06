@@ -50,7 +50,10 @@ module DRbQS
 
       def exec(io = nil)
         process_def = DRbQS::ProcessDefinition.new(@server, @node, @port, io)
-        process_def.load(@definition) if @definition
+        if @definition
+          process_def.load(@definition)
+          process_def.test_consistency
+        end
         case @mode
         when :help
           io.puts process_def.usage if io

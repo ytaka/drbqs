@@ -5,6 +5,10 @@ module DRbQS
 
     attr_reader :register
 
+    # @param [Symbol] server Symbol of server name
+    # @param [Array] node An array of Symbol which means node name
+    # @param [String] port Port number
+    # @param [IO,nil] io IO object to output
     def initialize(server, node, port, io = nil)
       @server = server
       @node = node
@@ -263,6 +267,26 @@ module DRbQS
         str
       else
         ''
+      end
+    end
+
+    def test_consistency
+      # Test existence of default server
+      if @server && !get_server_setting(@server)
+        raise "Invalid default server: #{@server.inspect}"
+      end
+      # Test existences of default nodes
+      if node_names = default_value(:node)
+        all_node_find_p = true
+        node_names.each do |node|
+          unless get_node_data(node)
+            all_node_find_p = false
+            $stderr.puts "Node definition #{node.inspect} does not exist!"
+          end
+        end
+        unless all_node_find_p
+          raise "Invalid default node."
+        end
       end
     end
   end
