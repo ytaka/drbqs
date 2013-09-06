@@ -203,4 +203,49 @@ describe DRbQS::ProcessDefinition do
       subject.execute_node
     end
   end
+
+
+  context "when testing consistency" do
+    before(:each) do
+      @process_def = DRbQS::ProcessDefinition.new(nil, nil, nil)
+    end
+
+    subject do
+      @process_def
+    end
+
+    it "should not raise error" do
+      subject.register.default(:server => :server_existent)
+      subject.register.server(:server_existent, "example.com") do |server, ssh|
+      end
+      lambda do
+        subject.test_consistency
+      end.should_not raise_error
+    end
+
+    it "should should raise error" do
+      subject.register.default(:server => :server_non_existent)
+      lambda do
+        subject.test_consistency
+      end.should_not raise_error
+    end
+
+    it "should not raise error" do
+      subject.register.default(:node => [:node1, :node2])
+      subject.register.node(:node1) do |node|
+      end
+      subject.register.node(:node2) do |node|
+      end
+      lambda do
+        subject.test_consistency
+      end.should_not raise_error
+    end
+
+    it "should raise an error for non-existent node" do
+      subject.register.default(:node => [:node1, :node2])
+      lambda do
+        subject.test_consistency
+      end.should raise_error
+    end
+  end
 end
