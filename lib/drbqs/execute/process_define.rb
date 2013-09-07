@@ -189,12 +189,15 @@ module DRbQS
           setting.value.connect name.to_s
         end
       else
-        node_log_dir = FileName.create(local_log_directory, 'node_execute_log', :directory => :self)
+        node_log_dir = FileName.create(local_log_directory, "node_#{name}_log", :directory => :self)
         setting.clear :log_stdout
         setting.value.log_prefix File.join(node_log_dir, 'node')
         setting.value.daemon File.join(node_log_dir, 'execute.log')
       end
       setting.parse!
+      # TODO:
+      # If node is on localhost then program is terminated here,
+      # because the node is executed as daemon process.
       setting.exec
     rescue Exception => err
       puts_progress "Fail to execute node '#{name.to_s}'"

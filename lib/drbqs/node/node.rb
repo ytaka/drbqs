@@ -61,7 +61,7 @@ module DRbQS
         transfer_file(files)
       end
       if subdir = result_hash[:tmp]
-        FileUtils.rm_r(result_hash[:tmp])
+        FileUtils.rm_r(subdir)
       end
       @task_client.queue_result(task_id, result_hash[:result])
     end
