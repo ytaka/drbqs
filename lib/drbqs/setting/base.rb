@@ -10,6 +10,7 @@ module DRbQS
     # A base class having options of commands.
     # We must define a method 'exec' this method in a child class.
     class Base
+      include DRbQS::Misc
       extend Forwardable
 
       attr_reader :source
