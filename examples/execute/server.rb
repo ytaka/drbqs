@@ -1,9 +1,3 @@
-# 
-# Usage:
-#  drbqs-server server_def.rb -- 30 50
-#  drbqs-server server_def.rb -- 100 500 --step 100
-# 
-
 require_relative 'sum.rb'
 
 DRbQS.option_parser do |opt, hash|
@@ -12,13 +6,17 @@ DRbQS.option_parser do |opt, hash|
   end
 end
 
+output_path = File.expand_path(File.join(File.dirname(__FILE__), "../../example_execute.log"))
+
 DRbQS.define_server(:check_alive => 5) do |server, argv, opts|
   start_num = (argv[0] || 10).to_i
   end_num = (argv[1] || 50).to_i
   step_num = opts[:step] || 10
   start_num.step(end_num, step_num) do |i|
-    task = DRbQS::Task.new(Sum.new(i - 10, i), :exec, [], "#{i-10} to #{i}") do |srv, ret|
-      puts "Receive: #{ret.inspect}"
+    task = DRbQS::Task.new(Sum.new(i - 10, i), :exec, :args => [], :note => "#{i-10} to #{i}") do |srv, ret|
+      open(output_path, "a+") do |f|
+        f.puts "Receive: #{ret.inspect}"
+      end
     end
     server.queue.add(task)
   end

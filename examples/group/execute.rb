@@ -1,8 +1,11 @@
-default :server => :server_local, :port => 13789, :log => '/tmp/drbqs_execute'
+default :server => :server_local, :port => 13789, :node => [:node_odd, :node_even], :log => '/tmp/drbqs_execute'
 
 current_dir = File.expand_path(File.dirname(__FILE__))
 
-usage :message => "Calculate sum of numbers", :server => File.join(current_dir, 'server.rb')
+usage :message => <<MES, :server => File.join(current_dir, 'server.rb')
+Calculate sum of numbers.
+Results are output to logs in /tmp/drbqs_execute
+MES
 
 server :server, "localhost" do |server|
   server.load File.expand_path(File.join(File.dirname(__FILE__), 'server.rb'))
