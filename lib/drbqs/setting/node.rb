@@ -69,7 +69,12 @@ module DRbQS
       private :parse_group
 
       def exec(io = nil)
-        return true if exec_as_daemon
+        if @__daemon__
+          fork do
+            exec_as_daemon
+          end
+          return true
+        end
 
         @options[:load].each do |path|
           io.puts "load #{path}" if io

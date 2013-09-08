@@ -217,10 +217,14 @@ module DRbQS
     end
     private :each_node_to_execute
 
+    TIME_INTERVAL_EXECUTE_NODE = 1
+
     def execute_node
       if uri = server_uri(@server)
         each_node_to_execute do |name, data|
           execute_one_node(name, data, uri)
+          # If there is no time interval then drb does not work properly.
+          sleep(TIME_INTERVAL_EXECUTE_NODE)
         end
       end
     end
