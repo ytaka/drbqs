@@ -1,3 +1,5 @@
+require "cgi"
+
 module DRbQS
   class ProcessList
     PROCESS_ROOT_DIRECTORY = 'process'
@@ -68,9 +70,9 @@ module DRbQS
       def uri_to_file(uri)
         case uri
         when /^druby.*:(\d+)$/
-          "druby_#{Regexp.last_match[1]}.yaml"
-        when /^drbunix:(.*)$/
-          "drbunix#{Regexp.last_match[1].gsub(/\//, '_')}.yaml"
+          "druby_#{CGI.escape(Regexp.last_match[1])}.yaml"
+        when /^drbunix:(.+)$/
+          "drbunix_#{CGI.escape(Regexp.last_match[1])}.yaml"
         else
           raise ArgumentError, "Invalid uri of drbqs server: #{uri}"
         end
@@ -80,10 +82,10 @@ module DRbQS
       def file_to_uri(file)
         s = file.sub(/\.yaml$/, '')
         case s
-        when /^druby/
-          s.sub(/_/, '://:')
-        when /^drbunix$/
-          s.gsub(/_/, '/')
+        when /^druby_(.+)$/
+          "druby://:#{CGI.unescape(Regexp.last_match[1])}"
+        when /^drbunix_(.+)$/
+          "drbunix:#{CGI.unescape(Regexp.last_match[1])}"
         else
           raise ArgumentError, "Invalid file name in process list: #{file}"
         end
