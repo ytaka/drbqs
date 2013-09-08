@@ -85,6 +85,7 @@ module DRbQS
         end
 
         if io
+          io.puts "PID: #{Process.pid}"
           io.puts "Connect to #{@uri}"
           io.puts "Execute #{@process_num} processes"
         end
