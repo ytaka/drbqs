@@ -10,7 +10,7 @@ module DRbQS
           [:port, :server, :node].each do |key|
             register_key(key, :check => 1)
           end
-          [:no_server, :no_node, :information, :help].each do |key|
+          [:no_server, :no_node, :wait_server_finish, :information, :help].each do |key|
             register_key(key, :bool => true)
           end
           set_argument_condition(:<=, 1)
@@ -43,6 +43,7 @@ module DRbQS
         else
           @mode = nil
         end
+        @wait_server_finish = set?(:wait_server_finish)
         if @mode != :help && !@definition
           raise DRbQS::Setting::InvalidArgument, "Definition file must be specified."
         end
@@ -65,6 +66,9 @@ module DRbQS
           end
           unless @no_node
             process_def.execute_node
+          end
+          if !@no_server && @wait_server_finish
+            process_def.wait_server_finish
           end
         end
         true

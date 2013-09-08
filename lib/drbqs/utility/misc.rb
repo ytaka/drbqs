@@ -16,6 +16,11 @@ module DRbQS
       end
     end
 
+    def uri_drbunix(path)
+      "drbunix:#{path}"
+    end
+    module_function :uri_drbunix
+
     # @param [Hash] opts The arguments of URI of server
     # @option opts [Fixnum] :port Port number of a server
     # @option opts [String] :host Hostname of a server
@@ -33,7 +38,7 @@ module DRbQS
         elsif File.exist?(path)
           raise ArgumentError, "File #{path} already exists."
         end
-        "drbunix:#{path}"
+        uri_drbunix(path)
       end
     end
     module_function :create_uri

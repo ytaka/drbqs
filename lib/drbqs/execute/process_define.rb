@@ -101,13 +101,16 @@ module DRbQS
     private :server_port
 
     def server_uri(name)
+      uri = nil
       if ary = get_server_setting(name)
         data = ary[1]
-        unless data[:unix_domain_socket]
-          return DRbQS::Misc.create_uri(:host => data[:args][0], :port => server_port)
+        if data[:unix_domain_socket]
+          uri = DRbQS::Misc.uri_drbunix(data[:setting].value.unix.first)
+        else
+          uri = DRbQS::Misc.create_uri(:host => data[:args][0], :port => server_port)
         end
       end
-      nil
+      uri
     end
     private :server_uri
 
@@ -220,7 +223,8 @@ module DRbQS
     TIME_INTERVAL_EXECUTE_NODE = 1
 
     def execute_node
-      if uri = server_uri(@server)
+      uri = server_uri(@server)
+      if uri && /^drbunix/ !~ uri
         each_node_to_execute do |name, data|
           execute_one_node(name, data, uri)
           # If there is no time interval then drb does not work properly.
@@ -328,6 +332,20 @@ module DRbQS
         unless all_node_find_p
           raise "Invalid default node."
         end
+      end
+    end
+
+    TIME_INTERVAL_WAIT_SERVER_FINISH = 3
+
+    def wait_server_finish
+      if uri = server_uri(@server)
+        puts_progress "Wait finish of server #{uri}"
+        manage = DRbQS::Manage.new(:uri => uri)
+        while manage.server_respond?
+          sleep(TIME_INTERVAL_EXECUTE_NODE)
+        end
+      else
+        puts_progress "We tried to wait finish, however, we can not determine server uri"
       end
     end
   end

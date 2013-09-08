@@ -20,6 +20,7 @@ HELP
           set(:node, '-n STR', '--node STR', String, 'Set the comma sparated key of nodes.')
           set(:no_server, '--no-server', 'Not execute server.')
           set(:no_node, '--no-node', 'Not execute node.')
+          set(:wait_server_finish, "--wait-server-finish", "Wait finish of server process.")
           set(:information, '-i', '--information', 'Show information.')
           set(:help, '-h', '--help', 'Show this command help and usage of definition file.') do |opt|
             $stdout.print opt
