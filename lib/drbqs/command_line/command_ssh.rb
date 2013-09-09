@@ -28,6 +28,7 @@ HELP
           set(:rvm_init, '--rvm-init PATH', String, 'Path of script to initialize RVM over ssh.')
           set(:output, '-o DIR', '--output DIR', String, 'Directory path that a server and nodes output.')
           set(:nice, '--nice NUM', Integer, 'Set the value of nice for a server and nodes. The default is 10.')
+          set(:bundler, '--bundler', 'Use bundler to execute filename-create, drbqs-server, and drbqs-node.')
         end
         setting.set_argument(*args)
         case setting.get_argument[0]

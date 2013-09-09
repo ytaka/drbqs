@@ -14,6 +14,7 @@ require 'drbqs/execute/server_define'
 require 'drbqs/utility/misc'
 
 require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/array/extract_options'
 
 module DRbQS

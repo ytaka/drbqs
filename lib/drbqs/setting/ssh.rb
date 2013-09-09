@@ -10,6 +10,7 @@ module DRbQS
           [:directory, :shell, :rvm, :rvm_init, :output, :connect].each do |key|
             register_key(key, :check => 1)
           end
+          register_key(:bundler, :bool => true)
           register_key(:nice, :check => 1, :default => [10])
           set_argument_condition(:>=, 0)
         end
@@ -66,7 +67,7 @@ module DRbQS
       # this method raises an error.
       def parse!
         super
-        [:directory, :shell, :rvm, :rvm_init, :nice].each do |key|
+        [:directory, :shell, :rvm, :rvm_init, :nice, :bundler].each do |key|
           if val = get_first(key)
             @options[key] = val
           end

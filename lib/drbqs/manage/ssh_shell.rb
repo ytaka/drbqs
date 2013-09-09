@@ -63,19 +63,20 @@ module DRbQS
       # @option opts [String] :shell     The shell to use.
       # @option opts [String] :keys      Path of a ssh key.
       # @option opts [IO]     :io        IO to output results of commands.
-      # @option opts [Hash]   :env       Same as options DRbQS::Manage::SSHShell::RubyEnvironment.
       # @option opts [String] :directory Same as options DRbQS::Manage::SSHShell::RubyEnvironment.
       # @option opts [String] :rvm       Same as options DRbQS::Manage::SSHShell::RubyEnvironment.
       # @option opts [String] :rvm_init  Same as options DRbQS::Manage::SSHShell::RubyEnvironment.
+      # @option opts [Hash]   :env       Same as options DRbQS::Manage::SSHShell::RubyEnvironment.
       def initialize(dest, opts = {})
         @user, @host, @port = split_destination(dest)
         if !(@host && @user)
           raise ArgumentError, "Invalid ssh server: host=#{@host.inspect}, user=#{@user.inspect}."
         end
+        opts = opts.dup
         @keys = opts.delete(:keys)
         @shell = opts.delete(:shell) || DEFAULT_SHELL
-        @ruby_environment = DRbQS::Manage::SSHShell::RubyEnvironment.new(opts)
-        @out = opts[:io]
+        @out = opts.delete(:io)
+        @ruby_environment = DRbQS::Manage::SSHShell::RubyEnvironment.new(opts.slice(:directory, :rvm, :rvm_init, :env))
         @ssh = nil
       end
 
