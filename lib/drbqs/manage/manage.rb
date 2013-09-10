@@ -57,20 +57,22 @@ module DRbQS
       config.save_sample
     end
 
-    [:get_status, :get_history, :send_exit_signal, :send_node_exit_after_task,
+    [:get_status, :get_response, :get_history, :send_exit_signal, :send_node_exit_after_task,
      :send_node_wake, :send_node_sleep, :send_data].each do |method_name|
       def_delegator :signal_sender, method_name, method_name
     end
 
     def server_respond?
+      ret = nil
       begin
-        get_status
-        true
+        if get_response
+          ret = true
+        end
       rescue DRbQS::Manage::NotSetURI
         raise
       rescue
-        nil
       end
+      ret
     end
 
     # If the server responds, this method returns true.

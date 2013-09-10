@@ -67,6 +67,14 @@ module DRbQS
         end
         nil
       end
+
+      def get_response
+        send_signal_to_server(:request_response, [sender_id, Time.now])
+        if mes = wait_response([:response, sender_id, nil])
+          return true
+        end
+        nil
+      end
     end
   end
 end

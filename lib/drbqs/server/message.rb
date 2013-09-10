@@ -49,6 +49,9 @@ module DRbQS
           return [mes, arg]
         when :request_status
           @logger.info("Get status request from #{arg.to_s}")
+        when :request_response
+          @logger.info("Get respond request from #{arg[0].to_s} at #{arg[1].to_s}")
+          return [mes, arg]
         when :request_history
           @logger.info("Get history request from #{arg.to_s}")
         when :sleep_node
@@ -128,6 +131,14 @@ module DRbQS
         rescue Rinda::RequestExpiredError
         end
         @message.write([:status, server_status_string])
+      end
+
+      def send_only_response(sender_id, request_time)
+        begin
+          @message.take([:response, sender_id, nil], 0)
+        rescue Rinda::RequestExpiredError
+        end
+        @message.write([:response, sender_id, request_time])
       end
 
       def send_history(history_string)

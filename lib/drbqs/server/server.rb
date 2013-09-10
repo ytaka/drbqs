@@ -374,6 +374,8 @@ module DRbQS
           self.exit
         when :request_status
           send_status_for_request
+        when :request_response
+          @message.send_only_response(arg[0], arg[1])
         when :request_history
           @message.send_history(@queue.all_logs)
         when :exit_after_task
