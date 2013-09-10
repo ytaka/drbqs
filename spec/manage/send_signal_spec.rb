@@ -44,4 +44,13 @@ describe DRbQS::Manage::SendSignal do
       @ts.take([:server, :new_data, data], 0)
     end.should_not raise_error 
   end
+
+  it "should send request of response." do
+    t = Time.now
+    Time.should_receive(:now).and_return(t)
+    sender_id = @send_signal.sender_id
+    @ts.should_receive(:write).with([:server, :request_response, [sender_id, t]])
+    @ts.should_receive(:take).once.and_return([:response, [sender_id, t]])
+    @send_signal.get_response
+  end
 end

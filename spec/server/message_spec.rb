@@ -62,6 +62,13 @@ describe DRbQS::Server::Message do
       @message_server.get_message.should == [:request_status]
     end
 
+    it "should get :request_response message" do
+      t = Time.now
+      sender_id = "sender_id"
+      @message.write([:server, :request_response, [sender_id, t]])
+      @message_server.get_message.should == [:request_response, [sender_id, t]]
+    end
+
     it "should get :node_error message" do
       node_id = 74
       @message.write([:server, :node_error, [node_id, 'Error occurs.']])
@@ -113,6 +120,16 @@ describe DRbQS::Server::Message do
       @message_server.send_status('status message')
       sym, status = @message.take([:status, nil])
       status.should be_an_instance_of String
+    end
+
+    it "should send only response" do
+      sender_id = "sender_id"
+      t = Time.now
+      @message_server.send_only_response(sender_id, t)
+      sym, sender_id2, t2 = @message.take([:response, sender_id, nil])
+      sym.should == :response
+      sender_id2.should == sender_id
+      t2.should == t
     end
 
     after(:all) do
